@@ -44,33 +44,33 @@
     #filters button:hover {
       background: #4a00e0;
     }
-    #videoList {
-      list-style: none;
-      padding: 1rem;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    #videoList li {
+    #videoTable {
+      width: 95%;
+      margin: 1rem auto;
+      border-collapse: collapse;
       background: white;
-      padding: 1rem;
-      border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      margin-bottom: 1rem;
-      transition: transform 0.2s ease;
     }
-    #videoList li:hover {
-      transform: translateY(-4px);
+    #videoTable th, #videoTable td {
+      border: 1px solid #ddd;
+      padding: 0.75em;
+      text-align: left;
+      font-size: 0.95em;
     }
-    #videoList a {
-      text-decoration: none;
+    #videoTable th {
+      background-color: #f0ecfb;
       color: #4a00e0;
-      font-weight: 600;
-      display: block;
-      margin-bottom: 0.5em;
     }
-    .video-info {
-      font-size: 0.9em;
-      color: #666;
+    #videoTable tr:hover {
+      background-color: #f9f1ff;
+    }
+    .title-link {
+      color: #4a00e0;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .title-link:hover {
+      text-decoration: underline;
     }
     #videoPlayer {
       position: fixed;
@@ -191,22 +191,42 @@
       }
 
       function renderVideoList(videos) {
-        videoList.innerHTML = '';
+        videoList.innerHTML = '<table id="videoTable"><thead><tr><th>曲名 - アーティスト</th><th>カテゴリ</th><th>公開日</th><th>動画種別</th><th>担当区分</th></tr></thead><tbody></tbody></table>';
+        const tbody = document.querySelector('#videoTable tbody');
+
         videos.forEach(video => {
-          const li = document.createElement('li');
+          const tr = document.createElement('tr');
+
+          const tdTitle = document.createElement('td');
           const link = document.createElement('a');
           link.href = "#";
           link.textContent = `${video["title"]} - ${video["artist"]}`;
+          link.className = 'title-link';
           link.onclick = e => {
             e.preventDefault();
             loadVideo(video);
           };
-          const info = document.createElement('div');
-          info.className = 'video-info';
-          info.textContent = `カテゴリ: ${video["カテゴリ"]} ／ 公開日: ${video["公開日"]} ／ 動画種別: ${video["動画種別"]} ／ 担当区分: ${video["担当区分"]}`;
-          li.appendChild(link);
-          li.appendChild(info);
-          videoList.appendChild(li);
+          tdTitle.appendChild(link);
+
+          const tdCategory = document.createElement('td');
+          tdCategory.textContent = video["カテゴリ"];
+
+          const tdDate = document.createElement('td');
+          tdDate.textContent = video["公開日"];
+
+          const tdType = document.createElement('td');
+          tdType.textContent = video["動画種別"];
+
+          const tdRole = document.createElement('td');
+          tdRole.textContent = video["担当区分"];
+
+          tr.appendChild(tdTitle);
+          tr.appendChild(tdCategory);
+          tr.appendChild(tdDate);
+          tr.appendChild(tdType);
+          tr.appendChild(tdRole);
+
+          tbody.appendChild(tr);
         });
       }
 
@@ -247,7 +267,7 @@
     </select>
     <button id="resetFilters">リセット</button>
   </div>
-  <ul id="videoList"></ul>
+  <div id="videoList"></div>
   <div id="videoPlayer"></div>
 </body>
 </html>
