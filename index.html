@@ -4,34 +4,73 @@
   <meta charset="UTF-8">
   <title>Vtuber 歌ってみたリスト</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       padding-bottom: 330px;
-      font-family: sans-serif;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9f9fb;
+      color: #333;
+    }
+    h1 {
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      margin: 0;
     }
     #filters {
       display: flex;
       flex-wrap: wrap;
       gap: 1em;
-      padding: 1em;
+      padding: 1rem;
+      justify-content: center;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     #filters select, #filters input, #filters button {
       padding: 0.5em;
       font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #filters button {
+      background: #8e2de2;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #filters button:hover {
+      background: #4a00e0;
     }
     #videoList {
       list-style: none;
-      padding: 0 1em;
+      padding: 1rem;
+      max-width: 900px;
+      margin: 0 auto;
     }
     #videoList li {
-      margin-bottom: 1em;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 0.5em;
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 1rem;
+      transition: transform 0.2s ease;
+    }
+    #videoList li:hover {
+      transform: translateY(-4px);
+    }
+    #videoList a {
+      text-decoration: none;
+      color: #4a00e0;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.5em;
     }
     .video-info {
       font-size: 0.9em;
-      color: #555;
+      color: #666;
     }
     #videoPlayer {
       position: fixed;
@@ -44,6 +83,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
     }
     iframe {
       width: 90%;
@@ -51,6 +91,10 @@
       max-width: 800px;
     }
     @media (max-width: 600px) {
+      #filters {
+        flex-direction: column;
+        align-items: stretch;
+      }
       iframe {
         width: 100%;
         height: 100%;
@@ -78,148 +122,5 @@
   <div id="videoPlayer">
     <!-- プレーヤー埋め込みエリア -->
   </div>
-
-  <script>
-    const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
-    let allVideos = [];
-
-    fetch(sheetJsonUrl)
-      .then(response => response.json())
-      .then(data => {
-        allVideos = data;
-        populateFilters(data);
-        applyFilters();
-      })
-      .catch(error => console.error('JSON読み込みエラー:', error));
-
-    const videoList = document.getElementById('videoList');
-    const videoPlayer = document.getElementById('videoPlayer');
-
-    const categoryFilter = document.getElementById('categoryFilter');
-    const dateFilter = document.getElementById('dateFilter');
-    const typeFilter = document.getElementById('typeFilter');
-    const roleFilter = document.getElementById('roleFilter');
-    const searchInput = document.getElementById('searchInput');
-    const sortOrder = document.getElementById('sortOrder');
-    const resetButton = document.getElementById('resetFilters');
-
-    function populateFilters(videos) {
-      const categorySet = new Set();
-      const dateSet = new Set();
-      const typeSet = new Set();
-      const roleSet = new Set();
-
-      videos.forEach(v => {
-        categorySet.add(v["カテゴリ"]);
-        dateSet.add(v["公開日"]);
-        typeSet.add(v["動画種別"]);
-        roleSet.add(v["担当区分"]);
-      });
-
-      addOptions("categoryFilter", [...categorySet].sort());
-      addOptions("dateFilter", [...dateSet].sort());
-      addOptions("typeFilter", [...typeSet].sort());
-      addOptions("roleFilter", [...roleSet].sort());
-
-      document.querySelectorAll('#filters select, #searchInput').forEach(el => {
-        el.addEventListener('change', applyFilters);
-        el.addEventListener('input', applyFilters);
-      });
-
-      resetButton.addEventListener('click', () => {
-        categoryFilter.value = "";
-        dateFilter.value = "";
-        typeFilter.value = "";
-        roleFilter.value = "";
-        searchInput.value = "";
-        sortOrder.value = "desc";
-        applyFilters();
-      });
-    }
-
-    function addOptions(selectId, values) {
-      const select = document.getElementById(selectId);
-      values.forEach(v => {
-        if (!v) return;
-        const option = document.createElement('option');
-        option.value = v;
-        option.textContent = v;
-        select.appendChild(option);
-      });
-    }
-
-    function applyFilters() {
-      let filtered = allVideos.filter(video => {
-        return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
-               (!dateFilter.value || video["公開日"] === dateFilter.value) &&
-               (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
-               (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
-               (!searchInput.value ||
-                video["title"].toLowerCase().includes(searchInput.value.toLowerCase()) ||
-                video["artist"].toLowerCase().includes(searchInput.value.toLowerCase()));
-      });
-
-      filtered.sort((a, b) => {
-        const dateA = new Date(a["公開日"]);
-        const dateB = new Date(b["公開日"]);
-        return sortOrder.value === "asc" ? dateA - dateB : dateB - dateA;
-      });
-
-      renderVideoList(filtered);
-    }
-
-    function renderVideoList(videos) {
-      videoList.innerHTML = '';
-      videos.forEach(video => {
-        const listItem = document.createElement('li');
-        const link = document.createElement('a');
-        link.href = "#";
-        link.textContent = `${video["title"]} - ${video["artist"]}`;
-        link.onclick = (e) => {
-          e.preventDefault();
-          loadVideo(video);
-        };
-
-        const info = document.createElement('div');
-        info.className = 'video-info';
-        info.innerHTML = `
-          カテゴリ: ${video["カテゴリ"] || ''} ／ 
-          公開日: ${video["公開日"] || ''} ／ 
-          動画種別: ${video["動画種別"] || ''} ／ 
-          担当区分: ${video["担当区分"] || ''}
-        `;
-
-        listItem.appendChild(link);
-        listItem.appendChild(info);
-        videoList.appendChild(listItem);
-      });
-    }
-
-    function loadVideo(video) {
-      let embedUrl = "";
-      const start = parseInt(video["start"] || '0');
-      const platform = video["platform"];
-      let videoId = video["videoId"];
-
-      if (!videoId) {
-        alert("videoId が指定されていません");
-        return;
-      }
-
-      if (platform.toLowerCase().includes("youtube")) {
-        const youtubeIdMatch = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
-        if (youtubeIdMatch) {
-          videoId = youtubeIdMatch[1];
-        }
-        embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1`;
-      } else if (platform.toLowerCase() === "tiktok") {
-        const tiktokIdMatch = videoId.match(/video\/(\d+)/);
-        const tiktokId = tiktokIdMatch ? tiktokIdMatch[1] : videoId;
-        embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
-      }
-
-      videoPlayer.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-    }
-  </script>
 </body>
 </html>
