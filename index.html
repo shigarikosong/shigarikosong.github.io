@@ -53,22 +53,30 @@
       let embedUrl = "";
       const start = parseInt(video["start"] || '0');
       const platform = video["platform"];
-      const videoId = video["videoId"];
+      let videoId = video["videoId"];
 
       if (!videoId) {
         alert("videoId が指定されていません");
         return;
       }
 
+      // YouTubeのURLからvideoId抽出
       if (platform.toLowerCase().includes("youtube")) {
+        const youtubeIdMatch = videoId.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+        if (youtubeIdMatch) {
+          videoId = youtubeIdMatch[1];
+        }
         embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1`;
-      } else if (platform.toLowerCase() === "tiktok") {
+      }
+
+      // TikTokのvideo ID抽出
+      else if (platform.toLowerCase() === "tiktok") {
         const tiktokIdMatch = videoId.match(/video\/(\d+)/);
         const tiktokId = tiktokIdMatch ? tiktokIdMatch[1] : videoId;
         embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
       }
 
-      videoPlayer.innerHTML = `<iframe width="560" height="315" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
+      videoPlayer.innerHTML = `<iframe width="560" height="315" src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     }
   </script>
 </body>
