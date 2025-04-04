@@ -10,6 +10,16 @@
       padding-bottom: 330px;
       font-family: sans-serif;
     }
+    #filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      padding: 1em;
+    }
+    #filters select, #filters input, #filters button {
+      padding: 0.5em;
+      font-size: 1em;
+    }
     #videoList {
       list-style: none;
       padding: 0 1em;
@@ -50,6 +60,18 @@
 </head>
 <body>
   <h1>Vtuber 歌ってみたリスト</h1>
+  <div id="filters">
+    <select id="categoryFilter"><option value="">カテゴリで絞り込み</option></select>
+    <select id="dateFilter"><option value="">公開日で絞り込み</option></select>
+    <select id="typeFilter"><option value="">動画種別で絞り込み</option></select>
+    <select id="roleFilter"><option value="">担当区分で絞り込み</option></select>
+    <input id="searchInput" type="text" placeholder="曲名・アーティストで検索">
+    <select id="sortOrder">
+      <option value="desc">公開日が新しい順</option>
+      <option value="asc">公開日が古い順</option>
+    </select>
+    <button id="resetFilters">リセット</button>
+  </div>
   <ul id="videoList">
     <!-- 動画リストがここに入る -->
   </ul>
@@ -59,16 +81,92 @@
 
   <script>
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
+    let allVideos = [];
 
     fetch(sheetJsonUrl)
       .then(response => response.json())
       .then(data => {
-        renderVideoList(data);
+        allVideos = data;
+        populateFilters(data);
+        applyFilters();
       })
       .catch(error => console.error('JSON読み込みエラー:', error));
 
     const videoList = document.getElementById('videoList');
     const videoPlayer = document.getElementById('videoPlayer');
+
+    const categoryFilter = document.getElementById('categoryFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const roleFilter = document.getElementById('roleFilter');
+    const searchInput = document.getElementById('searchInput');
+    const sortOrder = document.getElementById('sortOrder');
+    const resetButton = document.getElementById('resetFilters');
+
+    function populateFilters(videos) {
+      const categorySet = new Set();
+      const dateSet = new Set();
+      const typeSet = new Set();
+      const roleSet = new Set();
+
+      videos.forEach(v => {
+        categorySet.add(v["カテゴリ"]);
+        dateSet.add(v["公開日"]);
+        typeSet.add(v["動画種別"]);
+        roleSet.add(v["担当区分"]);
+      });
+
+      addOptions("categoryFilter", [...categorySet].sort());
+      addOptions("dateFilter", [...dateSet].sort());
+      addOptions("typeFilter", [...typeSet].sort());
+      addOptions("roleFilter", [...roleSet].sort());
+
+      document.querySelectorAll('#filters select, #searchInput').forEach(el => {
+        el.addEventListener('change', applyFilters);
+        el.addEventListener('input', applyFilters);
+      });
+
+      resetButton.addEventListener('click', () => {
+        categoryFilter.value = "";
+        dateFilter.value = "";
+        typeFilter.value = "";
+        roleFilter.value = "";
+        searchInput.value = "";
+        sortOrder.value = "desc";
+        applyFilters();
+      });
+    }
+
+    function addOptions(selectId, values) {
+      const select = document.getElementById(selectId);
+      values.forEach(v => {
+        if (!v) return;
+        const option = document.createElement('option');
+        option.value = v;
+        option.textContent = v;
+        select.appendChild(option);
+      });
+    }
+
+    function applyFilters() {
+      let filtered = allVideos.filter(video => {
+        return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
+               (!dateFilter.value || video["公開日"] === dateFilter.value) &&
+               (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
+               (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
+               (!searchInput.value ||
+                video["title"].toLowerCase().includes(searchInput.value.toLowerCase()) ||
+                video["artist"].toLowerCase().includes(searchInput.value.toLowerCase()));
+      });
+
+      filtered.sort((a, b) => {
+        const dateA = new Date(a["公開日"]);
+        const dateB = new Date(b["公開日"]);
+        return sortOrder.value === "asc" ? dateA - dateB : dateB - dateA;
+      });
+
+      renderVideoList(filtered);
+    }
 
     function renderVideoList(videos) {
       videoList.innerHTML = '';
