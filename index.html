@@ -4,139 +4,39 @@
   <meta charset="UTF-8">
   <title>にじさんじ所属 司賀りこ 歌まとめ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --main-color: #FFE36C;
-      --sub-color: #839DDE;
-      --text-dark: #333;
-      --text-muted: #666;
-      --bg-light: #fdfdfd;
-    }
-    body {
-      margin: 0;
-      padding-bottom: 330px;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(to bottom, #fffbe6, #ffffff);
-      color: var(--text-dark);
-    }
-    h1 {
-      background: linear-gradient(to right, var(--main-color), var(--sub-color));
-      color: #222;
-      padding: 1.2rem;
-      text-align: center;
-      margin: 0;
-      font-size: 1.8rem;
-      letter-spacing: 1px;
-    }
-    #filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1em;
-      padding: 1rem;
-      justify-content: center;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      border-radius: 0 0 12px 12px;
-    }
-    #filters select, #filters input, #filters button {
-      padding: 0.6em 0.8em;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      transition: all 0.2s ease;
-    }
-    #filters button {
-      background: var(--main-color);
-      color: #222;
-      border: none;
-      font-weight: bold;
-    }
-    #filters button:hover {
-      background: var(--sub-color);
-      color: #fff;
-    }
-    #videoList {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1.5rem;
-      padding: 2rem;
-    }
-    .video-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-      padding: 1.2rem;
-      width: 320px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .video-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-    }
-    .video-title {
-      font-weight: 600;
-      font-size: 1.05rem;
-      margin-bottom: 0.5rem;
-      color: var(--sub-color);
-      text-decoration: none;
-      display: inline-block;
-    }
-    .video-meta {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-    #videoPlayer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 30vh;
-      background: #000;
-      z-index: 9999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
-    }
-    iframe {
-      width: 90%;
-      height: 100%;
-      max-width: 800px;
-    }
-    @media (max-width: 600px) {
-      #filters {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .video-card {
-        width: 100%;
-      }
-      iframe {
-        width: 100%;
-        height: 100%;
-      }
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>にじさんじ所属 司賀りこ 歌まとめ</h1>
-  <div id="filters">
-    <select id="categoryFilter"><option value="">カテゴリで絞り込み</option></select>
-    <select id="dateFilter"><option value="">公開日で絞り込み</option></select>
-    <select id="typeFilter"><option value="">動画種別で絞り込み</option></select>
-    <select id="roleFilter"><option value="">担当区分で絞り込み</option></select>
-    <input id="searchInput" type="text" placeholder="曲名・アーティストで検索">
-    <select id="sortOrder">
+<body class="bg-yellow-50 font-sans text-gray-800">
+  <header class="bg-gradient-to-r from-yellow-300 to-blue-300 py-6 text-center text-2xl font-bold text-gray-900 shadow">
+    にじさんじ所属 司賀りこ 歌まとめ
+  </header>
+
+  <section class="flex flex-wrap justify-center gap-3 p-4 bg-white shadow-md">
+    <select id="categoryFilter" class="border rounded px-3 py-2">
+      <option value="">カテゴリで絞り込み</option>
+    </select>
+    <select id="dateFilter" class="border rounded px-3 py-2">
+      <option value="">公開日で絞り込み</option>
+    </select>
+    <select id="typeFilter" class="border rounded px-3 py-2">
+      <option value="">動画種別で絞り込み</option>
+    </select>
+    <select id="roleFilter" class="border rounded px-3 py-2">
+      <option value="">担当区分で絞り込み</option>
+    </select>
+    <input id="searchInput" type="text" placeholder="曲名・アーティストで検索" class="border rounded px-3 py-2"/>
+    <select id="sortOrder" class="border rounded px-3 py-2">
       <option value="desc">公開日が新しい順</option>
       <option value="asc">公開日が古い順</option>
     </select>
-    <button id="resetFilters">リセット</button>
+    <button id="resetFilters" class="bg-yellow-300 hover:bg-blue-300 text-black font-semibold px-4 py-2 rounded">リセット</button>
+  </section>
+
+  <main id="videoList" class="flex flex-wrap justify-center gap-6 p-6"></main>
+
+  <div id="videoPlayer" class="fixed bottom-0 left-0 w-full h-[30vh] bg-black flex justify-center items-center shadow-inner z-50">
+    <!-- iframe will be inserted here -->
   </div>
-  <div id="videoList"></div>
-  <div id="videoPlayer"></div>
 
   <script>
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
@@ -231,25 +131,25 @@
 
         videos.forEach(video => {
           const card = document.createElement('div');
-          card.className = 'video-card';
+          card.className = 'bg-white rounded-lg shadow-md p-4 w-80 hover:shadow-xl transition';
 
-          const link = document.createElement('a');
-          link.href = "#";
-          link.textContent = `${video["title"]} - ${video["artist"]}`;
-          link.className = 'video-title';
-          link.onclick = e => {
+          const title = document.createElement('a');
+          title.href = "#";
+          title.className = 'text-blue-600 font-semibold hover:underline block text-lg mb-2';
+          title.textContent = `${video["title"]} - ${video["artist"]}`;
+          title.onclick = e => {
             e.preventDefault();
             loadVideo(video);
           };
 
           const meta = document.createElement('div');
-          meta.className = 'video-meta';
+          meta.className = 'text-sm text-gray-600';
           meta.innerHTML = `カテゴリ: ${video["カテゴリ"]}<br>
-                             公開日: ${video["公開日"]}<br>
-                             動画種別: ${video["動画種別"]}<br>
-                             担当区分: ${video["担当区分"]}`;
+                            公開日: ${video["公開日"]}<br>
+                            動画種別: ${video["動画種別"]}<br>
+                            担当区分: ${video["担当区分"]}`;
 
-          card.appendChild(link);
+          card.appendChild(title);
           card.appendChild(meta);
           videoList.appendChild(card);
         });
@@ -273,7 +173,7 @@
           embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
         }
 
-        document.getElementById('videoPlayer').innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        document.getElementById('videoPlayer').innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-[90%] h-full max-w-3xl"></iframe>`;
       }
     });
   </script>
