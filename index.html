@@ -56,39 +56,37 @@
       background: var(--sub-color);
       color: #fff;
     }
-    #videoTable {
-      width: 95%;
-      margin: 2rem auto;
-      border-collapse: separate;
-      border-spacing: 0;
+    #videoList {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+    .video-card {
       background: white;
       border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      padding: 1.2rem;
+      width: 320px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    #videoTable th, #videoTable td {
-      padding: 1em;
-      text-align: left;
-      font-size: 0.95em;
+    .video-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     }
-    #videoTable thead {
-      background: var(--main-color);
-      color: #222;
-    }
-    #videoTable tr:nth-child(even) {
-      background-color: #fffef6;
-    }
-    #videoTable tr:hover {
-      background-color: #f0f6ff;
-      transition: background 0.3s ease;
-    }
-    .title-link {
+    .video-title {
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
       color: var(--sub-color);
       text-decoration: none;
-      font-weight: 600;
+      display: inline-block;
     }
-    .title-link:hover {
-      text-decoration: underline;
+    .video-meta {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
     #videoPlayer {
       position: fixed;
@@ -112,6 +110,9 @@
       #filters {
         flex-direction: column;
         align-items: stretch;
+      }
+      .video-card {
+        width: 100%;
       }
       iframe {
         width: 100%;
@@ -226,42 +227,31 @@
       }
 
       function renderVideoList(videos) {
-        videoList.innerHTML = '<table id="videoTable"><thead><tr><th>曲名 - アーティスト</th><th>カテゴリ</th><th>公開日</th><th>動画種別</th><th>担当区分</th></tr></thead><tbody></tbody></table>';
-        const tbody = document.querySelector('#videoTable tbody');
+        videoList.innerHTML = '';
 
         videos.forEach(video => {
-          const tr = document.createElement('tr');
+          const card = document.createElement('div');
+          card.className = 'video-card';
 
-          const tdTitle = document.createElement('td');
           const link = document.createElement('a');
           link.href = "#";
           link.textContent = `${video["title"]} - ${video["artist"]}`;
-          link.className = 'title-link';
+          link.className = 'video-title';
           link.onclick = e => {
             e.preventDefault();
             loadVideo(video);
           };
-          tdTitle.appendChild(link);
 
-          const tdCategory = document.createElement('td');
-          tdCategory.textContent = video["カテゴリ"];
+          const meta = document.createElement('div');
+          meta.className = 'video-meta';
+          meta.innerHTML = `カテゴリ: ${video["カテゴリ"]}<br>
+                             公開日: ${video["公開日"]}<br>
+                             動画種別: ${video["動画種別"]}<br>
+                             担当区分: ${video["担当区分"]}`;
 
-          const tdDate = document.createElement('td');
-          tdDate.textContent = video["公開日"];
-
-          const tdType = document.createElement('td');
-          tdType.textContent = video["動画種別"];
-
-          const tdRole = document.createElement('td');
-          tdRole.textContent = video["担当区分"];
-
-          tr.appendChild(tdTitle);
-          tr.appendChild(tdCategory);
-          tr.appendChild(tdDate);
-          tr.appendChild(tdType);
-          tr.appendChild(tdRole);
-
-          tbody.appendChild(tr);
+          card.appendChild(link);
+          card.appendChild(meta);
+          videoList.appendChild(card);
         });
       }
 
