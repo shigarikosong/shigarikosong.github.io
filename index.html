@@ -3,11 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <title>Vtuber 歌ってみたリスト</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    body {
+      margin: 0;
+      padding-bottom: 330px;
+      font-family: sans-serif;
+    }
     #videoPlayer {
-      width: 560px;
-      height: 315px;
-      margin-top: 20px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30vh;
+      background: #000;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    iframe {
+      width: 90%;
+      height: 100%;
+      max-width: 800px;
+    }
+    @media (max-width: 600px) {
+      iframe {
+        width: 100%;
+        height: 100%;
+      }
     }
   </style>
 </head>
@@ -60,23 +84,19 @@
         return;
       }
 
-      // YouTubeのURLからvideoId抽出
       if (platform.toLowerCase().includes("youtube")) {
-        const youtubeIdMatch = videoId.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+        const youtubeIdMatch = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
         if (youtubeIdMatch) {
           videoId = youtubeIdMatch[1];
         }
-        embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1`;
-      }
-
-      // TikTokのvideo ID抽出
-      else if (platform.toLowerCase() === "tiktok") {
+        embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+      } else if (platform.toLowerCase() === "tiktok") {
         const tiktokIdMatch = videoId.match(/video\/(\d+)/);
         const tiktokId = tiktokIdMatch ? tiktokIdMatch[1] : videoId;
         embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
       }
 
-      videoPlayer.innerHTML = `<iframe width="560" height="315" src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      videoPlayer.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     }
   </script>
 </body>
