@@ -21,23 +21,14 @@
   </div>
 
   <script>
-    const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6noDqQgycA_YDLHgezq9pBJZZ_-MbcLSXx1zFFe8ycdWQeIS3F9orR-aBDV3SE5fbPhuoTj-31vYP/pub?output=csv';
+    const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
 
-    fetch(sheetCsvUrl)
-      .then(response => response.text())
-      .then(csvText => {
-        const rows = csvText.trim().split("\n").map(row => row.split(','));
-        const headers = rows[0].map(h => h.trim());
-        const data = rows.slice(1).map(row => {
-          const item = {};
-          row.forEach((value, index) => {
-            item[headers[index]] = value.trim();
-          });
-          return item;
-        });
+    fetch(sheetJsonUrl)
+      .then(response => response.json())
+      .then(data => {
         renderVideoList(data);
       })
-      .catch(error => console.error('CSV読み込みエラー:', error));
+      .catch(error => console.error('JSON読み込みエラー:', error));
 
     const videoList = document.getElementById('videoList');
     const videoPlayer = document.getElementById('videoPlayer');
