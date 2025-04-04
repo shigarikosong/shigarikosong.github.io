@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Vtuber 歌ってみたリスト</title>
+  <style>
+    #videoPlayer {
+      width: 560px;
+      height: 315px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Vtuber 歌ってみたリスト</h1>
+  <ul id="videoList">
+    <!-- 動画リストがここに入る -->
+  </ul>
+  <div id="videoPlayer">
+    <!-- プレーヤー埋め込みエリア -->
+  </div>
+
+  <script>
+    const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6noDqQgycA_YDLHgezq9pBJZZ_-MbcLSXx1zFFe8ycdWQeIS3F9orR-aBDV3SE5fbPhuoTj-31vYP/pub?output=csv';
+
+    fetch(sheetCsvUrl)
+      .then(response => response.text())
+      .then(csvText => {
+        const rows = csvText.trim().split("\n").map(row => row.split(','));
+        const headers = rows[0].map(h => h.trim());
+        const data = rows.slice(1).map(row => {
+          const item = {};
+          row.forEach((value, index) => {
+            item[headers[index]] = value.trim();
+          });
+          return item;
+        });
+        renderVideoList(data);
+      })
+      .catch(error => console.error('CSV読み込みエラー:', error));
+
+    const videoList = document.getElementById('videoList');
+    const videoPlayer = document.getElementById('videoPlayer');
+
+    function renderVideoList(videos) {
+      videoList.innerHTML = '';
+      videos.forEach(video => {
+        const listItem = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = "#";
+        link.textContent = `${video["title"]} - ${video["artist"]}`;
+        link.onclick = (e) => {
+          e.preventDefault();
+          loadVideo(video);
+        };
+        listItem.appendChild(link);
+        videoList.appendChild(listItem);
+      });
+    }
+
+    function loadVideo(video) {
+      let embedUrl = "";
+      const start = parseInt(video["start"] || '0');
+      const platform = video["platform"];
+      const videoId = video["videoId"];
+
+      if (!videoId) {
+        alert("videoId が指定されていません");
+        return;
+      }
+
+      if (platform.toLowerCase().includes("youtube")) {
+        embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1`;
+      } else if (platform.toLowerCase() === "tiktok") {
+        const tiktokIdMatch = videoId.match(/video\/(\d+)/);
+        const tiktokId = tiktokIdMatch ? tiktokIdMatch[1] : videoId;
+        embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
+      }
+
+      videoPlayer.innerHTML = `<iframe width="560" height="315" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
+    }
+  </script>
+</body>
+</html>
