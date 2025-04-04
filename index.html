@@ -10,6 +10,19 @@
       padding-bottom: 330px;
       font-family: sans-serif;
     }
+    #videoList {
+      list-style: none;
+      padding: 0 1em;
+    }
+    #videoList li {
+      margin-bottom: 1em;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 0.5em;
+    }
+    .video-info {
+      font-size: 0.9em;
+      color: #555;
+    }
     #videoPlayer {
       position: fixed;
       bottom: 0;
@@ -68,7 +81,18 @@
           e.preventDefault();
           loadVideo(video);
         };
+
+        const info = document.createElement('div');
+        info.className = 'video-info';
+        info.innerHTML = `
+          カテゴリ: ${video["カテゴリ"] || ''} ／ 
+          公開日: ${video["公開日"] || ''} ／ 
+          動画種別: ${video["動画種別"] || ''} ／ 
+          担当区分: ${video["担当区分"] || ''}
+        `;
+
         listItem.appendChild(link);
+        listItem.appendChild(info);
         videoList.appendChild(listItem);
       });
     }
@@ -89,7 +113,7 @@
         if (youtubeIdMatch) {
           videoId = youtubeIdMatch[1];
         }
-        embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+        embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1`;
       } else if (platform.toLowerCase() === "tiktok") {
         const tiktokIdMatch = videoId.match(/video\/(\d+)/);
         const tiktokId = tiktokIdMatch ? tiktokIdMatch[1] : videoId;
