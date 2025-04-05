@@ -6,35 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-yellow-50 font-sans text-gray-800">
-  <header class="bg-gradient-to-r from-yellow-300 to-blue-300 py-6 text-center text-2xl font-bold text-gray-900 shadow">
-    にじさんじ所属 司賀りこ 歌まとめ
+<body class="bg-gradient-to-br from-yellow-50 via-white to-blue-50 min-h-screen font-sans text-gray-800">
+  <header class="sticky top-0 z-10 bg-white/70 backdrop-blur shadow-sm py-4">
+    <h1 class="text-center text-3xl font-bold text-gray-900">🎤 にじさんじ所属 司賀りこ 歌まとめ</h1>
   </header>
 
-  <section class="flex flex-wrap justify-center gap-3 p-4 bg-white shadow-md">
-    <select id="categoryFilter" class="border rounded px-3 py-2">
-      <option value="">カテゴリで絞り込み</option>
-    </select>
-    <select id="dateFilter" class="border rounded px-3 py-2">
-      <option value="">公開日で絞り込み</option>
-    </select>
-    <select id="typeFilter" class="border rounded px-3 py-2">
-      <option value="">動画種別で絞り込み</option>
-    </select>
-    <select id="roleFilter" class="border rounded px-3 py-2">
-      <option value="">担当区分で絞り込み</option>
-    </select>
-    <input id="searchInput" type="text" placeholder="曲名・アーティストで検索" class="border rounded px-3 py-2"/>
-    <select id="sortOrder" class="border rounded px-3 py-2">
-      <option value="desc">公開日が新しい順</option>
-      <option value="asc">公開日が古い順</option>
-    </select>
-    <button id="resetFilters" class="bg-yellow-300 hover:bg-blue-300 text-black font-semibold px-4 py-2 rounded">リセット</button>
+  <section class="max-w-6xl mx-auto mt-6 px-4">
+    <div class="bg-white p-4 rounded-xl shadow-md grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <select id="categoryFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+        <option value="">カテゴリ</option>
+      </select>
+      <select id="dateFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+        <option value="">公開日</option>
+      </select>
+      <select id="typeFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+        <option value="">動画種別</option>
+      </select>
+      <select id="roleFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+        <option value="">担当区分</option>
+      </select>
+      <input id="searchInput" type="text" placeholder="曲名・アーティスト" class="col-span-2 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300" />
+      <select id="sortOrder" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+        <option value="desc">新しい順</option>
+        <option value="asc">古い順</option>
+      </select>
+      <button id="resetFilters" class="bg-yellow-300 hover:bg-blue-300 text-black font-semibold text-sm px-4 py-2 rounded-lg shadow-sm transition">リセット</button>
+    </div>
   </section>
 
-  <main id="videoList" class="flex flex-wrap justify-center gap-6 p-6"></main>
+  <main id="videoList" class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></main>
 
-  <div id="videoPlayer" class="fixed bottom-0 left-0 w-full h-[30vh] bg-black flex justify-center items-center shadow-inner z-50">
+  <div id="videoPlayer" class="fixed bottom-0 left-0 w-full h-[30vh] bg-black flex justify-center items-center shadow-xl z-50">
     <!-- iframe will be inserted here -->
   </div>
 
@@ -131,11 +133,11 @@
 
         videos.forEach(video => {
           const card = document.createElement('div');
-          card.className = 'bg-white rounded-lg shadow-md p-4 w-80 hover:shadow-xl transition';
+          card.className = 'bg-white rounded-xl shadow hover:shadow-lg p-4 transition border border-gray-100';
 
           const title = document.createElement('a');
           title.href = "#";
-          title.className = 'text-blue-600 font-semibold hover:underline block text-lg mb-2';
+          title.className = 'block text-blue-600 font-medium text-lg hover:underline';
           title.textContent = `${video["title"]} - ${video["artist"]}`;
           title.onclick = e => {
             e.preventDefault();
@@ -143,11 +145,13 @@
           };
 
           const meta = document.createElement('div');
-          meta.className = 'text-sm text-gray-600';
-          meta.innerHTML = `カテゴリ: ${video["カテゴリ"]}<br>
-                            公開日: ${video["公開日"]}<br>
-                            動画種別: ${video["動画種別"]}<br>
-                            担当区分: ${video["担当区分"]}`;
+          meta.className = 'text-sm text-gray-500 mt-2 space-y-1';
+          meta.innerHTML = `
+            <div><span class="font-semibold">カテゴリ:</span> ${video["カテゴリ"]}</div>
+            <div><span class="font-semibold">公開日:</span> ${video["公開日"]}</div>
+            <div><span class="font-semibold">動画種別:</span> ${video["動画種別"]}</div>
+            <div><span class="font-semibold">担当区分:</span> ${video["担当区分"]}</div>
+          `;
 
           card.appendChild(title);
           card.appendChild(meta);
