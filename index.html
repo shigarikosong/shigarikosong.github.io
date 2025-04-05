@@ -1,216 +1,62 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>にじさんじ所属 司賀りこ 歌まとめ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .fade-in {
-      animation: fadeIn 0.4s ease-out both;
-    }
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
-</head>
-<body class="bg-white text-gray-800">
-  <header class="border-b sticky top-0 z-10 bg-white/90 backdrop-blur px-4 py-3 shadow-sm">
-    <h1 class="text-center text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">🎤 にじさんじ所属 司賀りこ 歌まとめ</h1>
-  </header>
+<!-- プレーヤー UI を画面下部に追加 -->
+<div id="musicPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow z-50 px-4 py-2 flex items-center justify-between">
+  <div class="flex items-center gap-4">
+    <button id="prevBtn" class="text-gray-700 hover:text-blue-600">⏮️</button>
+    <button id="playBtn" class="text-gray-700 hover:text-blue-600">▶️</button>
+    <button id="nextBtn" class="text-gray-700 hover:text-blue-600">⏭️</button>
+  </div>
+  <div class="flex items-center gap-3">
+    <label class="flex items-center gap-1">
+      <input type="checkbox" id="shuffleToggle" class="accent-blue-500">
+      <span class="text-sm text-gray-600">ランダム</span>
+    </label>
+    <label class="flex items-center gap-1">
+      <input type="checkbox" id="repeatToggle" class="accent-blue-500">
+      <span class="text-sm text-gray-600">リピート</span>
+    </label>
+  </div>
+</div>
 
-  <section class="max-w-4xl mx-auto mt-6 px-4">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <select id="categoryFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">カテゴリ</option>
-      </select>
-      <select id="dateFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">公開日</option>
-      </select>
-      <select id="typeFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">動画種別</option>
-      </select>
-      <select id="roleFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">担当区分</option>
-      </select>
-      <input id="searchInput" type="text" placeholder="曲名・アーティスト" class="col-span-1 sm:col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200" />
-      <select id="sortOrder" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="desc">新しい順</option>
-        <option value="asc">古い順</option>
-      </select>
-      <button id="resetFilters" class="bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">リセット</button>
-    </div>
-  </section>
+<script>
+let currentIndex = -1;
+let currentVideo = null;
+let shuffledList = [];
 
-  <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
+function loadVideoByIndex(index) {
+  const videos = document.querySelectorAll('#videoList > div');
+  if (index < 0 || index >= videos.length) return;
+  videos[index].querySelector('a').click();
+  currentIndex = index;
+}
 
-  <template id="videoPlayerTemplate">
-    <div class="video-player-container w-full mt-4 fade-in">
-      <div class="bg-black rounded-xl overflow-hidden shadow-lg">
-        <iframe class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-      </div>
-    </div>
-  </template>
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (currentIndex === -1 && allVideos.length > 0) {
+    loadVideoByIndex(0);
+  } else {
+    document.querySelector('iframe')?.contentWindow?.postMessage('playVideo', '*');
+  }
+});
 
-  <script>
-    const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
-    let allVideos = [];
+document.getElementById('nextBtn').addEventListener('click', () => {
+  const isShuffle = document.getElementById('shuffleToggle').checked;
+  const videos = document.querySelectorAll('#videoList > div');
+  if (isShuffle) {
+    let next;
+    do {
+      next = Math.floor(Math.random() * videos.length);
+    } while (next === currentIndex);
+    loadVideoByIndex(next);
+  } else {
+    loadVideoByIndex((currentIndex + 1) % videos.length);
+  }
+});
 
-    window.addEventListener('DOMContentLoaded', () => {
-      fetch(sheetJsonUrl)
-        .then(response => response.json())
-        .then(data => {
-          allVideos = data;
-          populateFilters(data);
-          applyFilters();
-        });
-
-      const categoryFilter = document.getElementById('categoryFilter');
-      const dateFilter = document.getElementById('dateFilter');
-      const typeFilter = document.getElementById('typeFilter');
-      const roleFilter = document.getElementById('roleFilter');
-      const searchInput = document.getElementById('searchInput');
-      const sortOrder = document.getElementById('sortOrder');
-      const resetButton = document.getElementById('resetFilters');
-      const videoList = document.getElementById('videoList');
-      const videoPlayerTemplate = document.getElementById('videoPlayerTemplate');
-
-      function populateFilters(videos) {
-        const sets = {
-          category: new Set(),
-          date: new Set(),
-          type: new Set(),
-          role: new Set()
-        };
-
-        videos.forEach(v => {
-          sets.category.add(v["カテゴリ"]);
-          sets.date.add(v["公開日"]);
-          sets.type.add(v["動画種別"]);
-          sets.role.add(v["担当区分"]);
-        });
-
-        addOptions(categoryFilter, [...sets.category].sort());
-        addOptions(dateFilter, [...sets.date].sort());
-        addOptions(typeFilter, [...sets.type].sort());
-        addOptions(roleFilter, [...sets.role].sort());
-
-        [categoryFilter, dateFilter, typeFilter, roleFilter, searchInput, sortOrder].forEach(el => {
-          el.addEventListener('change', applyFilters);
-          el.addEventListener('input', applyFilters);
-        });
-
-        resetButton.addEventListener('click', () => {
-          categoryFilter.value = "";
-          dateFilter.value = "";
-          typeFilter.value = "";
-          roleFilter.value = "";
-          searchInput.value = "";
-          sortOrder.value = "desc";
-          applyFilters();
-        });
-      }
-
-      function addOptions(select, values) {
-        values.forEach(v => {
-          if (!v) return;
-          const option = document.createElement('option');
-          option.value = v;
-          option.textContent = v;
-          select.appendChild(option);
-        });
-      }
-
-      function applyFilters() {
-        let filtered = allVideos.filter(video => {
-          return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
-                 (!dateFilter.value || video["公開日"] === dateFilter.value) &&
-                 (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
-                 (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
-                 (!searchInput.value ||
-                  video["title"].toLowerCase().includes(searchInput.value.toLowerCase()) ||
-                  video["artist"].toLowerCase().includes(searchInput.value.toLowerCase()));
-        });
-
-        filtered.sort((a, b) => {
-          const dateA = new Date(a["公開日"]);
-          const dateB = new Date(b["公開日"]);
-          return sortOrder.value === "asc" ? dateA - dateB : dateB - dateA;
-        });
-
-        renderVideoList(filtered);
-      }
-
-      function renderVideoList(videos) {
-        videoList.innerHTML = '';
-
-        videos.forEach(video => {
-          const item = document.createElement('div');
-          item.className = 'flex flex-col gap-2 py-4 transition-all duration-300 hover:bg-gray-50';
-
-          const info = document.createElement('div');
-          info.className = 'flex-1';
-
-          const title = document.createElement('a');
-          title.href = "#";
-          title.className = 'text-blue-600 font-semibold hover:underline';
-          title.textContent = `${video["title"]} - ${video["artist"]}`;
-          title.onclick = e => {
-            e.preventDefault();
-            loadVideo(video, item);
-          };
-
-          const meta = document.createElement('div');
-          meta.className = 'text-sm text-gray-500';
-          meta.innerHTML = `カテゴリ: ${video["カテゴリ"]} / 公開日: ${video["公開日"]} / 種別: ${video["動画種別"]} / 担当: ${video["担当区分"]}`;
-
-          info.appendChild(title);
-          info.appendChild(meta);
-          item.appendChild(info);
-
-          videoList.appendChild(item);
-        });
-      }
-
-      function loadVideo(video, container) {
-        const start = parseInt(video["start"] || '0');
-        let videoId = video["videoId"];
-        const platform = video["platform"];
-        let embedUrl = "";
-
-        if (!videoId) return alert("videoId が指定されていません");
-
-        if (platform.toLowerCase().includes("youtube")) {
-          const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
-          if (match) videoId = match[1];
-          embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1`;
-        } else if (platform.toLowerCase() === "tiktok") {
-          const match = videoId.match(/video\/(\d+)/);
-          const tiktokId = match ? match[1] : videoId;
-          embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
-        }
-
-        // Remove old embedded players
-        document.querySelectorAll('.video-player-container').forEach(el => el.remove());
-
-        const template = videoPlayerTemplate.content.cloneNode(true);
-        template.querySelector('iframe').src = embedUrl;
-        container.appendChild(template);
-      }
-    });
-  </script>
-</body>
-</html>
+document.getElementById('prevBtn').addEventListener('click', () => {
+  const videos = document.querySelectorAll('#videoList > div');
+  if (currentIndex > 0) {
+    loadVideoByIndex(currentIndex - 1);
+  } else {
+    loadVideoByIndex(videos.length - 1);
+  }
+});
+</script>
