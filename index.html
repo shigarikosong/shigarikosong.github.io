@@ -12,6 +12,19 @@
     body {
       font-family: 'Inter', sans-serif;
     }
+    .fade-in {
+      animation: fadeIn 0.4s ease-out both;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 <body class="bg-white text-gray-800">
@@ -21,31 +34,31 @@
 
   <section class="max-w-4xl mx-auto mt-6 px-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <select id="categoryFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
+      <select id="categoryFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <option value="">カテゴリ</option>
       </select>
-      <select id="dateFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
+      <select id="dateFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <option value="">公開日</option>
       </select>
-      <select id="typeFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
+      <select id="typeFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <option value="">動画種別</option>
       </select>
-      <select id="roleFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
+      <select id="roleFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <option value="">担当区分</option>
       </select>
-      <input id="searchInput" type="text" placeholder="曲名・アーティスト" class="col-span-1 sm:col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300" />
-      <select id="sortOrder" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
+      <input id="searchInput" type="text" placeholder="曲名・アーティスト" class="col-span-1 sm:col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200" />
+      <select id="sortOrder" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <option value="desc">新しい順</option>
         <option value="asc">古い順</option>
       </select>
-      <button id="resetFilters" class="bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition">リセット</button>
+      <button id="resetFilters" class="bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">リセット</button>
     </div>
   </section>
 
   <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
 
   <template id="videoPlayerTemplate">
-    <div class="video-player-container w-full mt-4">
+    <div class="video-player-container w-full mt-4 fade-in">
       <div class="bg-black rounded-xl overflow-hidden shadow-lg">
         <iframe class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
@@ -146,7 +159,7 @@
 
         videos.forEach(video => {
           const item = document.createElement('div');
-          item.className = 'flex flex-col gap-2 py-4';
+          item.className = 'flex flex-col gap-2 py-4 transition-all duration-300 hover:bg-gray-50';
 
           const info = document.createElement('div');
           info.className = 'flex-1';
