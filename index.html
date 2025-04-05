@@ -44,9 +44,13 @@
 
   <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
 
-  <div id="videoPlayer" class="fixed bottom-0 left-0 w-full h-[30vh] bg-black flex justify-center items-center shadow-inner z-50">
-    <!-- iframe will be inserted here -->
-  </div>
+  <template id="videoPlayerTemplate">
+    <div class="video-player-container w-full mt-4">
+      <div class="bg-black rounded-xl overflow-hidden shadow-lg">
+        <iframe class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </template>
 
   <script>
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
@@ -69,6 +73,7 @@
       const sortOrder = document.getElementById('sortOrder');
       const resetButton = document.getElementById('resetFilters');
       const videoList = document.getElementById('videoList');
+      const videoPlayerTemplate = document.getElementById('videoPlayerTemplate');
 
       function populateFilters(videos) {
         const sets = {
@@ -141,7 +146,7 @@
 
         videos.forEach(video => {
           const item = document.createElement('div');
-          item.className = 'flex items-start gap-4 py-4';
+          item.className = 'flex flex-col gap-2 py-4';
 
           const info = document.createElement('div');
           info.className = 'flex-1';
@@ -152,11 +157,11 @@
           title.textContent = `${video["title"]} - ${video["artist"]}`;
           title.onclick = e => {
             e.preventDefault();
-            loadVideo(video);
+            loadVideo(video, item);
           };
 
           const meta = document.createElement('div');
-          meta.className = 'text-sm text-gray-500 mt-1';
+          meta.className = 'text-sm text-gray-500';
           meta.innerHTML = `カテゴリ: ${video["カテゴリ"]} / 公開日: ${video["公開日"]} / 種別: ${video["動画種別"]} / 担当: ${video["担当区分"]}`;
 
           info.appendChild(title);
@@ -167,7 +172,7 @@
         });
       }
 
-      function loadVideo(video) {
+      function loadVideo(video, container) {
         const start = parseInt(video["start"] || '0');
         let videoId = video["videoId"];
         const platform = video["platform"];
@@ -185,7 +190,12 @@
           embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
         }
 
-        document.getElementById('videoPlayer').innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-[90%] h-full max-w-3xl"></iframe>`;
+        // Remove old embedded players
+        document.querySelectorAll('.video-player-container').forEach(el => el.remove());
+
+        const template = videoPlayerTemplate.content.cloneNode(true);
+        template.querySelector('iframe').src = embedUrl;
+        container.appendChild(template);
       }
     });
   </script>
