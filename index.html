@@ -5,38 +5,46 @@
   <title>にじさんじ所属 司賀りこ 歌まとめ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-yellow-50 via-white to-blue-50 min-h-screen font-sans text-gray-800">
-  <header class="sticky top-0 z-10 bg-white/70 backdrop-blur shadow-sm py-4">
-    <h1 class="text-center text-3xl font-bold text-gray-900">🎤 にじさんじ所属 司賀りこ 歌まとめ</h1>
+<body class="bg-white text-gray-800">
+  <header class="border-b sticky top-0 z-10 bg-white/90 backdrop-blur px-4 py-3 shadow-sm">
+    <h1 class="text-center text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">🎤 にじさんじ所属 司賀りこ 歌まとめ</h1>
   </header>
 
-  <section class="max-w-6xl mx-auto mt-6 px-4">
-    <div class="bg-white p-4 rounded-xl shadow-md grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-      <select id="categoryFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+  <section class="max-w-4xl mx-auto mt-6 px-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <select id="categoryFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
         <option value="">カテゴリ</option>
       </select>
-      <select id="dateFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+      <select id="dateFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
         <option value="">公開日</option>
       </select>
-      <select id="typeFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+      <select id="typeFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
         <option value="">動画種別</option>
       </select>
-      <select id="roleFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+      <select id="roleFilter" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
         <option value="">担当区分</option>
       </select>
-      <input id="searchInput" type="text" placeholder="曲名・アーティスト" class="col-span-2 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300" />
-      <select id="sortOrder" class="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-300">
+      <input id="searchInput" type="text" placeholder="曲名・アーティスト" class="col-span-1 sm:col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300" />
+      <select id="sortOrder" class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300">
         <option value="desc">新しい順</option>
         <option value="asc">古い順</option>
       </select>
-      <button id="resetFilters" class="bg-yellow-300 hover:bg-blue-300 text-black font-semibold text-sm px-4 py-2 rounded-lg shadow-sm transition">リセット</button>
+      <button id="resetFilters" class="bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition">リセット</button>
     </div>
   </section>
 
-  <main id="videoList" class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></main>
+  <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
 
-  <div id="videoPlayer" class="fixed bottom-0 left-0 w-full h-[30vh] bg-black flex justify-center items-center shadow-xl z-50">
+  <div id="videoPlayer" class="fixed bottom-0 left-0 w-full h-[30vh] bg-black flex justify-center items-center shadow-inner z-50">
     <!-- iframe will be inserted here -->
   </div>
 
@@ -132,12 +140,15 @@
         videoList.innerHTML = '';
 
         videos.forEach(video => {
-          const card = document.createElement('div');
-          card.className = 'bg-white rounded-xl shadow hover:shadow-lg p-4 transition border border-gray-100';
+          const item = document.createElement('div');
+          item.className = 'flex items-start gap-4 py-4';
+
+          const info = document.createElement('div');
+          info.className = 'flex-1';
 
           const title = document.createElement('a');
           title.href = "#";
-          title.className = 'block text-blue-600 font-medium text-lg hover:underline';
+          title.className = 'text-blue-600 font-semibold hover:underline';
           title.textContent = `${video["title"]} - ${video["artist"]}`;
           title.onclick = e => {
             e.preventDefault();
@@ -145,17 +156,14 @@
           };
 
           const meta = document.createElement('div');
-          meta.className = 'text-sm text-gray-500 mt-2 space-y-1';
-          meta.innerHTML = `
-            <div><span class="font-semibold">カテゴリ:</span> ${video["カテゴリ"]}</div>
-            <div><span class="font-semibold">公開日:</span> ${video["公開日"]}</div>
-            <div><span class="font-semibold">動画種別:</span> ${video["動画種別"]}</div>
-            <div><span class="font-semibold">担当区分:</span> ${video["担当区分"]}</div>
-          `;
+          meta.className = 'text-sm text-gray-500 mt-1';
+          meta.innerHTML = `カテゴリ: ${video["カテゴリ"]} / 公開日: ${video["公開日"]} / 種別: ${video["動画種別"]} / 担当: ${video["担当区分"]}`;
 
-          card.appendChild(title);
-          card.appendChild(meta);
-          videoList.appendChild(card);
+          info.appendChild(title);
+          info.appendChild(meta);
+          item.appendChild(info);
+
+          videoList.appendChild(item);
         });
       }
 
