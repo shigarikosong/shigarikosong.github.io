@@ -1,28 +1,217 @@
-function loadVideoByIndex(index) {
-  const videos = document.querySelectorAll('#videoList > div');
-  if (index < 0 || index >= videos.length) return;
-  const title = videos[index].querySelector('a').textContent;
-  let nextTitle = '-';
-
-  const isShuffle = document.getElementById('shuffleToggle').checked;
-  if (isShuffle) {
-    let next;
-    do {
-      next = Math.floor(Math.random() * videos.length);
-    } while (next === index);
-    nextTitle = videos[next]?.querySelector('a')?.textContent || '-';
-  } else {
-    const nextIndex = (index + 1 < videos.length) ? index + 1 : (document.getElementById('repeatToggle').checked ? 0 : -1);
-    if (nextIndex !== -1) {
-      nextTitle = videos[nextIndex]?.querySelector('a')?.textContent || '-';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>にじさんじ所属 司賀りこ 歌まとめ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-in {
+      animation: fadeIn 0.4s ease-out both;
     }
-  }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800">
+  <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
 
-  updateNowNextDisplay(videos, title, nextTitle);
+  <template id="videoPlayerTemplate">
+    <div class="video-player-container w-full mt-4 fade-in">
+      <div class="bg-black rounded-xl overflow-hidden shadow-lg">
+        <iframe class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </template>
 
-  const video = allVideos[index];
-  const container = videos[index];
-  loadVideo(video, container); // ← これが抜けてた！
+  <div id="musicPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow z-50 px-4 py-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center gap-4">
+      <button id="prevBtn" class="text-gray-700 hover:text-blue-600">⏮️</button>
+      <button id="playBtn" class="text-gray-700 hover:text-blue-600">▶️</button>
+      <button id="nextBtn" class="text-gray-700 hover:text-blue-600">⏭️</button>
+    </div>
+    <div class="text-xs text-gray-600 text-center">
+      <div id="nowPlaying" class="truncate">🎵 再生中: -</div>
+      <div id="nextUp" class="truncate">🎶 次: -</div>
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="flex items-center gap-1">
+        <input type="checkbox" id="shuffleToggle" class="accent-blue-500">
+        <span class="text-sm text-gray-600">ランダム</span>
+      </label>
+      <label class="flex items-center gap-1">
+        <input type="checkbox" id="repeatToggle" class="accent-blue-500">
+        <span class="text-sm text-gray-600">リピート</span>
+      </label>
+    </div>
+  </div>
 
-  currentIndex = index;
-}
+  <script>
+    const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
+    let allVideos = [];
+    let currentIndex = -1;
+
+    function updateNowNextDisplay(videos, current, next) {
+      document.getElementById('nowPlaying').textContent = current ? `🎵 再生中: ${current}` : '🎵 再生中: -';
+      document.getElementById('nextUp').textContent = next ? `🎶 次: ${next}` : '🎶 次: -';
+    }
+
+    function renderVideoList(videos) {
+      const videoList = document.getElementById('videoList');
+      videoList.innerHTML = '';
+
+      videos.forEach((video, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex flex-col gap-2 py-4 transition-all duration-300 hover:bg-gray-50';
+
+        const info = document.createElement('div');
+        info.className = 'flex-1';
+
+        const title = document.createElement('a');
+        title.href = '#';
+        title.className = 'text-blue-600 font-semibold hover:underline';
+        title.textContent = `${video["title"]} - ${video["artist"]}`;
+        title.onclick = e => {
+          e.preventDefault();
+          loadVideoByIndex(index);
+        };
+
+        const meta = document.createElement('div');
+        meta.className = 'text-sm text-gray-500';
+        meta.innerHTML = `カテゴリ: ${video["カテゴリ"]} / 公開日: ${video["公開日"]} / 種別: ${video["動画種別"]} / 担当: ${video["担当区分"]}`;
+
+        info.appendChild(title);
+        info.appendChild(meta);
+        item.appendChild(info);
+
+        videoList.appendChild(item);
+      });
+    }
+
+    function loadVideo(video, container) {
+      const start = parseInt(video["start"] || '0');
+      let videoId = video["videoId"];
+      const platform = video["platform"];
+      let embedUrl = '';
+
+      if (!videoId) return alert("videoId が指定されていません");
+
+      if (platform.toLowerCase().includes("youtube")) {
+        const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
+        if (match) videoId = match[1];
+        embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&origin=${location.origin}`;
+      } else if (platform.toLowerCase() === 'tiktok') {
+        const match = videoId.match(/video\/(\d+)/);
+        const tiktokId = match ? match[1] : videoId;
+        embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
+      }
+
+      document.querySelectorAll('.video-player-container').forEach(el => el.remove());
+      const template = document.getElementById('videoPlayerTemplate').content.cloneNode(true);
+      template.querySelector('iframe').src = embedUrl;
+      container.appendChild(template);
+    }
+
+    function loadVideoByIndex(index) {
+      const videos = document.querySelectorAll('#videoList > div');
+      if (index < 0 || index >= videos.length) return;
+      const title = videos[index].querySelector('a').textContent;
+      let nextTitle = '-';
+
+      const isShuffle = document.getElementById('shuffleToggle').checked;
+      if (isShuffle) {
+        let next;
+        do {
+          next = Math.floor(Math.random() * videos.length);
+        } while (next === index);
+        nextTitle = videos[next]?.querySelector('a')?.textContent || '-';
+      } else {
+        const nextIndex = (index + 1 < videos.length) ? index + 1 : (document.getElementById('repeatToggle').checked ? 0 : -1);
+        if (nextIndex !== -1) {
+          nextTitle = videos[nextIndex]?.querySelector('a')?.textContent || '-';
+        }
+      }
+
+      updateNowNextDisplay(videos, title, nextTitle);
+
+      const video = allVideos[index];
+      const container = videos[index];
+      loadVideo(video, container);
+
+      currentIndex = index;
+    }
+
+    function playNext() {
+      const isShuffle = document.getElementById('shuffleToggle').checked;
+      const videos = document.querySelectorAll('#videoList > div');
+      if (isShuffle) {
+        let next;
+        do {
+          next = Math.floor(Math.random() * videos.length);
+        } while (next === currentIndex);
+        loadVideoByIndex(next);
+      } else {
+        let nextIndex = currentIndex + 1;
+        if (nextIndex >= videos.length) {
+          if (document.getElementById('repeatToggle').checked) {
+            nextIndex = 0;
+          } else {
+            updateNowNextDisplay(videos, videos[currentIndex]?.querySelector('a')?.textContent, null);
+            return;
+          }
+        }
+        loadVideoByIndex(nextIndex);
+      }
+    }
+
+    document.getElementById('playBtn').addEventListener('click', () => {
+      if (currentIndex === -1 && allVideos.length > 0) {
+        loadVideoByIndex(0);
+      } else {
+        document.querySelector('iframe')?.contentWindow?.postMessage('playVideo', '*');
+      }
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      playNext();
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      const videos = document.querySelectorAll('#videoList > div');
+      if (currentIndex > 0) {
+        loadVideoByIndex(currentIndex - 1);
+      } else {
+        loadVideoByIndex(videos.length - 1);
+      }
+    });
+
+    window.addEventListener('message', function (event) {
+      if (event.origin.includes('youtube')) {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'onStateChange' && data.info === 0) {
+            playNext();
+          }
+        } catch (e) {}
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch(sheetJsonUrl)
+        .then(response => response.json())
+        .then(data => {
+          allVideos = data;
+          renderVideoList(data);
+        });
+    });
+  </script>
+</body>
+</html>
