@@ -35,6 +35,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  white-space: nowrap;  /* 改行を防ぐ */
+  min-width: 300px;     /* 最小幅を設定して、アイテムが狭くならないようにする */
+  width: 100%;          /* 幅を親要素に合わせる */
+  box-sizing: border-box; /* paddingが含まれるように調整 */
 }
 
 /* 曲名とアーティスト名 */
