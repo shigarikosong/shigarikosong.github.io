@@ -251,11 +251,13 @@ function renderVideoList(videos) {
   videoList.innerHTML = ''; // 既存のリストをリセット
 
   videos.forEach(video => {
+    // リスト項目に枠線を追加
     const item = document.createElement('div');
-    item.className = 'flex justify-between items-center gap-4 p-4 mb-4 bg-blue-100 border border-blue-300 rounded-lg shadow-md';  // 背景色・枠線・余白追加
+    item.className = 'flex justify-between items-center gap-4 p-4 mb-4 bg-blue-100 border border-blue-300 rounded-lg shadow-md';  // 枠線はitemにだけ適用
 
     const info = document.createElement('div');
     info.className = 'flex flex-1 justify-between items-center';  // 横並びに配置
+    // infoには枠線をつけない
 
     const title = document.createElement('a');
     title.href = "#";
@@ -266,6 +268,7 @@ function renderVideoList(videos) {
       loadVideo(video, item);  // 動画クリック時に再生
     };
 
+    // 詳細情報部分（meta）には枠線をつけない
     const meta = document.createElement('div');
     meta.className = 'text-sm text-gray-600';  // 詳細情報のフォント
     meta.innerHTML = `${video["カテゴリ"]} / ${video["公開日"]} / ${video["動画種別"]} / ${video["担当区分"]}`;
