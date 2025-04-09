@@ -281,12 +281,10 @@ function renderVideoList(videos) {
     meta.className = 'text-sm text-gray-600';  // 詳細情報のフォント
     meta.innerHTML = `${video["カテゴリ"]} / ${video["公開日"]} / ${video["動画種別"]} / ${video["担当区分"]}`;
 
-item.appendChild(title);  // 曲名を追加
-item.appendChild(artist); // アーティスト名を追加
-info.appendChild(title);  // 曲名を info に追加
-info.appendChild(artist); // アーティスト名を info に追加
-item.appendChild(info);   // info をリスト項目（item）に追加
-item.appendChild(meta);   // 詳細情報（右側に配置される）
+    item.appendChild(title);  // 曲名を追加
+    item.appendChild(artist); // アーティスト名を追加
+    info.appendChild(meta);   // 詳細情報（右側に配置）
+    item.appendChild(info);   // info をリスト項目（item）に追加
   
               // 現在再生中の曲を強調表示
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
