@@ -253,11 +253,10 @@ function renderVideoList(videos) {
   videos.forEach(video => {
     // リスト項目に枠線を追加
     const item = document.createElement('div');
-    item.className = 'flex justify-between items-center gap-4 p-4 mb-4 bg-blue-100 border border-blue-300 rounded-lg shadow-md';  // 枠線はitemにだけ適用
+    item.className = 'flex justify-between items-center gap-4 p-4 mb-4 bg-blue-100 border-2 border-blue-300 rounded-lg shadow-md';  // 枠線はitemにだけ適用
 
     const info = document.createElement('div');
     info.className = 'flex flex-1 justify-between items-center';  // 横並びに配置
-    // infoには枠線をつけない
 
     const title = document.createElement('a');
     title.href = "#";
@@ -276,7 +275,6 @@ function renderVideoList(videos) {
     info.appendChild(title);  // 曲名とアーティスト名
     info.appendChild(meta);   // 詳細情報（右側に配置される）
     item.appendChild(info);
-
 
               // 現在再生中の曲を強調表示
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
