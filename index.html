@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", sans-serif;
     }
     .fade-in {
       animation: fadeIn 0.4s ease-out both;
@@ -26,36 +26,6 @@
       }
     }
 
-/* リスト項目のスタイル */
-#videoList div {
-  background-color: #e0f7fa;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 5px;
-  display: flex;
-  justify-content: space-between;  /* 曲名とアーティスト名を左側、詳細情報を右側 */
-  align-items: center;  /* 垂直方向のセンタリングを解除して上に揃える */
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* 曲名とアーティスト名のスタイル */
-#videoList div > div {
-  display: flex;
-  flex-direction: column;  /* 縦に並べる */
-  justify-content: flex-start;
-  align-items: flex-start;
-  flex-grow: 1;  /* 要素が広がりすぎないように調整 */
-  width: 70%;  /* 変更: 曲名とアーティスト名の幅を70%に指定 */
-}
-
-/* 詳細情報のスタイル */
-#videoList div > div:last-child {
-  margin-left: 20px;  /* 詳細情報と曲名/アーティストの間隔を広げる */
-  display: flex;
-  justify-content: flex-start;  /* 詳細情報を左揃え */
-  width: 30%;  /* 変更: 詳細情報は親要素の30%を占める */
-}
 
 #videoList a:hover {
   text-decoration: underline;  /* ホバー時に下線を追加 */
