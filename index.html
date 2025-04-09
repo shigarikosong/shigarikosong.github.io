@@ -265,11 +265,11 @@ function renderVideoList(videos) {
   videos.forEach(video => {
     // リスト項目に枠線を追加
     const item = document.createElement('div');
-    item.className = 'flex justify-between items-center gap-4 p-1 mb-1 bg-blue-100 rounded-lg shadow-md';  // 枠線はitemにだけ適用
+    item.className = 'p-2 mb-2 bg-blue-100 rounded-lg shadow-md';
     item.style.border = '2px solid #00796b';  // itemにだけ枠線を設定
 
     const info = document.createElement('div');
-    info.className = 'grid grid-cols-2 gap-x-4 gap-y-1 items-start';
+    info.className = 'grid grid-cols-2 gap-x-4 gap-y-1 items-start w-full';
 
     const title = document.createElement('a');
     title.href = "#";
@@ -284,8 +284,7 @@ function renderVideoList(videos) {
     artist.className = 'text-sm text-gray-600';  // アーティスト名（少し小さめ）
     artist.textContent = video["artist"];
 
-    const meta = document.createElement('div');
-    meta.className = 'text-sm text-gray-600 meta-row';  // 1行横並び用のクラス
+    meta.className = 'text-sm text-gray-600 meta-row col-span-2';
 
   meta.innerHTML = `
   <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
@@ -295,10 +294,10 @@ function renderVideoList(videos) {
 `;
 
 
-    item.appendChild(title);  // 曲名を追加
-    item.appendChild(artist); // アーティスト名を追加
-    info.appendChild(meta);   // 詳細情報（右側に配置）
-    item.appendChild(info);   // info をリスト項目（item）に追加
+    info.appendChild(title);  // 左
+    info.appendChild(artist); // 右
+    info.appendChild(meta);   // col-span-2（2列分を使う）
+    item.appendChild(info);
   
               // 現在再生中の曲を強調表示
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
