@@ -33,13 +33,13 @@
   padding: 10px;
   margin-bottom: 5px;
   display: flex;
-  flex-direction: column;  /* アイテム内の要素を縦に並べる */
+  flex-direction: column;  /* 曲名とアーティスト名を縦に並べる */
   justify-content: flex-start;
   align-items: flex-start;
   width: 100%;
   box-sizing: border-box;
 }
-    
+
 /* 曲名のスタイル */
 #videoList div .text-xl {
   font-size: 1.25rem;  /* 曲名のフォントサイズを調整 */
@@ -53,14 +53,15 @@
   color: #607d8b;
 }
 
-#videoList a:hover {
-  text-decoration: underline;  /* ホバー時に下線を追加 */
+/* 詳細情報のスタイル */
+#videoList div > div:last-child {
+  flex-direction: row;  /* 詳細情報は横並び */
+  align-items: center;
+  margin-top: 8px;
 }
 
-/* 詳細情報のスタイル */
-#videoList .text-sm {
-  color: #202020;  /* 灰色系 */
-  font-size: 0.875rem;
+#videoList a:hover {
+  text-decoration: underline;  /* ホバー時に下線を追加 */
 }
 
     /* ヘッダーを固定 */
@@ -285,9 +286,9 @@ function renderVideoList(videos) {
 
     info.appendChild(title);  // 曲名を追加
     info.appendChild(artist); // アーティスト名を追加
-    info.appendChild(meta);   // 詳細情報（右側に配置される）
     item.appendChild(info);
-
+    item.appendChild(meta);   // 詳細情報（右側に配置される）
+  
               // 現在再生中の曲を強調表示
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
