@@ -46,10 +46,11 @@
 
 .meta-row {
   display: flex;
-  flex-wrap: wrap;  /* 長すぎる場合は折り返し */
-  gap: 12px;
-  margin-top: 4px;
-  line-height: 1.5;
+  flex-wrap: wrap; /* 念のため */
+  gap: 8px;
+  margin-top: 2px;
+  line-height: 1.4;
+  white-space: nowrap; /* これで1行に揃えやすくなる */
 }
 
 .meta-label {
@@ -268,7 +269,7 @@ function renderVideoList(videos) {
     item.style.border = '2px solid #00796b';  // itemにだけ枠線を設定
 
     const info = document.createElement('div');
-    info.className = 'flex flex-1 justify-between items-center';  // 横並びに配置
+    info.className = 'flex flex-col flex-1';
 
     const title = document.createElement('a');
     title.href = "#";
