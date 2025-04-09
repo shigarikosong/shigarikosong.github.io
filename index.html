@@ -268,22 +268,26 @@ function renderVideoList(videos) {
 
     // --- タイトル / アーティスト名（1行目） ---
     const topRow = document.createElement('div');
-    topRow.className = 'flex items-center text-base sm:text-lg flex-wrap gap-x-2';
+    topRow.className = 'flex flex-wrap items-center gap-2 text-base sm:text-lg';
 
     const title = document.createElement('a');
     title.href = "#";
-    title.className = 'font-semibold text-blue-800 hover:underline truncate';
+    title.className = 'font-semibold text-blue-800 hover:underline';
     title.textContent = video["title"];
     title.onclick = e => {
       e.preventDefault();
       loadVideo(video, item);
     };
 
+    const slash = document.createElement('span');
+    slash.textContent = '/';
+
     const artist = document.createElement('span');
-    artist.className = 'text-gray-700 truncate';
-    artist.textContent = ` / ${video["artist"]}`;
+    artist.className = 'text-gray-800';
+    artist.textContent = video["artist"];
 
     topRow.appendChild(title);
+    topRow.appendChild(slash);
     topRow.appendChild(artist);
 
     // --- 詳細情報（2行目） ---
