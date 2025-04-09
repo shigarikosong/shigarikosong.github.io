@@ -26,6 +26,36 @@
       }
     }
 
+/* リスト項目のスタイル */
+#videoList div {
+  background-color: #e0f7fa;
+  border-radius: 8px;
+  padding: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;  /* 曲名とアーティスト名を左側、詳細情報を右側 */
+  align-items: center;  /* 垂直方向のセンタリングを解除して上に揃える */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 曲名とアーティスト名のスタイル */
+#videoList div > div {
+  display: flex;
+  flex-direction: column;  /* 縦に並べる */
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-grow: 1;  /* 要素が広がりすぎないように調整 */
+  width: 70%;  /* 変更: 曲名とアーティスト名の幅を70%に指定 */
+}
+
+/* 詳細情報のスタイル */
+#videoList div > div:last-child {
+  margin-left: 10px;  /* 詳細情報と曲名/アーティストの間隔を広げる */
+  display: flex;
+  justify-content: flex-start;  /* 詳細情報を左揃え */
+  width: 30%;  /* 変更: 詳細情報は親要素の30%を占める */
+}
 
 #videoList a:hover {
   text-decoration: underline;  /* ホバー時に下線を追加 */
