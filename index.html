@@ -209,40 +209,39 @@ section {
     let allVideos = [];
 
     window.addEventListener('DOMContentLoaded', () => {
-      fetch(sheetJsonUrl)
-        .then(response => response.json())
-        .then(data => {
-          allVideos = data;
-          populateFilters(data);
-          applyFilters();
-        });
+  const categoryFilter = document.getElementById('categoryFilter');
+  const dateFilter = document.getElementById('dateFilter');
+  const typeFilter = document.getElementById('typeFilter');
+  const roleFilter = document.getElementById('roleFilter');
+  const searchInput = document.getElementById('searchInput');
+  const sortOrder = document.getElementById('sortOrder');
+  const resetButton = document.getElementById('resetFilters');
+  const videoList = document.getElementById('videoList');
+  const videoPlayerTemplate = document.getElementById('videoPlayerTemplate');
+  const randomPlayButton = document.getElementById('randomPlayButton');
+  const closePlayerButton = document.getElementById('closePlayerButton');
 
-      document.getElementById('closePlayerButton').addEventListener('click', () => {
+  closePlayerButton.addEventListener('click', () => {
     const fixedPlayer = document.getElementById('fixedPlayer');
     const iframe = document.getElementById('playerIframe');
-
-    fixedPlayer.style.display = 'none'; // プレイヤー非表示
-    iframe.src = ''; // 再生停止
+    fixedPlayer.style.display = 'none';
+    iframe.src = '';
   });
+
+  randomPlayButton.addEventListener('click', () => {
+    const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)];
+    loadVideo(randomVideo, null);
+  });
+
+  fetch(sheetJsonUrl)
+    .then(response => response.json())
+    .then(data => {
+      allVideos = data;
+      populateFilters(data);
+      applyFilters();
+    });
 });
 
-       const randomPlayButton = document.getElementById('randomPlayButton');
-
-  // ランダム再生ボタンのクリックイベント
-  randomPlayButton.addEventListener('click', () => {
-    const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)]; // ランダムに動画を選択
-    loadVideo(randomVideo, null); // ランダムに選ばれた動画を再生プレイヤーで再生
-  });
-
-      const categoryFilter = document.getElementById('categoryFilter');
-      const dateFilter = document.getElementById('dateFilter');
-      const typeFilter = document.getElementById('typeFilter');
-      const roleFilter = document.getElementById('roleFilter');
-      const searchInput = document.getElementById('searchInput');
-      const sortOrder = document.getElementById('sortOrder');
-      const resetButton = document.getElementById('resetFilters');
-      const videoList = document.getElementById('videoList');
-      const videoPlayerTemplate = document.getElementById('videoPlayerTemplate');
 
       function populateFilters(videos) {
         const sets = {
