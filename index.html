@@ -29,7 +29,7 @@
 /* リスト項目のスタイル */
 #videoList div {
   background-color: #e0f7fa;  /* 淡い青色 */
-
+  border-radius: 8px;  /* 角を丸める */
   padding: 10px;
   margin-bottom: 5px;  /* 各項目の下に余白 */
   display: flex;
@@ -253,6 +253,7 @@ function renderVideoList(videos) {
     // リスト項目に枠線を追加
     const item = document.createElement('div');
     item.className = 'flex justify-between items-center gap-4 p-4 mb-4 bg-blue-100 rounded-lg shadow-md';  // 枠線はitemにだけ適用
+    item.style.border = '2px solid #00796b';  // itemにだけ枠線を設定
 
     const info = document.createElement('div');
     info.className = 'flex flex-1 justify-between items-center';  // 横並びに配置
