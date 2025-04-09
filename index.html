@@ -19,10 +19,19 @@
         transform: translateY(0);
       }
     }
+
+    .card {
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body class="bg-white text-gray-800">
-  <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
+  <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></main>
 
   <template id="videoPlayerTemplate">
     <div class="video-player-container w-full mt-4 fade-in">
@@ -68,10 +77,7 @@
 
       videos.forEach((video, index) => {
         const item = document.createElement('div');
-        item.className = 'flex flex-col gap-2 py-4 transition-all duration-300 hover:bg-gray-50';
-
-        const info = document.createElement('div');
-        info.className = 'flex-1';
+        item.className = 'card p-4 bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-xl transition-all';
 
         const title = document.createElement('a');
         title.href = '#';
@@ -83,12 +89,14 @@
         };
 
         const meta = document.createElement('div');
-        meta.className = 'text-sm text-gray-500';
+        meta.className = 'text-sm text-gray-500 mt-2';
         meta.innerHTML = `カテゴリ: ${video["カテゴリ"]} / 公開日: ${video["公開日"]} / 種別: ${video["動画種別"]} / 担当: ${video["担当区分"]}`;
 
-        info.appendChild(title);
-        info.appendChild(meta);
-        item.appendChild(info);
+        const cardBody = document.createElement('div');
+        cardBody.className = 'flex flex-col gap-2';
+        cardBody.appendChild(title);
+        cardBody.appendChild(meta);
+        item.appendChild(cardBody);
 
         videoList.appendChild(item);
       });
