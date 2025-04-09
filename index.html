@@ -323,6 +323,10 @@ function loadVideo(video, container) {
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   nowPlayingTitle.textContent = video["title"] + " - " + video["artist"];
 
+  // プレイヤーを表示する位置を調整
+  const nowPlaying = document.getElementById('nowPlaying');
+  fixedPlayer.style.bottom = `${nowPlaying.offsetHeight + 10}px`; // `nowplaying` の高さ + 余白で位置調整
+
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
 }
