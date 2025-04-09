@@ -263,42 +263,45 @@ function renderVideoList(videos) {
   videoList.innerHTML = ''; // 既存のリストをリセット
 
   videos.forEach(video => {
-    // リスト項目に枠線を追加
-    const item = document.createElement('div');
-    item.className = 'p-2 mb-2 bg-blue-100 rounded-lg shadow-md';
-    item.style.border = '2px solid #00796b';  // itemにだけ枠線を設定
 
-    const info = document.createElement('div');
-    info.className = 'grid grid-cols-2 gap-x-4 gap-y-1 items-start w-full';
+    
+const item = document.createElement('div');
+item.className = 'p-2 mb-2 bg-blue-100 rounded-lg shadow-md flex flex-col gap-1';
+item.style.border = '2px solid #00796b';
 
-    const title = document.createElement('a');
-    title.href = "#";
-    title.className = 'text-xl font-semibold text-blue-800';  // 曲名
-    title.textContent = video["title"];
-    title.onclick = e => {
-      e.preventDefault();
-      loadVideo(video, item);  // 動画クリック時に再生
-    };
+// 上段（タイトル＋アーティスト）を横並び
+const topRow = document.createElement('div');
+topRow.className = 'flex justify-between items-center gap-4';
 
-    const artist = document.createElement('div');
-    artist.className = 'text-sm text-gray-600';  // アーティスト名（少し小さめ）
-    artist.textContent = video["artist"];
+const title = document.createElement('a');
+title.href = "#";
+title.className = 'text-xl font-semibold text-blue-800';
+title.textContent = video["title"];
+title.onclick = e => {
+  e.preventDefault();
+  loadVideo(video, item);
+};
 
-    const meta = document.createElement('div');
-    meta.className = 'text-sm text-gray-600 meta-row col-span-2';
-    meta.innerHTML = `
-    <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
-    <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
-    <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
-    <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
-    `;
+const artist = document.createElement('div');
+artist.className = 'text-sm text-gray-600';
+artist.textContent = video["artist"];
 
+// 詳細情報（横並び）
+const meta = document.createElement('div');
+meta.className = 'text-sm text-gray-600 meta-row';
+meta.innerHTML = `
+  <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
+  <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
+  <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
+  <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
+`;
 
+topRow.appendChild(title);
+topRow.appendChild(artist);
 
-    info.appendChild(title);  // 左
-    info.appendChild(artist); // 右
-    info.appendChild(meta);   // col-span-2（2列分を使う）
-    item.appendChild(info);
+item.appendChild(topRow);
+item.appendChild(meta);
+
   
               // 現在再生中の曲を強調表示
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
