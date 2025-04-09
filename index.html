@@ -33,31 +33,35 @@
   padding: 10px;
   margin-bottom: 5px;
   display: flex;
-  flex-direction: column;  /* 曲名とアーティスト名を縦に並べる */
-  justify-content: flex-start;
-  align-items: flex-start;
+  justify-content: space-between;  /* 左右に情報を配置 */
+  align-items: center;  /* 垂直方向のセンタリング */
   width: 100%;
   box-sizing: border-box;
 }
 
-/* 曲名のスタイル */
+/* 曲名とアーティスト名のスタイル */
 #videoList div .text-xl {
-  font-size: 1.25rem;  /* 曲名のフォントサイズを調整 */
+  font-size: 1.25rem;  /* 曲名のフォントサイズ */
   font-weight: 600;
   color: #00796b;
 }
 
-/* アーティスト名のスタイル */
 #videoList div .text-sm {
-  font-size: 0.875rem;  /* アーティスト名のフォントサイズを小さめに設定 */
+  font-size: 0.875rem;  /* アーティスト名のフォントサイズ */
   color: #607d8b;
 }
 
-/* 詳細情報のスタイル */
+/* 曲名とアーティスト名は縦に並べる */
+#videoList div > div {
+  display: flex;
+  flex-direction: column;  /* 縦に並べる */
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+/* 詳細情報は右側に配置 */
 #videoList div > div:last-child {
-  flex-direction: row;  /* 詳細情報は横並び */
-  align-items: center;
-  margin-top: 8px;
+  margin-left: 20px;  /* 詳細情報と曲名/アーティストの間隔を広げる */
 }
 
 #videoList a:hover {
