@@ -186,6 +186,11 @@ section {
   <!-- 固定プレイヤー -->
 <div id="fixedPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-20">
   <div class="max-w-4xl mx-auto p-4">
+
+ <button id="closePlayerButton" class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl font-bold">
+      &times;
+    </button>
+    
     <div class="bg-black rounded-xl overflow-hidden shadow-lg">
       <iframe id="playerIframe" class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
@@ -194,7 +199,7 @@ section {
 
   <template id="videoPlayerTemplate">
     <div class="video-player-container w-full mt-4 fade-in">
-      <div class="bg-black rounded-xl overflow-hidden shadow-lg">
+     <div class="bg-black rounded-xl overflow-hidden shadow-lg">
         <iframe class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
     </div>
@@ -212,6 +217,15 @@ section {
           populateFilters(data);
           applyFilters();
         });
+
+      document.getElementById('closePlayerButton').addEventListener('click', () => {
+    const fixedPlayer = document.getElementById('fixedPlayer');
+    const iframe = document.getElementById('playerIframe');
+
+    fixedPlayer.style.display = 'none'; // プレイヤー非表示
+    iframe.src = ''; // 再生停止
+  });
+});
 
        const randomPlayButton = document.getElementById('randomPlayButton');
 
