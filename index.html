@@ -31,7 +31,43 @@
   </style>
 </head>
 <body class="bg-white text-gray-800">
-  <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></main>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">司賀りこ 歌まとめ</h1>
+    
+    <!-- 検索ボックス -->
+    <div class="flex justify-between mb-4">
+      <input id="searchInput" type="text" class="border p-2 w-full max-w-xs" placeholder="曲名やアーティストで検索">
+      
+      <!-- 並び替えボタン -->
+      <button id="sortButton" class="ml-4 px-4 py-2 border rounded bg-blue-500 text-white">公開日で並び替え</button>
+    </div>
+    
+    <!-- フィルター -->
+    <div class="flex gap-4 mb-4">
+      <div class="flex items-center gap-2">
+        <label for="categoryFilter" class="text-sm">カテゴリ:</label>
+        <select id="categoryFilter" class="border p-2">
+          <option value="">すべて</option>
+          <option value="あやかき">あやかき</option>
+          <option value="ソロ">ソロ</option>
+          <option value="コラボ">コラボ</option>
+        </select>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <label for="videoTypeFilter" class="text-sm">動画種別:</label>
+        <select id="videoTypeFilter" class="border p-2">
+          <option value="">すべて</option>
+          <option value="通常">通常</option>
+          <option value="Shorts">Shorts</option>
+          <option value="Tiktok動画">Tiktok動画</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- 動画リスト -->
+    <div id="videoList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </div>
 
   <template id="videoPlayerTemplate">
     <div class="video-player-container w-full mt-4 fade-in">
@@ -165,59 +201,4 @@
         } while (next === currentIndex);
         loadVideoByIndex(next);
       } else {
-        let nextIndex = currentIndex + 1;
-        if (nextIndex >= videos.length) {
-          if (document.getElementById('repeatToggle').checked) {
-            nextIndex = 0;
-          } else {
-            updateNowNextDisplay(videos, videos[currentIndex]?.querySelector('a')?.textContent, null);
-            return;
-          }
-        }
-        loadVideoByIndex(nextIndex);
-      }
-    }
-
-    document.getElementById('playBtn').addEventListener('click', () => {
-      if (currentIndex === -1 && allVideos.length > 0) {
-        loadVideoByIndex(0);
-      } else {
-        document.querySelector('iframe')?.contentWindow?.postMessage('playVideo', '*');
-      }
-    });
-
-    document.getElementById('nextBtn').addEventListener('click', () => {
-      playNext();
-    });
-
-    document.getElementById('prevBtn').addEventListener('click', () => {
-      const videos = document.querySelectorAll('#videoList > div');
-      if (currentIndex > 0) {
-        loadVideoByIndex(currentIndex - 1);
-      } else {
-        loadVideoByIndex(videos.length - 1);
-      }
-    });
-
-    window.addEventListener('message', function (event) {
-      if (event.origin.includes('youtube')) {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.event === 'onStateChange' && data.info === 0) {
-            playNext();
-          }
-        } catch (e) {}
-      }
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      fetch(sheetJsonUrl)
-        .then(response => response.json())
-        .then(data => {
-          allVideos = data;
-          renderVideoList(data);
-        });
-    });
-  </script>
-</body>
-</html>
+        let next
