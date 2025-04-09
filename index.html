@@ -266,16 +266,15 @@ function renderVideoList(videos) {
 
     
 const item = document.createElement('div');
-item.className = 'p-2 mb-2 bg-blue-100 rounded-lg shadow-md flex flex-col gap-1';
-item.style.border = '2px solid #00796b';
+item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700';
 
-// 上段（タイトル＋アーティスト）を横並び
+// --- タイトルとアーティストを横並び ---
 const topRow = document.createElement('div');
-topRow.className = 'flex justify-between items-center gap-4';
+topRow.className = 'flex justify-between items-center mb-1';
 
 const title = document.createElement('a');
 title.href = "#";
-title.className = 'text-xl font-semibold text-blue-800';
+title.className = 'text-base sm:text-lg font-semibold text-blue-800';
 title.textContent = video["title"];
 title.onclick = e => {
   e.preventDefault();
@@ -286,7 +285,10 @@ const artist = document.createElement('div');
 artist.className = 'text-sm text-gray-600';
 artist.textContent = video["artist"];
 
-// 詳細情報（横並び）
+topRow.appendChild(title);
+topRow.appendChild(artist);
+
+// --- メタ情報を横並び ---
 const meta = document.createElement('div');
 meta.className = 'text-sm text-gray-600 meta-row';
 meta.innerHTML = `
@@ -295,9 +297,6 @@ meta.innerHTML = `
   <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
   <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
 `;
-
-topRow.appendChild(title);
-topRow.appendChild(artist);
 
 item.appendChild(topRow);
 item.appendChild(meta);
