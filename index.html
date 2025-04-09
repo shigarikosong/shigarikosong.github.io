@@ -57,6 +57,10 @@
         <option value="asc">古い順</option>
       </select>
       <button id="resetFilters" class="bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">リセット</button>
+          <!-- ランダム再生ボタン -->
+    <button id="randomPlayButton" class="bg-green-100 hover:bg-green-200 text-green-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300 mt-4 w-full sm:w-auto">
+      ランダム再生
+    </button>
     </div>
   </section>
 
@@ -91,6 +95,14 @@
           populateFilters(data);
           applyFilters();
         });
+
+       const randomPlayButton = document.getElementById('randomPlayButton');
+
+  // ランダム再生ボタンのクリックイベント
+  randomPlayButton.addEventListener('click', () => {
+    const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)]; // ランダムに動画を選択
+    loadVideo(randomVideo, null); // ランダムに選ばれた動画を再生プレイヤーで再生
+  });
 
       const categoryFilter = document.getElementById('categoryFilter');
       const dateFilter = document.getElementById('dateFilter');
