@@ -75,8 +75,13 @@
   font-weight: 600;
   color: #1e40af; /* text-blue-800 */
   text-decoration: none;
-  flex-shrink: 0;
+  flex-shrink: 1;         /* 必須：縮むことを許可 */
+  min-width: 0;           /* 親がflexのとき、はみ出し制御に必須 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 
 .video-artist {
   color: #374151; /* text-gray-700 */
