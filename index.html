@@ -260,74 +260,57 @@ section {
       }
 
 function renderVideoList(videos) {
-  videoList.innerHTML = ''; // 既存のリストをリセット
+  videoList.innerHTML = '';
 
   videos.forEach(video => {
+    const item = document.createElement('div');
+    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700';
 
-    
-const item = document.createElement('div');
-item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700';
+    // タイトルとアーティストを横並び
+    const topRow = document.createElement('div');
+    topRow.className = 'flex justify-between items-center mb-1 gap-2';
 
-// --- タイトルとアーティストを横並びにする ---
-const topRow = document.createElement('div');
-topRow.className = 'flex justify-between items-center mb-1 gap-2';
+    const title = document.createElement('a');
+    title.href = "#";
+    title.className = 'text-base sm:text-lg font-semibold text-blue-800 truncate';
+    title.textContent = video["title"];
+    title.style.maxWidth = '70%';
+    title.onclick = e => {
+      e.preventDefault();
+      loadVideo(video, item);
+    };
 
-const title = document.createElement('a');
-title.href = "#";
-title.className = 'text-base sm:text-lg font-semibold text-blue-800 truncate';
-title.textContent = video["title"];
-title.style.maxWidth = '70%'; // タイトルが長すぎて折れないよう制限
-title.onclick = e => {
-  e.preventDefault();
-  loadVideo(video, item);
-};
+    const artist = document.createElement('div');
+    artist.className = 'text-sm text-gray-600 whitespace-nowrap';
+    artist.textContent = video["artist"];
 
-const artist = document.createElement('div');
-artist.className = 'text-sm text-gray-600 whitespace-nowrap';
-artist.textContent = video["artist"];
+    topRow.appendChild(title);
+    topRow.appendChild(artist);
 
-topRow.appendChild(title);
-topRow.appendChild(artist);
+    // メタ情報
+    const meta = document.createElement('div');
+    meta.className = 'text-sm text-gray-600 meta-row mt-1';
+    meta.innerHTML = `
+      <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
+      <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
+      <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
+      <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
+    `;
 
-// --- メタ情報を横一列にする ---
-const meta = document.createElement('div');
-meta.className = 'text-sm text-gray-600 meta-row mt-1';
-meta.innerHTML = `
-  <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
-  <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
-  <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
-  <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
-`;
+    item.appendChild(topRow);
+    item.appendChild(meta);
 
-item.appendChild(topRow);
-item.appendChild(meta);
-
-
-// --- メタ情報を横並び ---
-const meta = document.createElement('div');
-meta.className = 'text-sm text-gray-600 meta-row';
-meta.innerHTML = `
-  <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
-  <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
-  <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
-  <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
-`;
-
-item.appendChild(topRow);
-item.appendChild(meta);
-
-  
-              // 現在再生中の曲を強調表示
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
-      item.style.backgroundColor = '#e0f7fa'; // 再生中の曲に色を付ける
+      item.style.backgroundColor = '#e0f7fa';
     } else {
-      item.style.backgroundColor = ''; // 他の曲はリセット
+      item.style.backgroundColor = '';
     }
 
-          videoList.appendChild(item);
-        });
-      }
+    videoList.appendChild(item);
+  });
+}
+
 
 function loadVideo(video, container) {
   const start = parseInt(video["start"] || '0');
