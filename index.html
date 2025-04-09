@@ -266,40 +266,47 @@ function renderVideoList(videos) {
     const item = document.createElement('div');
     item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700';
 
-    // タイトルとアーティストを横並び
+    // タイトル + アーティスト（横並び）
     const topRow = document.createElement('div');
-    topRow.className = 'flex justify-between items-center mb-1 gap-2';
+    topRow.className = 'flex justify-between items-center mb-1';
 
     const title = document.createElement('a');
-    title.href = "#";
-    title.className = 'text-base sm:text-lg font-semibold text-blue-800 truncate';
+    title.href = '#';
+    title.className = 'text-base sm:text-lg font-semibold text-blue-800';
     title.textContent = video["title"];
-    title.style.maxWidth = '70%';
     title.onclick = e => {
       e.preventDefault();
       loadVideo(video, item);
     };
 
     const artist = document.createElement('div');
-    artist.className = 'text-sm text-gray-600 whitespace-nowrap';
+    artist.className = 'text-sm text-gray-600';
     artist.textContent = video["artist"];
 
     topRow.appendChild(title);
     topRow.appendChild(artist);
 
-    // メタ情報
-    const meta = document.createElement('div');
-    meta.className = 'text-sm text-gray-600 meta-row mt-1';
-    meta.innerHTML = `
-      <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
-      <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
-      <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
-      <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
-    `;
+    // 詳細情報（横並び）
+    const metaRow = document.createElement('div');
+    metaRow.className = 'flex flex-wrap text-sm text-gray-700 gap-4';
+
+    const metaFields = [
+      ["カテゴリ", video["カテゴリ"]],
+      ["公開日", video["公開日"]],
+      ["動画種別", video["動画種別"]],
+      ["担当区分", video["担当区分"]]
+    ];
+
+    metaFields.forEach(([label, value]) => {
+      const span = document.createElement('span');
+      span.innerHTML = `<span class="font-semibold">${label}：</span>${value}`;
+      metaRow.appendChild(span);
+    });
 
     item.appendChild(topRow);
-    item.appendChild(meta);
+    item.appendChild(metaRow);
 
+    // 再生中ハイライト
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
       item.style.backgroundColor = '#e0f7fa';
@@ -310,6 +317,7 @@ function renderVideoList(videos) {
     videoList.appendChild(item);
   });
 }
+
 
 
 function loadVideo(video, container) {
