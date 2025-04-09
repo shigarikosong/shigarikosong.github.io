@@ -31,22 +31,17 @@
   background-color: #e0f7fa;
   border-radius: 8px;
   display: flex;
-  justify-content: space-between;  /* 曲名とアーティスト名を左側、詳細情報を右側 */
-  width: 100%;
-  box-sizing: border-box;
 }
 
     
 /* 曲名とアーティスト名のスタイル */
 #videoList div > div {
   flex-direction: column;  /* 縦に並べる */
-  width: 70%;  /* 変更: 曲名とアーティスト名の幅を70%に指定 */
 }
 
 /* 詳細情報のスタイル */
 #videoList div > div:last-child {
   justify-content: flex-start;  /* 詳細情報を左揃え */
-  width: 30%;  /* 変更: 詳細情報は親要素の30%を占める */
 }
 
 #videoList a:hover {
