@@ -284,16 +284,14 @@ function renderVideoList(videos) {
     artist.className = 'text-sm text-gray-600';  // アーティスト名（少し小さめ）
     artist.textContent = video["artist"];
 
+    const meta = document.createElement('div');
     meta.className = 'text-sm text-gray-600 meta-row col-span-2';
-
-  const meta = document.createElement('div');
-  meta.className = 'text-sm text-gray-600 meta-row col-span-2';
-  meta.innerHTML = `
-  <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
-  <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
-  <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
-  <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
-`;
+    meta.innerHTML = `
+    <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
+    <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
+    <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
+    <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
+    `;
 
 
 
