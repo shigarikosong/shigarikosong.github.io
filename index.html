@@ -26,6 +26,23 @@
       }
     }
 
+    /* ヘッダーを固定 */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white; /* 背景色を設定して、下のコンテンツが見えないように */
+}
+
+/* フィルターボタンを固定 */
+section {
+  position: sticky;
+  top: 60px; /* ヘッダーの高さ分、フィルター部分がヘッダーの下に配置されるように */
+  z-index: 9;  /* ヘッダーより下に配置 */
+  background-color: white;
+  padding-top: 10px;
+}
+
       /* 固定プレイヤー用のCSS */
   #fixedPlayer {
     display: none; /* 最初は非表示 */
