@@ -221,7 +221,8 @@ section {
 
         videos.forEach(video => {
           const item = document.createElement('div');
-          item.className = 'flex flex-col gap-2 py-4 transition-all duration-300 hover:bg-gray-50 border border-gray-300 rounded-lg';  // リストアイテムに枠線を追加
+          item.className = 'flex flex-col gap-2 py-4 px-4 transition-all duration-300 hover:bg-gray-50 border border-gray-300 rounded-lg';  // リストアイテムに余白を追加
+
 
           const info = document.createElement('div');
           info.className = 'flex-1';
