@@ -260,18 +260,18 @@ section {
       }
 
 function renderVideoList(videos) {
-  videoList.innerHTML = '';
+  videoList.innerHTML = ''; // 既存のリストをリセット
 
   videos.forEach(video => {
     const item = document.createElement('div');
-    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700';
+    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-2';
 
-    // タイトル + アーティスト（横並び）
+    // --- タイトルとアーティストを横並び ---
     const topRow = document.createElement('div');
-    topRow.className = 'flex justify-between items-center mb-1';
+    topRow.className = 'flex justify-between items-center';
 
     const title = document.createElement('a');
-    title.href = '#';
+    title.href = "#";
     title.className = 'text-base sm:text-lg font-semibold text-blue-800';
     title.textContent = video["title"];
     title.onclick = e => {
@@ -286,37 +286,36 @@ function renderVideoList(videos) {
     topRow.appendChild(title);
     topRow.appendChild(artist);
 
-    // 詳細情報（横並び）
+    // --- 詳細4項目を横並び ---
     const metaRow = document.createElement('div');
-    metaRow.className = 'flex flex-wrap text-sm text-gray-700 gap-4';
+    metaRow.className = 'flex flex-wrap gap-x-4 text-sm text-gray-600';
 
-    const metaFields = [
-      ["カテゴリ", video["カテゴリ"]],
-      ["公開日", video["公開日"]],
-      ["動画種別", video["動画種別"]],
-      ["担当区分", video["担当区分"]]
+    const metaList = [
+      { label: "カテゴリ", value: video["カテゴリ"] },
+      { label: "公開日", value: video["公開日"] },
+      { label: "動画種別", value: video["動画種別"] },
+      { label: "担当区分", value: video["担当区分"] }
     ];
 
-    metaFields.forEach(([label, value]) => {
+    metaList.forEach(meta => {
       const span = document.createElement('span');
-      span.innerHTML = `<span class="font-semibold">${label}：</span>${value}`;
+      span.innerHTML = `<span class="font-semibold">${meta.label}：</span>${meta.value}`;
       metaRow.appendChild(span);
     });
 
     item.appendChild(topRow);
     item.appendChild(metaRow);
 
-    // 再生中ハイライト
+    // --- 再生中ハイライト
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
-      item.style.backgroundColor = '#e0f7fa';
-    } else {
-      item.style.backgroundColor = '';
+      item.style.backgroundColor = '#e0f7fa'; // ハイライト色
     }
 
     videoList.appendChild(item);
   });
 }
+
 
 
 
