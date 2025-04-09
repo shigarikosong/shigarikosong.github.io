@@ -266,59 +266,53 @@ function renderVideoList(videos) {
     const item = document.createElement('div');
     item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
 
-    // --- 1行目：タイトル / アーティスト（横並び） ---
+    // --- タイトル / アーティスト名（1行目） ---
     const topRow = document.createElement('div');
-    topRow.className = 'flex flex-wrap items-center gap-2 text-base sm:text-lg';
+    topRow.className = 'flex items-center text-base sm:text-lg flex-wrap gap-x-2';
 
     const title = document.createElement('a');
     title.href = "#";
-    title.className = 'font-semibold text-blue-800 hover:underline';
+    title.className = 'font-semibold text-blue-800 hover:underline truncate';
     title.textContent = video["title"];
     title.onclick = e => {
       e.preventDefault();
       loadVideo(video, item);
     };
 
-    const slash = document.createElement('span');
-    slash.textContent = ' / ';
-
     const artist = document.createElement('span');
-    artist.className = 'text-gray-700';
-    artist.textContent = video["artist"];
+    artist.className = 'text-gray-700 truncate';
+    artist.textContent = ` / ${video["artist"]}`;
 
     topRow.appendChild(title);
-    topRow.appendChild(slash);
     topRow.appendChild(artist);
 
-    // --- 2行目：詳細情報（横並び） ---
+    // --- 詳細情報（2行目） ---
     const metaRow = document.createElement('div');
     metaRow.className = 'flex flex-wrap gap-x-4 text-sm text-gray-600';
-
     const metaItems = [
       video["カテゴリ"],
       video["公開日"],
       video["動画種別"],
       video["担当区分"]
     ];
-
     metaItems.forEach(text => {
       const span = document.createElement('span');
       span.textContent = text;
       metaRow.appendChild(span);
     });
 
-    // --- 再生中ハイライト ---
+    // --- ハイライト ---
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
       item.style.backgroundColor = '#e0f7fa';
     }
 
-    // --- 要素追加 ---
     item.appendChild(topRow);
     item.appendChild(metaRow);
     videoList.appendChild(item);
   });
 }
+
 
 
 
