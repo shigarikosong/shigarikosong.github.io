@@ -165,7 +165,7 @@ section {
     </div>
   </section>
 
-  <main id="videoList" class="w-full max-w-8xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
+  <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
 
   <!-- 再生中の曲名表示部分 -->
 <div id="nowPlaying" class="fixed bottom-0 left-0 w-full bg-blue-100 text-blue-900 py-2 text-center font-medium z-30">
@@ -291,7 +291,7 @@ function renderVideoList(videos) {
 
   videos.forEach(video => {
     const item = document.createElement('div');
-    item.className = 'w-full p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
+    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
 
     // 1行目：タイトル / アーティスト
     const topRow = document.createElement('div');
