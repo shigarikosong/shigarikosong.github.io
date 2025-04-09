@@ -238,7 +238,8 @@ section {
 
           const meta = document.createElement('div');
           meta.className = 'text-sm text-gray-500';
-          meta.innerHTML = `カテゴリ: ${video["カテゴリ"]} / 公開日: ${video["公開日"]} / 種別: ${video["動画種別"]} / 担当: ${video["担当区分"]}`;
+          meta.innerHTML = `${video["カテゴリ"]} / ${video["公開日"]} / ${video["動画種別"]} / ${video["担当区分"]}`;
+
 
           info.appendChild(title);
           info.appendChild(meta);
