@@ -229,6 +229,14 @@ section {
           info.appendChild(meta);
           item.appendChild(info);
 
+              // 現在再生中の曲を強調表示
+    const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
+    if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
+      item.style.backgroundColor = '#e0f7fa'; // 再生中の曲に色を付ける
+    } else {
+      item.style.backgroundColor = ''; // 他の曲はリセット
+    }
+
           videoList.appendChild(item);
         });
       }
