@@ -255,7 +255,7 @@ function renderVideoList(videos) {
     item.className = 'flex justify-between items-center gap-4 p-4 mb-4 bg-blue-100 border border-blue-300 rounded-lg shadow-md';  // 背景色・枠線・余白追加
 
     const info = document.createElement('div');
-    info.className = 'flex flex-col';
+    info.className = 'flex flex-1 justify-between items-center';  // 横並びに配置
 
     const title = document.createElement('a');
     title.href = "#";
@@ -267,11 +267,11 @@ function renderVideoList(videos) {
     };
 
     const meta = document.createElement('div');
-    meta.className = 'text-sm text-gray-600 mt-2';  // 詳細情報のフォント
+    meta.className = 'text-sm text-gray-600';  // 詳細情報のフォント
     meta.innerHTML = `${video["カテゴリ"]} / ${video["公開日"]} / ${video["動画種別"]} / ${video["担当区分"]}`;
 
-    info.appendChild(title);
-    info.appendChild(meta);
+    info.appendChild(title);  // 曲名とアーティスト名
+    info.appendChild(meta);   // 詳細情報（右側に配置される）
     item.appendChild(info);
 
 
