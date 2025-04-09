@@ -266,7 +266,7 @@ function renderVideoList(videos) {
     const item = document.createElement('div');
     item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
 
-    // --- 1行目：曲名 / アーティスト名（横並び） ---
+    // --- 1行目：タイトル / アーティスト（横並び） ---
     const topRow = document.createElement('div');
     topRow.className = 'flex flex-wrap items-center gap-2 text-base sm:text-lg';
 
@@ -279,34 +279,47 @@ function renderVideoList(videos) {
       loadVideo(video, item);
     };
 
+    const slash = document.createElement('span');
+    slash.textContent = ' / ';
+
     const artist = document.createElement('span');
     artist.className = 'text-gray-700';
-    artist.textContent = `/ ${video["artist"]}`;
+    artist.textContent = video["artist"];
 
     topRow.appendChild(title);
+    topRow.appendChild(slash);
     topRow.appendChild(artist);
 
-    // --- 2行目：詳細4項目 横並び ---
+    // --- 2行目：詳細情報（横並び） ---
     const metaRow = document.createElement('div');
     metaRow.className = 'flex flex-wrap gap-x-4 text-sm text-gray-600';
-    metaRow.innerHTML = `
-      <span>${video["カテゴリ"]}</span>
-      <span>${video["公開日"]}</span>
-      <span>${video["動画種別"]}</span>
-      <span>${video["担当区分"]}</span>
-    `;
 
-    // 再生中の強調表示
+    const metaItems = [
+      video["カテゴリ"],
+      video["公開日"],
+      video["動画種別"],
+      video["担当区分"]
+    ];
+
+    metaItems.forEach(text => {
+      const span = document.createElement('span');
+      span.textContent = text;
+      metaRow.appendChild(span);
+    });
+
+    // --- 再生中ハイライト ---
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
       item.style.backgroundColor = '#e0f7fa';
     }
 
+    // --- 要素追加 ---
     item.appendChild(topRow);
     item.appendChild(metaRow);
     videoList.appendChild(item);
   });
 }
+
 
 
 
