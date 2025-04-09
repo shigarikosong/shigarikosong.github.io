@@ -83,6 +83,11 @@ section {
 
   <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"></main>
 
+  <!-- 再生中の曲名表示部分 -->
+<div id="nowPlaying" class="fixed bottom-0 left-0 w-full bg-blue-100 text-blue-900 py-2 text-center font-medium z-30">
+  <span id="nowPlayingTitle">再生中の曲名</span>
+</div>
+
   <!-- 固定プレイヤー -->
 <div id="fixedPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-20">
   <div class="max-w-4xl mx-auto p-4">
@@ -251,6 +256,10 @@ function loadVideo(video, container) {
   const iframe = document.getElementById('playerIframe');
   iframe.src = embedUrl;
   fixedPlayer.style.display = 'block'; // プレイヤーを表示
+
+   // 再生中の曲名を更新
+  const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+  nowPlayingTitle.textContent = video["title"] + " - " + video["artist"];
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
