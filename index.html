@@ -44,6 +44,25 @@
   justify-content: flex-start;  /* 詳細情報を左揃え */
 }
 
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;  /* 長すぎる場合は折り返し */
+  gap: 12px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.meta-label {
+  font-weight: 600;
+  margin-right: 2px;
+  color: #374151; /* ダークグレー */
+}
+
+.meta-value {
+  margin-right: 16px;
+}
+
+
 #videoList a:hover {
   text-decoration: underline;  /* ホバー時に下線を追加 */
 }
@@ -264,10 +283,16 @@ function renderVideoList(videos) {
     artist.className = 'text-sm text-gray-600';  // アーティスト名（少し小さめ）
     artist.textContent = video["artist"];
 
-    // 詳細情報部分（meta）には枠線をつけない
     const meta = document.createElement('div');
-    meta.className = 'text-sm text-gray-600';  // 詳細情報のフォント
-    meta.innerHTML = `${video["カテゴリ"]} / ${video["公開日"]} / ${video["動画種別"]} / ${video["担当区分"]}`;
+    meta.className = 'text-sm text-gray-600 meta-row';  // 1行横並び用のクラス
+
+  meta.innerHTML = `
+  <span class="meta-label">カテゴリ：</span><span class="meta-value">${video["カテゴリ"]}</span>
+  <span class="meta-label">公開日：</span><span class="meta-value">${video["公開日"]}</span>
+  <span class="meta-label">動画種別：</span><span class="meta-value">${video["動画種別"]}</span>
+  <span class="meta-label">担当区分：</span><span class="meta-value">${video["担当区分"]}</span>
+`;
+
 
     item.appendChild(title);  // 曲名を追加
     item.appendChild(artist); // アーティスト名を追加
