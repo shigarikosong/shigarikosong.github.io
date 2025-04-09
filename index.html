@@ -63,6 +63,38 @@
   margin-right: 16px;
 }
 
+.video-item-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.video-title {
+  font-weight: 600;
+  color: #1e40af; /* text-blue-800 */
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.video-artist {
+  color: #374151; /* text-gray-700 */
+  flex-shrink: 0;
+}
+
+.video-meta {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #4b5563; /* text-gray-600 */
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+
 
 #videoList a:hover {
   text-decoration: underline;  /* ホバー時に下線を追加 */
@@ -264,15 +296,15 @@ function renderVideoList(videos) {
 
   videos.forEach(video => {
     const item = document.createElement('div');
-    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1 overflow-x-auto';
+    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
 
-    // --- 1行目：曲名 / アーティスト名（横並び） ---
+    // 1行目：タイトル / アーティスト
     const topRow = document.createElement('div');
-    topRow.className = 'flex items-center gap-2 text-base sm:text-lg text-blue-800 whitespace-nowrap';
+    topRow.className = 'video-item-row';
 
     const title = document.createElement('a');
     title.href = "#";
-    title.className = 'font-semibold text-blue-800 hover:underline';
+    title.className = 'video-title hover:underline';
     title.textContent = video["title"];
     title.onclick = e => {
       e.preventDefault();
@@ -280,45 +312,42 @@ function renderVideoList(videos) {
     };
 
     const slash = document.createElement('span');
-    slash.textContent = '/';
+    slash.textContent = ' / ';
 
     const artist = document.createElement('span');
-    artist.className = 'text-gray-800';
+    artist.className = 'video-artist';
     artist.textContent = video["artist"];
 
     topRow.appendChild(title);
     topRow.appendChild(slash);
     topRow.appendChild(artist);
 
-    // --- 2行目：カテゴリ / 公開日 / 種別 / 担当区分（横並び） ---
+    // 2行目：詳細情報
     const metaRow = document.createElement('div');
-    metaRow.className = 'flex items-center gap-x-4 text-sm text-gray-600 whitespace-nowrap';
-
-    const metaItems = [
+    metaRow.className = 'video-meta';
+    [
       video["カテゴリ"],
       video["公開日"],
       video["動画種別"],
       video["担当区分"]
-    ];
-
-    metaItems.forEach(text => {
+    ].forEach(text => {
       const span = document.createElement('span');
       span.textContent = text;
       metaRow.appendChild(span);
     });
 
-    // --- 再生中ハイライト ---
+    // 再生中ハイライト
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
       item.style.backgroundColor = '#e0f7fa';
     }
 
-    // --- DOMに追加 ---
     item.appendChild(topRow);
     item.appendChild(metaRow);
     videoList.appendChild(item);
   });
 }
+
 
 
 
