@@ -78,14 +78,25 @@ section {
       /* 固定プレイヤー用のCSS */
   #fixedPlayer {
     display: none; /* 最初は非表示 */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;  /* プレイヤーの高さを指定 */
+    background-color: #333;
+    color: white;
+    z-index: 10;  /* プレイヤーを最前面にする */
   }
 
 /* 再生中の曲名表示部分 */
 #nowPlaying {
-  background-color: #e0f7fa;  /* 再生中の曲名に薄い青色背景 */
-  color: #00796b;
-  text-align: center;
-  padding: 10px;
+  position: fixed;
+  bottom: 110px;  /* プレイヤーの高さ + 余白分だけ上に配置 */
+  left: 0;
+  width: 100%;
+  background-color: #222;
+  color: white;
+  z-index: 9;  /* プレイヤーより一段下 */
 }
 
 /* リストアイテムの強調表示 */
