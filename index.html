@@ -264,11 +264,11 @@ function renderVideoList(videos) {
 
   videos.forEach(video => {
     const item = document.createElement('div');
-    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
+    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1 overflow-x-auto';
 
-    // --- タイトル / アーティスト名（1行目） ---
+    // --- 1行目：曲名 / アーティスト名（横並び） ---
     const topRow = document.createElement('div');
-    topRow.className = 'flex flex-wrap items-center gap-2 text-base sm:text-lg';
+    topRow.className = 'flex items-center gap-2 text-base sm:text-lg text-blue-800 whitespace-nowrap';
 
     const title = document.createElement('a');
     title.href = "#";
@@ -290,27 +290,30 @@ function renderVideoList(videos) {
     topRow.appendChild(slash);
     topRow.appendChild(artist);
 
-    // --- 詳細情報（2行目） ---
+    // --- 2行目：カテゴリ / 公開日 / 種別 / 担当区分（横並び） ---
     const metaRow = document.createElement('div');
-    metaRow.className = 'flex flex-wrap gap-x-4 text-sm text-gray-600';
+    metaRow.className = 'flex items-center gap-x-4 text-sm text-gray-600 whitespace-nowrap';
+
     const metaItems = [
       video["カテゴリ"],
       video["公開日"],
       video["動画種別"],
       video["担当区分"]
     ];
+
     metaItems.forEach(text => {
       const span = document.createElement('span');
       span.textContent = text;
       metaRow.appendChild(span);
     });
 
-    // --- ハイライト ---
+    // --- 再生中ハイライト ---
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
       item.style.backgroundColor = '#e0f7fa';
     }
 
+    // --- DOMに追加 ---
     item.appendChild(topRow);
     item.appendChild(metaRow);
     videoList.appendChild(item);
