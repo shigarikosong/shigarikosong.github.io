@@ -33,20 +33,24 @@
   padding: 10px;
   margin-bottom: 5px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  white-space: nowrap;  /* 改行を防ぐ */
-  min-width: 300px;     /* 最小幅を設定して、アイテムが狭くならないようにする */
-  width: 100%;          /* 幅を親要素に合わせる */
-  box-sizing: border-box; /* paddingが含まれるように調整 */
+  flex-direction: column;  /* アイテム内の要素を縦に並べる */
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+    
+/* 曲名のスタイル */
+#videoList div .text-xl {
+  font-size: 1.25rem;  /* 曲名のフォントサイズを調整 */
+  font-weight: 600;
+  color: #00796b;
 }
 
-/* 曲名とアーティスト名 */
-#videoList a {
-  font-size: 1.125rem;  /* 大きなフォントサイズ */
-  font-weight: 600;
-  color: #00796b;  /* 青緑色 */
-  text-decoration: none;
+/* アーティスト名のスタイル */
+#videoList div .text-sm {
+  font-size: 0.875rem;  /* アーティスト名のフォントサイズを小さめに設定 */
+  color: #607d8b;
 }
 
 #videoList a:hover {
@@ -263,19 +267,24 @@ function renderVideoList(videos) {
 
     const title = document.createElement('a');
     title.href = "#";
-    title.className = 'text-xl font-semibold text-blue-800 hover:underline';  // 曲名を大きく、色を調整
-    title.textContent = `${video["title"]} / ${video["artist"]}`;
+    title.className = 'text-xl font-semibold text-blue-800';  // 曲名
+    title.textContent = video["title"];
     title.onclick = e => {
       e.preventDefault();
       loadVideo(video, item);  // 動画クリック時に再生
     };
+
+    const artist = document.createElement('div');
+    artist.className = 'text-sm text-gray-600';  // アーティスト名（少し小さめ）
+    artist.textContent = video["artist"];
 
     // 詳細情報部分（meta）には枠線をつけない
     const meta = document.createElement('div');
     meta.className = 'text-sm text-gray-600';  // 詳細情報のフォント
     meta.innerHTML = `${video["カテゴリ"]} / ${video["公開日"]} / ${video["動画種別"]} / ${video["担当区分"]}`;
 
-    info.appendChild(title);  // 曲名とアーティスト名
+    info.appendChild(title);  // 曲名を追加
+    info.appendChild(artist); // アーティスト名を追加
     info.appendChild(meta);   // 詳細情報（右側に配置される）
     item.appendChild(info);
 
