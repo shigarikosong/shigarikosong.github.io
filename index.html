@@ -231,7 +231,7 @@ section {
   <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
- <p>最終更新日：2025/04/14 05:12</p>
+ <p>最終更新日：2025/04/14 05:19</p>
 </footer>
  
   <!-- 再生中の曲名表示部分 -->
@@ -499,6 +499,7 @@ function loadVideo(video, item) {
   const iframe = document.getElementById('playerIframe');
   iframe.src = embedUrl;
   fixedPlayer.style.display = 'block'; // プレイヤーを表示
+  
   if (platform.toLowerCase().includes("youtube")) {
   iframe.className = "w-full aspect-video";
 } else if (platform.toLowerCase() === "tiktok") {
@@ -509,6 +510,8 @@ function loadVideo(video, item) {
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   nowPlayingTitle.textContent = video["title"] + " - " + video["artist"];
 
+  applyFilters(); // ← 再描画してハイライト＆スクロール反映
+
   // プレイヤーを表示する位置を調整
   const nowPlaying = document.getElementById('nowPlaying');
   fixedPlayer.style.bottom = `${nowPlaying.offsetHeight + 0}px`; // `nowplaying` の高さ + 余白で位置調整
@@ -518,7 +521,7 @@ function loadVideo(video, item) {
     // プレイヤーを非表示にする
     fixedPlayer.style.display = 'none'; // プレイヤーを非表示
 
-applyFilters(); // ← 再描画してハイライト＆スクロール反映
+
 
     
     // 動画の再生を停止する（YouTubeの場合）
