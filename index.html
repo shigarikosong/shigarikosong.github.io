@@ -264,6 +264,7 @@ section {
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
     let allVideos = [];
     let currentFilteredVideos = [];
+    let nowPlayingKey = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       fetch(sheetJsonUrl)
@@ -416,6 +417,12 @@ function renderVideoList(videos) {
     const item = document.createElement('div');
     item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
 
+    const key = `${video["videoId"]}__${video["start"] || 0}`;
+    if (key === nowPlayingKey) {
+    item.classList.add('playing');
+    playingElement = item;
+    }
+    
     // 1行目：タイトル / アーティスト
     const topRow = document.createElement('div');
     topRow.className = 'video-item-row';
@@ -507,7 +514,7 @@ function loadVideo(video, item) {
   // 再生中の曲名を更新
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   nowPlayingTitle.textContent = video["title"] + " - " + video["artist"];
-
+  nowPlayingKey = `${video["videoId"]}__${video["start"] || 0}`;
   applyFilters(); // ← 再描画してハイライト＆スクロール反映
 
   // プレイヤーを表示する位置を調整
