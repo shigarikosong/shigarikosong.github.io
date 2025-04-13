@@ -559,7 +559,7 @@ function loadVideo(video, item) {
 window.addEventListener('resize', () => {
   const fixedPlayer = document.getElementById('fixedPlayer');
   const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
-  fixedPlayer.style.bottom = `${nowPlayingWrapper.offsetHeight}px`;
+  fixedPlayer.style.bottom = `${nowPlayingWrapper.offsetHeight + 8}px`;
 });
 
 
