@@ -135,10 +135,11 @@ section {
   z-index: 9;  /* プレイヤーより一段下 */
 }
 
-/* リストアイテムの強調表示 */
 #videoList .playing {
-  background-color: #e0f7fa;  /* 再生中の項目に背景色を追加 */
+  background-color: #fffbe6; /* ハイライト色 */
+  border-left: 4px solid #facc15; /* アクセントライン */
 }
+
 
   </style>
 </head>
@@ -458,7 +459,7 @@ function renderVideoList(videos) {
      // 再生中ハイライト
     const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
     if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
-      item.style.backgroundColor = '#e0f7fa';
+      item.classList.add('playing');  
       playingElement = item; // ← 再生中だったら覚えておく
     }
 
@@ -516,6 +517,9 @@ function loadVideo(video, item) {
   document.getElementById('closePlayerBtn').addEventListener('click', () => {
     // プレイヤーを非表示にする
     fixedPlayer.style.display = 'none'; // プレイヤーを非表示
+
+applyFilters(); // ← 再描画してハイライト＆スクロール反映
+
     
     // 動画の再生を停止する（YouTubeの場合）
     const iframe = document.getElementById('playerIframe');
