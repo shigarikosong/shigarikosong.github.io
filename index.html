@@ -123,7 +123,7 @@ section {
       /* 固定プレイヤー用のCSS */
   #fixedPlayer {
     display: none; /* 最初は非表示 */
-    bottom: 10px;  /* プレイヤーの高さ + 余白分だけ上に配置 */
+    bottom: 0px;  /* プレイヤーの高さ + 余白分だけ上に配置 */
   }
 
     #fixedPlayer .controls-wrapper {
@@ -534,7 +534,6 @@ function loadVideo(video, item) {
 
   // プレイヤーを表示する位置を調整
   const nowPlaying = document.getElementById('nowPlaying');
-  fixedPlayer.style.bottom = `${nowPlaying.offsetHeight + 0}px`; // `nowplaying` の高さ + 余白で位置調整
 
   // ✖ボタンをクリックした時の処理
   document.getElementById('closePlayerBtn').addEventListener('click', () => {
