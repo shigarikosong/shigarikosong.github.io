@@ -63,22 +63,26 @@
 }
 
 .video-title {
-  text-align: left;
-  font-weight: 600;
-  color: #1e40af; /* text-blue-800 */
-  text-decoration: none;
-  flex: 1;    
-  min-width: 0;           /* 親がflexのとき、はみ出し制御に必須 */
+  flex: 3;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
+  font-weight: 600;
+  color: #1e40af;
 }
 
 
 .video-artist {
-  color: #374151; /* text-gray-700 */
-  flex-shrink: 0;
+  flex: 2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #374151;
 }
+
 
 .video-meta {
   display: flex;
