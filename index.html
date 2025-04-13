@@ -244,17 +244,20 @@ section {
     <button id="closePlayerBtn" class="absolute top-0 right-0 p-2 text-gray-700 hover:text-blue-600 font-bold">
       ✖
     </button>
+    
+      <!-- 前へ／次へボタン -->
+<div id="playerControls" class="flex justify-center gap-2 mt-2">
+  <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
+  <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
+</div>
+    
     <div class="bg-black rounded-xl overflow-hidden shadow-lg">
       <iframe id="playerIframe" class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
   </div>
 </div>
 
-  <!-- 前へ／次へボタン -->
-<div id="playerControls" class="flex justify-center gap-2 mt-2">
-  <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
-  <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
-</div>
+
 
 
 
