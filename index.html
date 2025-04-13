@@ -107,10 +107,8 @@
 
     /* ヘッダーを固定 */
 header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: white; /* 背景色を設定して、下のコンテンツが見えないように */
+  position: static; /* ← 追加（デフォルト値に戻す） */
+  background-color: white;
 }
 
 /* フィルターボタンを固定 */
