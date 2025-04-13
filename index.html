@@ -250,6 +250,13 @@ section {
   </div>
 </div>
 
+  <!-- 前へ／次へボタン -->
+<div id="playerControls" class="flex justify-center gap-2 mt-2">
+  <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
+  <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
+</div>
+
+
 
   <template id="videoPlayerTemplate">
     <div class="video-player-container w-full mt-4 fade-in">
@@ -538,6 +545,28 @@ function loadVideo(video, item) {
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
+
+  document.getElementById('prevVideoBtn').addEventListener('click', () => {
+  playAdjacentVideo(-1);
+  });
+
+  document.getElementById('nextVideoBtn').addEventListener('click', () => {
+  playAdjacentVideo(1);
+  });
+
+function playAdjacentVideo(direction) {
+  if (!currentFilteredVideos.length) return;
+
+  const currentIndex = currentFilteredVideos.findIndex(v =>
+    `${v.videoId}__${v.start || 0}` === nowPlayingKey
+    );
+
+  const newIndex = currentIndex + direction;
+  if (newIndex >= 0 && newIndex < currentFilteredVideos.length) {
+    loadVideo(currentFilteredVideos[newIndex], null);
+    }
+    }
+
   </script>
 </body>
 </html>
