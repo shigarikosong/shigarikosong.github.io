@@ -176,7 +176,7 @@ section {
   <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
- <p>最終更新日：2025/04/14 01:43:32</p>
+ <p>最終更新日：2025/04/14 02:29</p>
 </footer>
  
   <!-- 再生中の曲名表示部分 -->
@@ -374,7 +374,7 @@ function loadVideo(video, container) {
   if (platform.toLowerCase().includes("youtube")) {
     const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
     if (match) videoId = match[1];
-    embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1`;
+    embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1`;
   } else if (platform.toLowerCase() === "tiktok") {
     const match = videoId.match(/video\/(\d+)/);
     const tiktokId = match ? match[1] : videoId;
