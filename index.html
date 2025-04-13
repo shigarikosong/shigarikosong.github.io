@@ -259,6 +259,7 @@ section {
     
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
     let allVideos = [];
+    let currentFilteredVideos = [];
 
     window.addEventListener('DOMContentLoaded', () => {
       fetch(sheetJsonUrl)
@@ -291,13 +292,13 @@ document.getElementById('applyFilters').addEventListener('click', () => {
 });
 
 
-       const randomPlayButton = document.getElementById('randomPlayButton');
+const randomPlayButton = document.getElementById('randomPlayButton');
+randomPlayButton.addEventListener('click', () => {
+  const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+  const randomVideo = list[Math.floor(Math.random() * list.length)];
+  loadVideo(randomVideo, null);
+});
 
-  // ランダム再生ボタンのクリックイベント
-  randomPlayButton.addEventListener('click', () => {
-    const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)]; // ランダムに動画を選択
-    loadVideo(randomVideo, null); // ランダムに選ばれた動画を再生プレイヤーで再生
-  });
 
       const categoryFilter = document.getElementById('categoryFilter');
       const dateFilter = document.getElementById('dateFilter');
@@ -346,10 +347,12 @@ addOptions(document.getElementById('modalRoleFilter'), [...sets.role].sort());
 const mobileRandomPlayButton = document.getElementById('mobileRandomPlayButton');
 if (mobileRandomPlayButton) {
   mobileRandomPlayButton.addEventListener('click', () => {
-    const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)];
+    const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+    const randomVideo = list[Math.floor(Math.random() * list.length)];
     loadVideo(randomVideo, null);
   });
 }
+
 
 
 
@@ -397,6 +400,7 @@ if (mobileRandomPlayButton) {
         });
 
         renderVideoList(filtered);
+        currentFilteredVideos = filtered;
       }
 
 function renderVideoList(videos) {
