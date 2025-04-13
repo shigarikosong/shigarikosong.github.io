@@ -129,6 +129,7 @@ section {
 #nowPlayingWrapper {
   background-color: #e0f2fe; /* ちょい青系 */
   box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+  height: 72px; /* 高さ確保（曲名＋ボタン） */
 }
 
 #videoList .playing {
@@ -233,8 +234,9 @@ section {
 <!-- 再生中の曲名とボタンを一つの箱に入れる -->
 <div id="nowPlayingWrapper" class="fixed bottom-0 left-0 w-full bg-blue-100 text-blue-900 z-30">
   <div id="nowPlaying" class="py-2 text-center font-medium">
-    <span id="nowPlayingTitle">再生中の曲名</span>
+    <span id="nowPlayingTitle">再生中</span>
   </div>
+  
   <div id="playerControls" class="flex justify-center gap-2 py-2">
     <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
     <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
@@ -308,11 +310,11 @@ document.getElementById('applyFilters').addEventListener('click', () => {
 });
 
 
-const randomPlayButton = document.getElementById('randomPlayButton');
-randomPlayButton.addEventListener('click', () => {
+  const randomPlayButton = document.getElementById('randomPlayButton');
+    randomPlayButton.addEventListener('click', () => {
   const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
   const randomVideo = list[Math.floor(Math.random() * list.length)];
-  loadVideo(randomVideo, null);
+    loadVideo(randomVideo, null);
 });
 
 
@@ -508,6 +510,10 @@ function loadVideo(video, item) {
   const iframe = document.getElementById('playerIframe');
   iframe.src = embedUrl;
   fixedPlayer.style.display = 'block'; // プレイヤーを表示
+
+  const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
+  fixedPlayer.style.bottom = `${nowPlayingWrapper.offsetHeight}px`;
+
   
   if (platform.toLowerCase().includes("youtube")) {
   iframe.className = "w-full aspect-video";
@@ -549,6 +555,13 @@ function loadVideo(video, item) {
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
+
+window.addEventListener('resize', () => {
+  const fixedPlayer = document.getElementById('fixedPlayer');
+  const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
+  fixedPlayer.style.bottom = `${nowPlayingWrapper.offsetHeight}px`;
+});
+
 
   document.getElementById('prevVideoBtn').addEventListener('click', () => {
   playAdjacentVideo(-1);
