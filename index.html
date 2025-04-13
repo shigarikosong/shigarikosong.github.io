@@ -186,6 +186,9 @@ section {
   <!-- 固定プレイヤー -->
 <div id="fixedPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-20">
   <div class="max-w-4xl mx-auto p-4">
+
+   <button id="closePlayerBtn" class="text-gray-700 hover:text-blue-600">✖️</button>
+  
     <div class="bg-black rounded-xl overflow-hidden shadow-lg">
       <iframe id="playerIframe" class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
@@ -200,6 +203,7 @@ section {
     </div>
   </template>
 
+  
   <script>
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
     let allVideos = [];
@@ -355,11 +359,6 @@ function renderVideoList(videos) {
 }
 
 
-
-
-
-
-
 function loadVideo(video, container) {
   const start = parseInt(video["start"] || '0');
   let videoId = video["videoId"];
@@ -391,6 +390,18 @@ function loadVideo(video, container) {
   // プレイヤーを表示する位置を調整
   const nowPlaying = document.getElementById('nowPlaying');
   fixedPlayer.style.bottom = `${nowPlaying.offsetHeight + 0}px`; // `nowplaying` の高さ + 余白で位置調整
+
+  // ✖ボタンをクリックした時の処理
+  document.getElementById('closePlayerBtn').addEventListener('click', () => {
+    // プレイヤーを非表示にする
+    const fixedPlayer = document.getElementById('fixedPlayer');
+    fixedPlayer.style.display = 'none'; // プレイヤーを非表示
+    
+    // 動画の再生を停止する（YouTubeの場合）
+    const iframe = document.getElementById('playerIframe');
+    const player = iframe.contentWindow;
+    player.postMessage('pauseVideo', '*'); // YouTubeの再生を停止
+  }
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
