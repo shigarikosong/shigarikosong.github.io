@@ -404,6 +404,7 @@ function loadVideo(video, container) {
   // ✖ボタンをクリックした時の処理
   document.getElementById('closePlayerBtn').addEventListener('click', () => {
  // プレイヤーを非表示にする
+   const fixedPlayer = document.getElementById('fixedPlayer');
     fixedPlayer.style.display = 'none'; // プレイヤーを非表示
     
     // 動画の再生を停止する（YouTubeの場合）
@@ -415,6 +416,7 @@ function loadVideo(video, container) {
       args: []
     }), '*'); // YouTubeの再生を停止
   });
+  }); // ここで `DOMContentLoaded` のブロックを閉じる
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
