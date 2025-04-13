@@ -173,11 +173,14 @@ section {
   </main>
 
   <footer class="text-center text-xs text-gray-500 mt-12 px-4 pb-16 space-y-2">
-  <p>本サイトはファンによる非公式ページです。ANYCOLOR株式会社様とは一切関係ありません。</p>
+  <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
-</footer>
 
+     <!-- 最終更新日 -->
+  <p>最終更新日: <span id="lastUpdated">Loading...</span></p> <!-- ここにJavaScriptで時間が入ります -->
+</footer>
+ 
   <!-- 再生中の曲名表示部分 -->
 <div id="nowPlaying" class="fixed bottom-0 left-0 w-full bg-blue-100 text-blue-900 py-2 text-center font-medium z-30">
   <span id="nowPlayingTitle">再生中の曲名</span>
@@ -226,6 +229,12 @@ section {
     const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)]; // ランダムに動画を選択
     loadVideo(randomVideo, null); // ランダムに選ばれた動画を再生プレイヤーで再生
   });
+
+        // 最終更新日の表示
+  const lastUpdatedElement = document.getElementById('lastUpdated');
+  const lastUpdatedDate = new Date();
+  lastUpdatedElement.textContent = `最終更新日: ${lastUpdatedDate.toLocaleString()}`;
+});
 
       const categoryFilter = document.getElementById('categoryFilter');
       const dateFilter = document.getElementById('dateFilter');
