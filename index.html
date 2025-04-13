@@ -100,6 +100,11 @@
   text-decoration: underline;  /* ホバー時に下線を追加 */
 }
 
+    #videoList .playing {
+  background-color: #fffbe6; /* 淡い黄色に変更 */
+  border-left: 4px solid #facc15; /* 黄色のライン追加 */
+}
+
     /* ヘッダーを固定 */
 header {
   position: sticky;
@@ -514,6 +519,10 @@ function loadVideo(video, container) {
 } else {
   iframe.src = "";
 }
+
+// loadVideo の最後あたりに追加
+container?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
   }); // ここで addEventListener の閉じ括弧
 } // ここで loadVideo 関数の閉じ括弧
 
