@@ -176,7 +176,7 @@ section {
   <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
- <p>最終更新日：2025/04/14 01:36:13</p>
+ <p>最終更新日：2025/04/14 01:43:32</p>
 </footer>
  
   <!-- 再生中の曲名表示部分 -->
@@ -391,7 +391,7 @@ function loadVideo(video, container) {
   iframe.src = embedUrl;
   fixedPlayer.style.display = 'block'; // プレイヤーを表示
 
-   // 再生中の曲名を更新
+  // 再生中の曲名を更新
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   nowPlayingTitle.textContent = video["title"] + " - " + video["artist"];
 
@@ -401,23 +401,24 @@ function loadVideo(video, container) {
 
   // ✖ボタンをクリックした時の処理
   document.getElementById('closePlayerBtn').addEventListener('click', () => {
- // プレイヤーを非表示にする
-fixedPlayer.style.display = 'none'; // プレイヤーを非表示
+    // プレイヤーを非表示にする
+    fixedPlayer.style.display = 'none'; // プレイヤーを非表示
     
     // 動画の再生を停止する（YouTubeの場合）
     const iframe = document.getElementById('playerIframe');
     if (iframe) {
-    const player = iframe.contentWindow;
-  player.postMessage(JSON.stringify({
-      event: 'command',
-      func: 'pauseVideo',
-      args: []
+      const player = iframe.contentWindow;
+      player.postMessage(JSON.stringify({
+        event: 'command',
+        func: 'pauseVideo',
+        args: []
       }), '*'); // YouTubeの再生を停止
-      } else {
-    console.log('Player iframe not found');
-    });
-  }
-});
+    } else {
+      console.log('Player iframe not found');
+    }
+  }); // ここで addEventListener の閉じ括弧
+} // ここで loadVideo 関数の閉じ括弧
+
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
