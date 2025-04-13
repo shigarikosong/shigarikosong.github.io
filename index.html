@@ -229,7 +229,7 @@ section {
   <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
- <p>最終更新日：2025/04/14 05:41</p>
+ <p>最終更新日：2025/04/14 05:43</p>
 </footer>
  
   <!-- 再生中の曲名表示部分 -->
@@ -461,14 +461,6 @@ function renderVideoList(videos) {
       span.textContent = text;
       metaRow.appendChild(span);
     });
-
-     // 再生中ハイライト
-    const nowPlayingTitle = document.getElementById('nowPlayingTitle').textContent;
-    if (`${video["title"]} - ${video["artist"]}` === nowPlayingTitle) {
-      item.classList.add('playing');  
-      playingElement = item; // ← 再生中だったら覚えておく
-    }
-
 
     item.appendChild(topRow);
     item.appendChild(metaRow);
