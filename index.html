@@ -178,7 +178,7 @@ section {
   <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
- <p>最終更新日：2025/04/14 02:41</p>
+ <p>最終更新日：2025/04/14 02:48</p>
 </footer>
  
   <!-- 再生中の曲名表示部分 -->
@@ -203,13 +203,7 @@ section {
   <template id="videoPlayerTemplate">
     <div class="video-player-container w-full mt-4 fade-in">
       <div class="bg-black rounded-xl overflow-hidden shadow-lg">
-  
-      if (platform.toLowerCase().includes("youtube")) {
-      iframe.className = "w-full aspect-video"; // YouTubeは横長
-      } else if (platform.toLowerCase() === "tiktok") {
-      iframe.className = "w-[300px] h-[550px] mx-auto"; // TikTok用の縦長比率＋中央寄せ
-      }
-        
+    <iframe class="" src="" frameborder="0" allow="autoplay" allowfullscreen></iframe>    
     </div>
   </template>
 
@@ -393,6 +387,11 @@ function loadVideo(video, container) {
   const iframe = document.getElementById('playerIframe');
   iframe.src = embedUrl;
   fixedPlayer.style.display = 'block'; // プレイヤーを表示
+  if (platform.toLowerCase().includes("youtube")) {
+  iframe.className = "w-full aspect-video";
+} else if (platform.toLowerCase() === "tiktok") {
+  iframe.className = "w-[300px] h-[550px] mx-auto";
+}
 
   // 再生中の曲名を更新
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
