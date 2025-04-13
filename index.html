@@ -414,6 +414,8 @@ fixedPlayer.style.display = 'none'; // プレイヤーを非表示
       func: 'pauseVideo',
       args: []
       }), '*'); // YouTubeの再生を停止
+      } else {
+    console.log('Player iframe not found');
     });
   }
 });
