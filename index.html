@@ -152,6 +152,14 @@ section {
   </button>
 </div>
 
+    <!-- モバイル専用ランダム再生ボタン（sm未満のみ表示） -->
+<div class="block sm:hidden text-center mt-2">
+  <button id="mobileRandomPlayButton" class="bg-green-500 text-white px-4 py-2 rounded-md">
+    🎲 ランダム再生
+  </button>
+</div>
+
+
     <h2 class="text-xl font-semibold text-gray-800">動画リスト</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
       <select id="categoryFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
@@ -218,7 +226,7 @@ section {
   <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
- <p>最終更新日：2025/04/14 03:05</p>
+ <p>最終更新日：2025/04/14 03:11</p>
 </footer>
  
   <!-- 再生中の曲名表示部分 -->
@@ -328,6 +336,16 @@ addOptions(document.getElementById('modalCategoryFilter'), [...sets.category].so
 addOptions(document.getElementById('modalDateFilter'), [...sets.date].sort());
 addOptions(document.getElementById('modalTypeFilter'), [...sets.type].sort());
 addOptions(document.getElementById('modalRoleFilter'), [...sets.role].sort());
+
+        // モバイル用ランダム再生ボタン
+const mobileRandomPlayButton = document.getElementById('mobileRandomPlayButton');
+if (mobileRandomPlayButton) {
+  mobileRandomPlayButton.addEventListener('click', () => {
+    const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)];
+    loadVideo(randomVideo, null);
+  });
+}
+
 
 
         [categoryFilter, dateFilter, typeFilter, roleFilter, searchInput, sortOrder].forEach(el => {
