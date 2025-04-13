@@ -319,9 +319,15 @@ document.getElementById('applyFilters').addEventListener('click', () => {
 
         videos.forEach(v => {
           sets.category.add(v["カテゴリ"]);
-          sets.date.add(v["公開日"]);
           sets.type.add(v["動画種別"]);
           sets.role.add(v["担当区分"]);
+
+            // 公開月（例: 2023/07）だけ抽出して追加
+  const rawDate = v["公開日"];
+  if (rawDate && /^\d{4}\/\d{2}/.test(rawDate)) {
+    const month = rawDate.slice(0, 7); // "YYYY/MM"
+    sets.date.add(month);
+  }
         });
 
         addOptions(categoryFilter, [...sets.category].sort());
@@ -376,7 +382,7 @@ if (mobileRandomPlayButton) {
       function applyFilters() {
         let filtered = allVideos.filter(video => {
           return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
-                 (!dateFilter.value || video["公開日"] === dateFilter.value) &&
+                 (!dateFilter.value ||  video["公開日"].startsWith(dateFilter.value)) &&
                  (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
                  (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
                  (!searchInput.value ||
