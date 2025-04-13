@@ -225,7 +225,7 @@ section {
   <p>本サイトはファンによる非公式ページです。</p>
   <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
- <p>最終更新日：2025/04/14 03:58</p>
+ <p>最終更新日：2025/04/14 04:21</p>
 </footer>
  
   <!-- 再生中の曲名表示部分 -->
@@ -324,7 +324,7 @@ document.getElementById('applyFilters').addEventListener('click', () => {
 
             // 公開月（例: 2023/07）だけ抽出して追加
   const rawDate = v["公開日"];
-  if (rawDate && /^\d{4}\/\d{2}/.test(rawDate)) {
+  if (rawDate && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
     const month = rawDate.slice(0, 7).replace('-', '/'); // "YYYY/MM"
     sets.date.add(month);
   }
