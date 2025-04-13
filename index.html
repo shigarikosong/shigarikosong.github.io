@@ -183,17 +183,19 @@ section {
   <span id="nowPlayingTitle">再生中の曲名</span>
 </div>
 
-  <!-- 固定プレイヤー -->
+<!-- 固定プレイヤー -->
 <div id="fixedPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-20">
-  <div class="max-w-4xl mx-auto p-4">
-
-   <button id="closePlayerBtn" class="text-gray-700 hover:text-blue-600">✖️</button>
-  
+  <div class="max-w-4xl mx-auto p-4 relative">
+    <!-- ✖ボタンを追加 -->
+    <button id="closePlayerBtn" class="absolute top-0 right-0 p-2 text-gray-700 hover:text-blue-600 font-bold">
+      ✖
+    </button>
     <div class="bg-black rounded-xl overflow-hidden shadow-lg">
       <iframe id="playerIframe" class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
   </div>
 </div>
+
 
   <template id="videoPlayerTemplate">
     <div class="video-player-container w-full mt-4 fade-in">
@@ -393,21 +395,21 @@ function loadVideo(video, container) {
 
   // ✖ボタンをクリックした時の処理
   document.getElementById('closePlayerBtn').addEventListener('click', () => {
-    // プレイヤーを非表示にする
-    const fixedPlayer = document.getElementById('fixedPlayer');
+ // プレイヤーを非表示にする
     fixedPlayer.style.display = 'none'; // プレイヤーを非表示
     
     // 動画の再生を停止する（YouTubeの場合）
     const iframe = document.getElementById('playerIframe');
     const player = iframe.contentWindow;
-    player.postMessage('pauseVideo', '*'); // YouTubeの再生を停止
-  }
+  player.postMessage(JSON.stringify({
+      event: 'command',
+      func: 'pauseVideo',
+      args: []
+    }), '*'); // YouTubeの再生を停止
+  });
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
-}
-
-    });
   </script>
 </body>
 </html>
