@@ -132,11 +132,12 @@ section {
 
 
 #nowPlayingWrapper {
-  background-color: #e0f2fe; /* ちょい青系 */
-  box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
-  height: 72px; /* 高さ確保（曲名＋ボタン） */
+  background-color: #e0f2fe;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+  height: auto; /* 高さを固定値から自動に */
+  padding-top: 4px;
+  padding-bottom: 8px; /* ボタンに余裕を持たせる */
 }
-
 #videoList .playing {
   background-color: #fffbe6; /* ハイライト色 */
   border-left: 4px solid #facc15; /* アクセントライン */
