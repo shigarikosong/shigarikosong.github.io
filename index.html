@@ -469,12 +469,20 @@ function renderVideoList(videos) {
     // 2行目：詳細情報
     const metaRow = document.createElement('div');
     metaRow.className = 'video-meta';
-    [
+
+    const info = [
       video["カテゴリ"],
-      video["公開日"],
       video["動画種別"],
       video["担当区分"]
-    ].forEach(text => {
+    ];
+
+    const rawDate = video["公開日"];
+    if (rawDate) {
+      const formatted = rawDate.slice(0, 10).replace(/-/g, '/');
+      info.push(formatted);
+    }
+
+    info.forEach(text => {
       const span = document.createElement('span');
       span.textContent = text;
       metaRow.appendChild(span);
