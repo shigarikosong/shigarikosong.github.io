@@ -248,6 +248,7 @@ section {
   <div id="playerControls" class="flex justify-center gap-2 py-2">
     <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
     <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
+    <button id="randomFromFilteredBtn" class="bg-gray-300 px-3 py-1 rounded">🎲 ランダム</button>
   </div>
 </div>
 
@@ -582,6 +583,12 @@ window.addEventListener('resize', () => {
   document.getElementById('nextVideoBtn').addEventListener('click', () => {
   playAdjacentVideo(1);
   });
+
+    document.getElementById('randomFromFilteredBtn').addEventListener('click', () => {
+  const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+  const randomVideo = list[Math.floor(Math.random() * list.length)];
+  loadVideo(randomVideo, null);
+});
 
 function playAdjacentVideo(direction) {
   if (!currentFilteredVideos.length) return;
