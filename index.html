@@ -208,6 +208,12 @@ section {
     
     <!-- モーダル用のフィルター入力欄 -->
     <div class="space-y-3">
+        <select id="modalSortOrder" class="w-full border p-2 rounded">
+    <option value="desc">新しい順</option>
+    <option value="asc">古い順</option>
+    <option value="artist">曲名順</option>
+    <option value="title">アーティスト順</option>
+  </select>
       <select id="modalCategoryFilter" class="w-full border p-2 rounded">
         <option value="">カテゴリ</option>
       </select>
@@ -322,7 +328,8 @@ document.getElementById('applyFilters').addEventListener('click', () => {
   dateFilter.value = document.getElementById('modalDateFilter').value;
   typeFilter.value = document.getElementById('modalTypeFilter').value;
   roleFilter.value = document.getElementById('modalRoleFilter').value;
-  searchInput.value = document.getElementById('modalSearchInput').value;
+searchInput.value = document.getElementById('modalSearchInput').value;
+sortOrder.value = document.getElementById('modalSortOrder').value;
 
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
