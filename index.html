@@ -455,8 +455,8 @@ if (mobileRandomPlayButton) {
 
 filtered.sort((a, b) => {
   if (sortOrder.value === "asc" || sortOrder.value === "desc") {
-    const dateA = new Date(a["公開日"]?.slice(0, 7).replace('-', '/') + "/01");
-    const dateB = new Date(b["公開日"]?.slice(0, 7).replace('-', '/') + "/01");
+    const dateA = new Date(a["公開月"]);
+    const dateB = new Date(b["公開月"]);
     return sortOrder.value === "asc" ? dateA - dateB : dateB - dateA;
   } else if (sortOrder.value === "title") {
     return a["title"].localeCompare(b["title"], 'ja');
