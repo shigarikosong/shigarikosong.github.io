@@ -445,7 +445,7 @@ if (mobileRandomPlayButton) {
       function applyFilters() {
         let filtered = allVideos.filter(video => {
           return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
-                 (!dateFilter.value || video["公開日"].slice(0, 7).replace('-', '/') === dateFilter.value) &&
+                 (!dateFilter.value || video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value) &&
                  (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
                  (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
                  (!searchInput.value ||
