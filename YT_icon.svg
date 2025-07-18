@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_レイヤー_2" data-name="レイヤー 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 79.5 79.5">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f7dd71;
+      }
+
+      .cls-2 {
+        fill: #343434;
+        font-family: DINCondensed-Bold, 'DIN Condensed';
+        font-size: 26.63px;
+        font-weight: 700;
+      }
+
+      .cls-3 {
+        letter-spacing: 0em;
+      }
+
+      .cls-4 {
+        letter-spacing: -.05em;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1" data-name="Layer 1">
+    <rect class="cls-1" width="79.5" height="79.5" rx="9.86" ry="9.86"/>
+    <text class="cls-2" transform="translate(7.21 48.99)"><tspan class="cls-4" x="0" y="0">Y</tspan><tspan class="cls-3" x="8.87" y="0">outube</tspan></text>
+  </g>
+</svg>

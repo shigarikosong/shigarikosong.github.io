@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_レイヤー_2" data-name="レイヤー 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 79.5 79.5">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f7dd71;
+      }
+
+      .cls-2 {
+        fill: #343434;
+        font-family: DINCondensed-Bold, 'DIN Condensed';
+        font-size: 52.7px;
+        font-weight: 700;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1" data-name="Layer 1">
+    <rect class="cls-1" width="79.5" height="79.5" rx="9.86" ry="9.86"/>
+    <text class="cls-2" transform="translate(29.5 58.08)"><tspan x="0" y="0">X</tspan></text>
+  </g>
+</svg>
