@@ -453,10 +453,10 @@ if (mobileRandomPlayButton) {
                   video["artist"].toLowerCase().includes(searchInput.value.toLowerCase()));
         });
 
-  filtered.sort((a, b) => {
+filtered.sort((a, b) => {
   if (sortOrder.value === "asc" || sortOrder.value === "desc") {
-    const dateA = new Date(a["公開月"] + "/01");
-  const dateB = new Date(b["公開月"] + "/01");
+    const dateA = new Date(a["公開日"]?.slice(0, 7).replace('-', '/') + "/01");
+    const dateB = new Date(b["公開日"]?.slice(0, 7).replace('-', '/') + "/01");
     return sortOrder.value === "asc" ? dateA - dateB : dateB - dateA;
   } else if (sortOrder.value === "title") {
     return a["title"].localeCompare(b["title"], 'ja');
@@ -464,6 +464,7 @@ if (mobileRandomPlayButton) {
     return a["artist"].localeCompare(b["artist"], 'ja');
   }
 });
+
         renderVideoList(filtered);
         currentFilteredVideos = filtered;
       }
