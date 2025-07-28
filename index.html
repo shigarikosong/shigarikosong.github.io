@@ -512,17 +512,18 @@ function renderVideoList(videos) {
     // 2行目：詳細情報
     const metaRow = document.createElement('div');
     metaRow.className = 'video-meta';
-    [
-      video["カテゴリ"],
-      video["公開月"],
-      video["動画種別"],
-      video["担当区分"]
-      video["platform"]
-    ].forEach(text => {
-      const span = document.createElement('span');
-      span.textContent = text;
-      metaRow.appendChild(span);
-    });
+   [
+  video["カテゴリ"],
+  video["公開月"],
+  video["動画種別"],
+  video["担当区分"],
+  video["platform"] // ← ここに undefined があると全部止まる
+].filter(Boolean).forEach(text => {
+  const span = document.createElement('span');
+  span.textContent = text;
+  metaRow.appendChild(span);
+});
+
 
     item.appendChild(topRow);
     item.appendChild(metaRow);
