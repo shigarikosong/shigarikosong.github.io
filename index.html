@@ -185,10 +185,16 @@ section {
   </button>
 </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <select id="categoryFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">カテゴリ</option>
-      </select>
+<!-- ✅ カスタムカテゴリフィルターのHTML -->
+<div class="relative inline-block w-full sm:col-span-1">
+  <button id="customCategoryToggle" class="w-full bg-white border border-gray-300 rounded-md px-4 py-2 text-sm text-left">
+    カテゴリを選択
+  </button>
+  <div id="customCategoryOptions" class="absolute mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 hidden max-h-60 overflow-y-auto">
+    <!-- JSでカテゴリ追加 -->
+  </div>
+</div>
+    
       <select id="dateFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <option value="">公開日</option>
       </select>
@@ -396,7 +402,6 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
   }
         });
 
-        addOptions(categoryFilter, [...sets.category].sort());
         addOptions(dateFilter, [...sets.date].sort());
         addOptions(typeFilter, [...sets.type].sort());
         addOptions(roleFilter, [...sets.role].sort());
