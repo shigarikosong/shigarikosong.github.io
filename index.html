@@ -214,6 +214,11 @@ section {
     </div>
   </section>
 
+  <div id="songCount" class="text-center text-sm text-gray-700 mb-4">
+  <!-- 件数はJSで埋め込み -->
+</div>
+
+
   <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"> 
   </main>
 
@@ -471,6 +476,10 @@ filtered.sort((a, b) => {
 
 function renderVideoList(videos) {
   videoList.innerHTML = '';
+
+    // 件数表示を更新
+  const countElement = document.getElementById('songCount');
+  countElement.textContent = `${allVideos.length}曲中 ${videos.length}曲表示中`;
 
   let playingElement = null;
 
