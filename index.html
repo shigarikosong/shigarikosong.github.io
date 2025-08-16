@@ -154,7 +154,9 @@ section {
   cursor: ns-resize;
   z-index: 5;
   background: transparent;
+  touch-action: none; 
 }
+    
 #playerResizeHandle::after {
   content: "";
   position: absolute;
@@ -443,26 +445,48 @@ function setPlayerHeight(px) {
 
 (function enablePlayerResize() {
   if (!resizeHandle || !playerIframe) return;
+
   let dragging = false, startY = 0, startH = 0;
+  let prevUserSelect = '', prevCursor = '', prevOverflow = '';
+  const preventScroll = (e) => e.preventDefault();
+
+  const lockScroll = () => {
+    // スクロール抑止（iOS含む）
+    prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // タッチスクロールを完全停止
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+  };
+
+  const unlockScroll = () => {
+    document.body.style.overflow = prevOverflow;
+    document.removeEventListener('touchmove', preventScroll, { passive: false });
+  };
 
   const start = (y) => {
     dragging = true;
     startY = y;
     startH = parseInt(playerIframe.style.height || 0, 10) ||
              playerIframe.getBoundingClientRect().height;
+    prevUserSelect = document.body.style.userSelect;
+    prevCursor = document.body.style.cursor;
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'ns-resize';
+    lockScroll();
   };
+
   const move = (y) => {
     if (!dragging) return;
     const dy = y - startY;
     setPlayerHeight(startH - dy); // 上に動かすと高さが増える
   };
+
   const end = () => {
     if (!dragging) return;
     dragging = false;
-    document.body.style.userSelect = '';
-    document.body.style.cursor = '';
+    document.body.style.userSelect = prevUserSelect;
+    document.body.style.cursor = prevCursor;
+    unlockScroll();
   };
 
   // マウス
@@ -473,13 +497,18 @@ function setPlayerHeight(px) {
   window.addEventListener('mousemove', (e) => move(e.clientY));
   window.addEventListener('mouseup', end);
 
-  // タッチ
+  // タッチ（passive: false で preventDefault を有効に）
   resizeHandle.addEventListener('touchstart', (e) => {
     start(e.touches[0].clientY);
-  }, { passive: true });
-  window.addEventListener('touchmove', (e) => move(e.touches[0].clientY), { passive: true });
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    move(e.touches[0].clientY);
+  }, { passive: false });
+
   window.addEventListener('touchend', end);
 })();
+
 
       function populateFilters(videos) {
         const sets = {
