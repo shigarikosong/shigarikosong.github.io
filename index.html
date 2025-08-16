@@ -321,22 +321,30 @@ section {
     <div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
 
     <div id="playerFrameWrapper" class="bg-black rounded-xl overflow-hidden shadow-lg">
-      <iframe id="playerIframe" class="w-full aspect-video" ...></iframe>
+      <iframe id="playerIframe"
+        class="w-full aspect-video"
+        loading="lazy"
+        src=""
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen title="動画プレイヤー"></iframe>
     </div>
   </div>
 </div>
 
 
-
-
-
-
-  <template id="videoPlayerTemplate">
-    <div class="video-player-container w-full mt-4 fade-in">
-      <div class="bg-black rounded-xl overflow-hidden shadow-lg">
-    <iframe class="" src="" frameborder="0" allow="autoplay" allowfullscreen></iframe>    
+<template id="videoPlayerTemplate">
+  <div class="video-player-container w-full mt-4 fade-in">
+    <div class="bg-black rounded-xl overflow-hidden shadow-lg">
+      <iframe class=""
+              src=""
+              loading="lazy"
+              frameborder="0"
+              allow="autoplay"
+              allowfullscreen title="動画プレイヤー">
+      </iframe>    
     </div>
-  </template>
+  </div>
+</template>
 
 
 
@@ -348,15 +356,15 @@ section {
     let allVideos = [];
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
-
-    window.addEventListener('DOMContentLoaded', () => {
+    
       fetch(sheetJsonUrl)
         .then(response => response.json())
         .then(data => {
           allVideos = data;
           populateFilters(data);
           applyFilters();
-        })});
+          adjustFixedPlayerBottom();
+         });
 
     // モバイル用フィルターモーダル制御
 document.getElementById('openFilterModal').addEventListener('click', () => {
@@ -416,6 +424,13 @@ function adjustFixedPlayerBottom() {
   if (current > maxH) setPlayerHeight(maxH);
 }
 
+window.addEventListener('resize', () => {
+  requestAnimationFrame(adjustFixedPlayerBottom);
+});
+window.addEventListener('orientationchange', () => {
+  setTimeout(adjustFixedPlayerBottom, 50);
+});
+window.visualViewport?.addEventListener('resize', adjustFixedPlayerBottom);
 
 
 // === リサイズ（高さ可変）関連 ===
@@ -746,7 +761,7 @@ function loadVideo(video, item) {
   if (platform.includes("youtube")) {
     const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
     if (match) videoId = match[1];
-    embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1`;
+    embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1`;
   } else if (platform === "tiktok") {
     const match = videoId.match(/video\/(\d+)/);
     const tiktokId = match ? match[1] : videoId;
@@ -757,9 +772,10 @@ function loadVideo(video, item) {
   }
 
   // 固定プレイヤーに動画を設定
-  iframe.src = embedUrl;
-  fixedPlayer.style.display = 'block';
-
+  const fixedPlayerEl = document.getElementById('fixedPlayer');
+  playerIframe.src = embedUrl;
+  fixedPlayerEl.style.display = 'block';
+  
 applyStoredPlayerHeight(); // 保存済み高さがあれば適用
 if (!playerIframe.style.height) {
   const defaultH = window.innerWidth < 640 ? 360 : 540;
@@ -775,9 +791,8 @@ if (!playerIframe.style.height) {
 }
 
 
-    const closeBtn = document.getElementById('closePlayerBtn');
-const fixedPlayer = document.getElementById('fixedPlayer');
-const iframe = document.getElementById('playerIframe');
+const closeBtn = document.getElementById('closePlayerBtn');
+const fixedPlayerEl = document.getElementById('fixedPlayer');
 
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
@@ -793,7 +808,7 @@ if (closeBtn) {
     } else {
       playerIframe.src = "";
     }
-    document.getElementById('fixedPlayer').style.display = 'none';
+    fixedPlayerEl.style.display = 'none';
   });
 }
 
