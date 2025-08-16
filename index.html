@@ -312,7 +312,7 @@ section {
     <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
     <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
     <button id="randomFromFilteredBtn" class="bg-gray-300 px-3 py-1 rounded">🎲 ランダム</button>
-    <label class="flex items-center gap-1 text-sm ml-3 select-none">
+    <label id="autoNextUI" class="flex items-center gap-1 text-sm ml-3 select-none">
     <input type="checkbox" id="autoNextToggle" class="w-4 h-4">
     連続再生
   </label>
@@ -351,6 +351,12 @@ section {
     const sortOrder = document.getElementById('sortOrder');
     const resetButton = document.getElementById('resetFilters');
     const videoList = document.getElementById('videoList');
+    const SHOW_AUTONEXT_UI = false;
+
+    const autoNextUI = document.getElementById('autoNextUI');
+if (!SHOW_AUTONEXT_UI && autoNextUI) {
+  autoNextUI.style.display = 'none';
+}
     
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
     let allVideos = [];
