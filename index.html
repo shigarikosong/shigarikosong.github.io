@@ -172,8 +172,9 @@ section {
 
   </style>
 
-  
+  <script src="https://www.youtube.com/iframe_api"></script>
 </head>
+  
 <body style="background-color: #FFE36C;" class="text-gray-800">
   <header class="relative border-b z-10 bg-white/90 backdrop-blur px-4 py-3 shadow-sm">
   <h1 class="text-left text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
@@ -311,6 +312,10 @@ section {
     <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
     <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
     <button id="randomFromFilteredBtn" class="bg-gray-300 px-3 py-1 rounded">🎲 ランダム</button>
+    <label class="flex items-center gap-1 text-sm ml-3 select-none">
+    <input type="checkbox" id="autoNextToggle" class="w-4 h-4">
+    連続再生
+  </label>
   </div>
 </div>
 
@@ -330,32 +335,69 @@ section {
     </div>
   </div>
 </div>
-
-
-<template id="videoPlayerTemplate">
-  <div class="video-player-container w-full mt-4 fade-in">
-    <div class="bg-black rounded-xl overflow-hidden shadow-lg">
-      <iframe class=""
-              src=""
-              loading="lazy"
-              frameborder="0"
-              allow="autoplay"
-              allowfullscreen title="動画プレイヤー">
-      </iframe>    
-    </div>
-  </div>
-</template>
-
-
-
-  
   
   <script>
+
+    const fixedPlayerEl = document.getElementById('fixedPlayer');
+    const playerIframe = document.getElementById('playerIframe');
+    const playerFrameWrapper = document.getElementById('playerFrameWrapper');
+    const resizeHandle = document.getElementById('playerResizeHandle');
+    const closeBtn = document.getElementById('closePlayerBtn');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const roleFilter = document.getElementById('roleFilter');
+    const searchInput = document.getElementById('searchInput');
+    const sortOrder = document.getElementById('sortOrder');
+    const resetButton = document.getElementById('resetFilters');
+    const videoList = document.getElementById('videoList');
     
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
     let allVideos = [];
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
+
+    const AUTO_NEXT_KEY = 'autoNextEnabled';
+    function isAutoNextEnabled() {
+      return localStorage.getItem(AUTO_NEXT_KEY) === '1';
+    }
+    function setAutoNextEnabled(on) {
+      localStorage.setItem(AUTO_NEXT_KEY, on ? '1' : '0');
+    }
+
+    let ytPlayer = null;
+let ytApiReady = false;
+
+// YouTube IFrame API の準備完了コールバック
+window.onYouTubeIframeAPIReady = () => {
+  ytApiReady = true;
+  tryInitYtPlayer();
+};
+
+// 既存の iframe(id="playerIframe") を YT.Player 化
+function tryInitYtPlayer() {
+  if (!ytApiReady) return;
+  if (ytPlayer) return;
+  const iframeEl = document.getElementById('playerIframe');
+  if (!iframeEl) return;
+
+  ytPlayer = new YT.Player('playerIframe', {
+    playerVars: {
+    playsinline: 1,      // iOSでインライン再生
+    rel: 0,              // 終了後の関連動画を抑制
+    modestbranding: 1    // YouTubeロゴ控えめ
+  },
+    events: {
+      onStateChange: (e) => {
+        // 再生終了
+        if (e.data === YT.PlayerState.ENDED && isAutoNextEnabled()) {
+          playAdjacentVideo(1);
+        }
+      }
+    }
+  });
+}
+
     
       fetch(sheetJsonUrl)
         .then(response => response.json())
@@ -363,7 +405,7 @@ section {
           allVideos = data;
           populateFilters(data);
           applyFilters();
-          adjustFixedPlayerBottom();
+          requestAnimationFrame(adjustFixedPlayerBottom);
          });
 
     // モバイル用フィルターモーダル制御
@@ -396,20 +438,17 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
     loadVideo(randomVideo, null);
 });
 
-
-      const categoryFilter = document.getElementById('categoryFilter');
-      const dateFilter = document.getElementById('dateFilter');
-      const typeFilter = document.getElementById('typeFilter');
-      const roleFilter = document.getElementById('roleFilter');
-      const searchInput = document.getElementById('searchInput');
-      const sortOrder = document.getElementById('sortOrder');
-      const resetButton = document.getElementById('resetFilters');
-      const videoList = document.getElementById('videoList');
-      const videoPlayerTemplate = document.getElementById('videoPlayerTemplate');
+    // 連続再生トグルの初期化
+const autoNextToggle = document.getElementById('autoNextToggle');
+if (autoNextToggle) {
+  autoNextToggle.checked = isAutoNextEnabled();
+  autoNextToggle.addEventListener('change', (e) => {
+    setAutoNextEnabled(e.target.checked);
+  });
+}
 
     // === 固定プレイヤーと NowPlaying の重なり対策 ===
 function adjustFixedPlayerBottom() {
-  const fixedPlayerEl = document.getElementById('fixedPlayer');
   const nowPlayingWrapperEl = document.getElementById('nowPlayingWrapper');
   if (!fixedPlayerEl || !nowPlayingWrapperEl || !playerIframe) return; 
 
@@ -434,13 +473,9 @@ window.visualViewport?.addEventListener('resize', adjustFixedPlayerBottom);
 
 
 // === リサイズ（高さ可変）関連 ===
-const playerFrameWrapper = document.getElementById('playerFrameWrapper');
-const playerIframe = document.getElementById('playerIframe');
-const resizeHandle = document.getElementById('playerResizeHandle');
 
 const PLAYER_HEIGHT_KEY = 'playerHeightPx';
 const MIN_PLAYER_H = 240;
-const MAX_PLAYER_H = 900;
 
 function applyStoredPlayerHeight() {
   const stored = parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
@@ -739,67 +774,76 @@ function renderVideoList(videos) {
   }
 }
 
-
-
+    
 function loadVideo(video, item) {
   const start = parseInt(video["start"] || '0', 10);
   let videoId = video["videoId"];
-  let platform = video["platform"];
-  let embedUrl = ""; // ← 追加（重要）
+  let platform = (video["platform"] || "").toLowerCase();
 
   if (!videoId) {
     alert("videoId が指定されていません");
     return;
   }
-
-  if (typeof platform !== "string" || platform.trim() === "") {
+  if (!platform) {
     alert("platform が未指定のため再生できません");
     return;
   }
-  platform = platform.toLowerCase();
 
   if (platform.includes("youtube")) {
     const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
     if (match) videoId = match[1];
-    embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1`;
+
+    // IFrame API 優先
+    if (ytApiReady) {
+      tryInitYtPlayer(); // 未初期化なら初期化
+      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+        const wasHidden = fixedPlayerEl.style.display === 'none';
+        fixedPlayerEl.style.display = 'block';
+        ytPlayer.loadVideoById({ videoId, startSeconds: start });
+        if (wasHidden) applyStoredPlayerHeight();
+      } else {
+        // フォールバック：直URL
+        playerIframe.src =
+          `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1`;
+        fixedPlayerEl.style.display = 'block';
+        applyStoredPlayerHeight();
+      }
+    } else {
+      // API未準備：直URL
+      playerIframe.src =
+        `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1`;
+      fixedPlayerEl.style.display = 'block';
+      applyStoredPlayerHeight();
+    }
+
   } else if (platform === "tiktok") {
+    // TikTok は従来どおり src を差し替え
     const match = videoId.match(/video\/(\d+)/);
     const tiktokId = match ? match[1] : videoId;
-    embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
+    playerIframe.src = `https://www.tiktok.com/embed/v2/${tiktokId}`;
+    fixedPlayerEl.style.display = 'block';
+    applyStoredPlayerHeight();
+
   } else {
     alert(`未対応の platform: ${platform}`);
     return;
   }
 
-  // 固定プレイヤーに動画を設定
-  const fixedPlayerEl = document.getElementById('fixedPlayer');
-  playerIframe.src = embedUrl;
-  fixedPlayerEl.style.display = 'block';
-  
-applyStoredPlayerHeight(); // 保存済み高さがあれば適用
-if (!playerIframe.style.height) {
-  const defaultH = window.innerWidth < 640 ? 360 : 540;
-  setPlayerHeight(Math.min(defaultH, getMaxPlayerHeight())); // ← ここで上限適用
-}
-
-
-  // 再生中の曲名・ハイライト更新（← 条件分岐の外に出す）
+  // 再生中の曲名・ハイライト更新
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   nowPlayingTitle.textContent = `${video["title"]} - ${video["artist"]}`;
   nowPlayingKey = `${video["videoId"]}__${start}`;
-  applyFilters(); // 再描画してハイライト＆スクロール反映
+  applyFilters(); // ハイライト＆スクロール反映
 }
-
-
-const closeBtn = document.getElementById('closePlayerBtn');
-const fixedPlayerEl = document.getElementById('fixedPlayer');
 
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
     document.body.style.paddingBottom =
       `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
 
-    if (playerIframe?.src.includes("youtube.com")) {
+    if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+      ytPlayer.stopVideo();
+    } else if (playerIframe?.src.includes("youtube.com")) {
       playerIframe.contentWindow?.postMessage(JSON.stringify({
         event: 'command',
         func: 'pauseVideo',
@@ -811,6 +855,7 @@ if (closeBtn) {
     fixedPlayerEl.style.display = 'none';
   });
 }
+
 
 
 
