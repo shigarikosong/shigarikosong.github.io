@@ -318,7 +318,7 @@ section {
 <div id="fixedPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-20">
   <div class="max-w-4xl mx-auto p-4 relative">
     <button id="closePlayerBtn" class="absolute top-0 right-0 p-2 text-gray-700 hover:text-blue-600 font-bold">✖</button>
-　　　<div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
+    <div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
 
     <div id="playerFrameWrapper" class="bg-black rounded-xl overflow-hidden shadow-lg">
       <iframe id="playerIframe" class="w-full aspect-video" ...></iframe>
@@ -403,17 +403,20 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
 function adjustFixedPlayerBottom() {
   const fixedPlayerEl = document.getElementById('fixedPlayer');
   const nowPlayingWrapperEl = document.getElementById('nowPlayingWrapper');
-  if (!fixedPlayerEl || !nowPlayingWrapperEl) return;
+  if (!fixedPlayerEl || !nowPlayingWrapperEl || !playerIframe) return; 
+
   const h = nowPlayingWrapperEl.offsetHeight || 0;
   fixedPlayerEl.style.bottom = `${h + 8}px`;
   const total = (fixedPlayerEl.offsetHeight || 0) + h + 12;
   document.body.style.paddingBottom = `${total}px`;
+
+  const maxH = getMaxPlayerHeight();
+  const current = parseInt(playerIframe.style.height || 0, 10) ||
+                  playerIframe.getBoundingClientRect().height;
+  if (current > maxH) setPlayerHeight(maxH);
 }
-window.addEventListener('resize', adjustFixedPlayerBottom);
-if (window.ResizeObserver) {
-  const np = document.getElementById('nowPlayingWrapper');
-  if (np) new ResizeObserver(adjustFixedPlayerBottom).observe(np);
-}
+
+
 
 // === リサイズ（高さ可変）関連 ===
 const playerFrameWrapper = document.getElementById('playerFrameWrapper');
@@ -426,22 +429,49 @@ const MAX_PLAYER_H = 900;
 
 function applyStoredPlayerHeight() {
   const stored = parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
-  if (!isNaN(stored) && stored >= MIN_PLAYER_H && stored <= MAX_PLAYER_H) {
+  if (!isNaN(stored)) {
+    const maxH = getMaxPlayerHeight();
+    const clamped = Math.max(MIN_PLAYER_H, Math.min(stored, maxH));
     playerIframe.classList.remove('aspect-video');
-    playerIframe.style.height = stored + 'px';
-    if (playerFrameWrapper) playerFrameWrapper.style.height = stored + 'px';
+    playerIframe.style.height = clamped + 'px';
+    if (playerFrameWrapper) playerFrameWrapper.style.height = clamped + 'px';
   }
   adjustFixedPlayerBottom();
 }
 
+// 画面からはみ出さない最大高さを計算（ハンドルが見えるように上部に余白を確保）
+function getMaxPlayerHeight() {
+  const vh = window.innerHeight;
+
+  // fixedPlayer の bottom は NowPlaying 高さ + 8px
+  const nowH = document.getElementById('nowPlayingWrapper')?.offsetHeight || 0;
+  const bottomOffset = nowH + 8;
+
+  // 内側の p-4（上下16pxずつ）＝合計32px（Tailwind）
+  const fixedPlayerVerticalPadding = 16 * 2;
+
+  // ハンドル分の出っ張り + 余白（見やすさのために少し多め）
+  const handleAndTopSafety = 24 + 16; // だいたい 40px
+
+  // 画面高さから下マージン・パディング・上の安全余白を引いた値が上限
+  const maxH = vh - (bottomOffset + fixedPlayerVerticalPadding + handleAndTopSafety);
+
+  // 最低でも MIN_PLAYER_H 以上、かつ負にならないように
+  return Math.max(MIN_PLAYER_H, Math.floor(maxH));
+}
+
+
 function setPlayerHeight(px) {
-  const h = Math.max(MIN_PLAYER_H, Math.min(MAX_PLAYER_H, Math.round(px)));
+  const maxH = getMaxPlayerHeight();        // ← 画面からはみ出さない上限
+  const h = Math.max(MIN_PLAYER_H, Math.min(Math.round(px), maxH));
+
   playerIframe.classList.remove('aspect-video');
   playerIframe.style.height = h + 'px';
   if (playerFrameWrapper) playerFrameWrapper.style.height = h + 'px';
   localStorage.setItem(PLAYER_HEIGHT_KEY, String(h));
   adjustFixedPlayerBottom();
 }
+
 
 (function enablePlayerResize() {
   if (!resizeHandle || !playerIframe) return;
@@ -727,17 +757,15 @@ function loadVideo(video, item) {
   }
 
   // 固定プレイヤーに動画を設定
-  const fixedPlayer = document.getElementById('fixedPlayer');
-  const iframe = document.getElementById('playerIframe');
   iframe.src = embedUrl;
   fixedPlayer.style.display = 'block';
 
-  // 高さ（px）を適用（aspect-video 切替は不要）
-  applyStoredPlayerHeight(); // 保存済み高さがあれば適用
-  if (!playerIframe.style.height) {
-    const defaultH = window.innerWidth < 640 ? 360 : 540;
-    setPlayerHeight(defaultH);
-  }
+applyStoredPlayerHeight(); // 保存済み高さがあれば適用
+if (!playerIframe.style.height) {
+  const defaultH = window.innerWidth < 640 ? 360 : 540;
+  setPlayerHeight(Math.min(defaultH, getMaxPlayerHeight())); // ← ここで上限適用
+}
+
 
   // 再生中の曲名・ハイライト更新（← 条件分岐の外に出す）
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
@@ -754,22 +782,21 @@ const iframe = document.getElementById('playerIframe');
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
     document.body.style.paddingBottom =
-  `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
+      `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
 
-    // YouTube の場合は pauseVideo
-    if (iframe.src.includes("youtube.com")) {
-      iframe.contentWindow?.postMessage(JSON.stringify({
+    if (playerIframe?.src.includes("youtube.com")) {
+      playerIframe.contentWindow?.postMessage(JSON.stringify({
         event: 'command',
         func: 'pauseVideo',
         args: []
       }), '*');
     } else {
-      // TikTok などは src をクリアして停止
-      iframe.src = "";
+      playerIframe.src = "";
     }
-    fixedPlayer.style.display = 'none';
+    document.getElementById('fixedPlayer').style.display = 'none';
   });
 }
+
 
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
