@@ -29,7 +29,6 @@
 
 /* リスト項目のスタイル */
 #videoList div {
-  background-color: #e0f7fa;
   border-radius: 8px;
 }
 
@@ -145,8 +144,33 @@ section {
   border-left: 4px solid #facc15; /* アクセントライン */
 }
 
+    /* プレイヤー高さをドラッグで変更するハンドル */
+#playerResizeHandle {
+  position: absolute;
+  top: -10px;          /* プレイヤーの上に少しはみ出す */
+  left: 0;
+  width: 100%;
+  height: 12px;        /* つかみやすい幅 */
+  cursor: ns-resize;
+  z-index: 5;
+  background: transparent;
+}
+#playerResizeHandle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(0,0,0,0.25);  /* つまみの目印（好みで調整/削除OK） */
+}
+
 
   </style>
+
+  
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
   <header class="relative border-b z-10 bg-white/90 backdrop-blur px-4 py-3 shadow-sm">
@@ -155,13 +179,13 @@ section {
 </h1>
 
   <div class="absolute right-4 top-1/2 -translate-y-1/2 flex space-x-4 items-center">
-    <a href="https://www.youtube.com/@ShigaRiko" target="_blank" aria-label="YouTube">
+    <a href="https://www.youtube.com/@ShigaRiko" target="_blank" rel="noopener" aria-label="YouTube">
       <img src="./YT_icon.svg" alt="YouTube" class="w-8 h-8" />
     </a>
-    <a href="https://www.tiktok.com/@riko14218" target="_blank" aria-label="TikTok">
+    <a href="https://www.tiktok.com/@riko14218" target="_blank" rel="noopener" aria-label="TikTok">
       <img src="./TT_icon.svg" alt="TikTok" class="w-8 h-8" />
     </a>
-    <a href="https://x.com/Shigariko_" target="_blank" aria-label="X">
+    <a href="https://x.com/Shigariko_" target="_blank" rel="noopener" aria-label="X">
       <img src="./X_icon.svg" alt="X" class="w-8 h-8" />
     </a>
   </div>
@@ -261,18 +285,18 @@ section {
 
   <footer class="text-center text-xs text-gray-500 mt-12 px-4 pb-64 space-y-2">
   <p>本サイトはファンによる非公式ページです。</p>
-  <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank">GitHub Pages</a> を利用して公開しています。</p>
+  <p>このサイトは <a href="https://pages.github.com/" class="underline" target="_blank" rel="noopener" >GitHub Pages</a> を利用して公開しています。</p>
   <p>動画は各配信プラットフォームの埋め込み機能を使用しています。</p>
     
  <p class="mt-6">制作にあたり、以下のサイトを参考にさせていただきました（敬称略・順不同）：</p>
 <ul class="list-disc list-inside text-left mx-auto max-w-md text-gray-500">
-  <li><a href="https://chimauta.pages.dev/" class="underline" target="_blank">ちまうた｜町田ちま非公式ファンサイト</a></li>
-  <li><a href="https://uta.inui-dondon-sukininaru.net/" class="underline" target="_blank">いぬいのうた | 戌亥とこ非公式ファンサイト</a></li>
+  <li><a href="https://chimauta.pages.dev/" class="underline" target="_blank" rel="noopener" >ちまうた｜町田ちま非公式ファンサイト</a></li>
+  <li><a href="https://uta.inui-dondon-sukininaru.net/" class="underline" target="_blank" rel="noopener" >いぬいのうた | 戌亥とこ非公式ファンサイト</a></li>
 </ul>
 
 <p class="mt-6">歌枠のタイムスタンプや曲情報をコメントで掲載してくれている皆さまに感謝。</p>
 
- <p>最終更新日：2025/08/2</p>
+ <p>最終更新日：2025/08/16</p>
 </footer>
  
 <!-- 再生中の曲名とボタンを一つの箱に入れる -->
@@ -291,16 +315,15 @@ section {
 <!-- 固定プレイヤー -->
 <div id="fixedPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-20">
   <div class="max-w-4xl mx-auto p-4 relative">
-    <!-- ✖ボタンを追加 -->
-    <button id="closePlayerBtn" class="absolute top-0 right-0 p-2 text-gray-700 hover:text-blue-600 font-bold">
-      ✖
-    </button>
-    
-    <div class="bg-black rounded-xl overflow-hidden shadow-lg">
-      <iframe id="playerIframe" class="w-full aspect-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <button id="closePlayerBtn" class="absolute top-0 right-0 p-2 text-gray-700 hover:text-blue-600 font-bold">✖</button>
+　　　<div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
+
+    <div id="playerFrameWrapper" class="bg-black rounded-xl overflow-hidden shadow-lg">
+      <iframe id="playerIframe" class="w-full aspect-video" ...></iframe>
     </div>
   </div>
 </div>
+
 
 
 
@@ -374,6 +397,90 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
       const videoList = document.getElementById('videoList');
       const videoPlayerTemplate = document.getElementById('videoPlayerTemplate');
 
+    // === 固定プレイヤーと NowPlaying の重なり対策 ===
+function adjustFixedPlayerBottom() {
+  const fixedPlayerEl = document.getElementById('fixedPlayer');
+  const nowPlayingWrapperEl = document.getElementById('nowPlayingWrapper');
+  if (!fixedPlayerEl || !nowPlayingWrapperEl) return;
+  const h = nowPlayingWrapperEl.offsetHeight || 0;
+  fixedPlayerEl.style.bottom = `${h + 8}px`;
+  const total = (fixedPlayerEl.offsetHeight || 0) + h + 12;
+  document.body.style.paddingBottom = `${total}px`;
+}
+window.addEventListener('resize', adjustFixedPlayerBottom);
+if (window.ResizeObserver) {
+  const np = document.getElementById('nowPlayingWrapper');
+  if (np) new ResizeObserver(adjustFixedPlayerBottom).observe(np);
+}
+
+// === リサイズ（高さ可変）関連 ===
+const playerFrameWrapper = document.getElementById('playerFrameWrapper');
+const playerIframe = document.getElementById('playerIframe');
+const resizeHandle = document.getElementById('playerResizeHandle');
+
+const PLAYER_HEIGHT_KEY = 'playerHeightPx';
+const MIN_PLAYER_H = 240;
+const MAX_PLAYER_H = 900;
+
+function applyStoredPlayerHeight() {
+  const stored = parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
+  if (!isNaN(stored) && stored >= MIN_PLAYER_H && stored <= MAX_PLAYER_H) {
+    playerIframe.classList.remove('aspect-video');
+    playerIframe.style.height = stored + 'px';
+    if (playerFrameWrapper) playerFrameWrapper.style.height = stored + 'px';
+  }
+  adjustFixedPlayerBottom();
+}
+
+function setPlayerHeight(px) {
+  const h = Math.max(MIN_PLAYER_H, Math.min(MAX_PLAYER_H, Math.round(px)));
+  playerIframe.classList.remove('aspect-video');
+  playerIframe.style.height = h + 'px';
+  if (playerFrameWrapper) playerFrameWrapper.style.height = h + 'px';
+  localStorage.setItem(PLAYER_HEIGHT_KEY, String(h));
+  adjustFixedPlayerBottom();
+}
+
+(function enablePlayerResize() {
+  if (!resizeHandle || !playerIframe) return;
+  let dragging = false, startY = 0, startH = 0;
+
+  const start = (y) => {
+    dragging = true;
+    startY = y;
+    startH = parseInt(playerIframe.style.height || 0, 10) ||
+             playerIframe.getBoundingClientRect().height;
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'ns-resize';
+  };
+  const move = (y) => {
+    if (!dragging) return;
+    const dy = y - startY;
+    setPlayerHeight(startH - dy); // 上に動かすと高さが増える
+  };
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  };
+
+  // マウス
+  resizeHandle.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    start(e.clientY);
+  });
+  window.addEventListener('mousemove', (e) => move(e.clientY));
+  window.addEventListener('mouseup', end);
+
+  // タッチ
+  resizeHandle.addEventListener('touchstart', (e) => {
+    start(e.touches[0].clientY);
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => move(e.touches[0].clientY), { passive: true });
+  window.addEventListener('touchend', end);
+})();
+
       function populateFilters(videos) {
         const sets = {
           category: new Set(),
@@ -388,11 +495,11 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
           sets.role.add(v["担当区分"]);
 
             // 公開月（例: 2023/07）だけ抽出して追加
-  const rawDate = v["公開月"];
-  if (rawDate && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
-    const month = rawDate.slice(0, 7).replace('-', '/'); // "YYYY/MM"
-    sets.date.add(month);
-  }
+const rawDate = v["公開月"];
+if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
+  const month = rawDate.slice(0, 7).replace('-', '/'); // "YYYY/MM"
+  sets.date.add(month);
+}
         });
 
         addOptions(categoryFilter, [...sets.category].sort());
@@ -449,7 +556,11 @@ if (mobileRandomPlayButton) {
       function applyFilters() {
         let filtered = allVideos.filter(video => {
           return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
-                 (!dateFilter.value || video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value) &&
+                 (!dateFilter.value || (
+  typeof video["公開月"] === "string" &&
+  video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value
+))
+ &&
                  (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
                  (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
                  (!searchInput.value ||
@@ -457,17 +568,28 @@ if (mobileRandomPlayButton) {
                   video["artist"].toLowerCase().includes(searchInput.value.toLowerCase()));
         });
 
+const coll = new Intl.Collator('ja');
+
 filtered.sort((a, b) => {
-  if (sortOrder.value === "asc" || sortOrder.value === "desc") {
-    const dateA = new Date(a["公開月"]);
-    const dateB = new Date(b["公開月"]);
-    return sortOrder.value === "asc" ? dateA - dateB : dateB - dateA;
-  } else if (sortOrder.value === "title") {
-    return a["title"].localeCompare(b["title"], 'ja');
-  } else if (sortOrder.value === "artist") {
-    return a["artist"].localeCompare(b["artist"], 'ja');
+  const order = sortOrder.value;
+
+  if (order === "asc" || order === "desc") {
+    const dateA = Date.parse(
+      typeof a["公開月"] === "string" ? a["公開月"].replace('/', '-') + "-01" : ""
+    ) || 0;
+    const dateB = Date.parse(
+      typeof b["公開月"] === "string" ? b["公開月"].replace('/', '-') + "-01" : ""
+    ) || 0;
+    return order === "asc" ? dateA - dateB : dateB - dateA;
+  } else if (order === "title") {
+    return coll.compare(String(a["title"] || ""), String(b["title"] || ""));
+  } else if (order === "artist") {
+    return coll.compare(String(a["artist"] || ""), String(b["artist"] || ""));
+  } else {
+    return 0;
   }
 });
+
 
         renderVideoList(filtered);
         currentFilteredVideos = filtered;
@@ -546,79 +668,83 @@ function renderVideoList(videos) {
 
 
 function loadVideo(video, item) {
-  const start = parseInt(video["start"] || '0');
+  const start = parseInt(video["start"] || '0', 10);
   let videoId = video["videoId"];
-  const platform = video["platform"];
-  let embedUrl = "";
+  let platform = video["platform"];
+  let embedUrl = ""; // ← 追加（重要）
 
-  if (!videoId) return alert("videoId が指定されていません");
+  if (!videoId) {
+    alert("videoId が指定されていません");
+    return;
+  }
 
-  if (platform.toLowerCase().includes("youtube")) {
+  if (typeof platform !== "string" || platform.trim() === "") {
+    alert("platform が未指定のため再生できません");
+    return;
+  }
+  platform = platform.toLowerCase();
+
+  if (platform.includes("youtube")) {
     const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
     if (match) videoId = match[1];
     embedUrl = `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1`;
-  } else if (platform.toLowerCase() === "tiktok") {
+  } else if (platform === "tiktok") {
     const match = videoId.match(/video\/(\d+)/);
     const tiktokId = match ? match[1] : videoId;
     embedUrl = `https://www.tiktok.com/embed/v2/${tiktokId}`;
+  } else {
+    alert(`未対応の platform: ${platform}`);
+    return;
   }
 
   // 固定プレイヤーに動画を設定
   const fixedPlayer = document.getElementById('fixedPlayer');
   const iframe = document.getElementById('playerIframe');
   iframe.src = embedUrl;
-  fixedPlayer.style.display = 'block'; // プレイヤーを表示
+  fixedPlayer.style.display = 'block';
 
-  const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
-  fixedPlayer.style.bottom = `${nowPlayingWrapper.offsetHeight}px`;
+  // 高さ（px）を適用（aspect-video 切替は不要）
+  applyStoredPlayerHeight(); // 保存済み高さがあれば適用
+  if (!playerIframe.style.height) {
+    const defaultH = window.innerWidth < 640 ? 360 : 540;
+    setPlayerHeight(defaultH);
+  }
 
-  
-  if (platform.toLowerCase().includes("youtube")) {
-  iframe.className = "w-full aspect-video";
-} else if (platform.toLowerCase() === "tiktok") {
-  iframe.className =  "w-full max-w-xs h-[45vh] sm:h-[550px] mx-auto";
-}
-
-  // 再生中の曲名を更新
+  // 再生中の曲名・ハイライト更新（← 条件分岐の外に出す）
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
-  nowPlayingTitle.textContent = video["title"] + " - " + video["artist"];
+  nowPlayingTitle.textContent = `${video["title"]} - ${video["artist"]}`;
   nowPlayingKey = `${video["videoId"]}__${start}`;
-  applyFilters(); // ← 再描画してハイライト＆スクロール反映
-
-  // プレイヤーを表示する位置を調整
-  const nowPlaying = document.getElementById('nowPlaying');
-
-  // ✖ボタンをクリックした時の処理
-  document.getElementById('closePlayerBtn').addEventListener('click', () => {
-    // プレイヤーを非表示にする
-    fixedPlayer.style.display = 'none'; // プレイヤーを非表示
-
-
-
-    
-    // 動画の再生を停止する（YouTubeの場合）
-    const iframe = document.getElementById('playerIframe');
-    if (platform.toLowerCase().includes("youtube")) {
-  iframe.contentWindow?.postMessage(JSON.stringify({
-    event: 'command',
-    func: 'pauseVideo',
-    args: []
-  }), '*');
-} else {
-  iframe.src = "";
+  applyFilters(); // 再描画してハイライト＆スクロール反映
 }
-  }); // ここで addEventListener の閉じ括弧
-} // ここで loadVideo 関数の閉じ括弧
+
+
+    const closeBtn = document.getElementById('closePlayerBtn');
+const fixedPlayer = document.getElementById('fixedPlayer');
+const iframe = document.getElementById('playerIframe');
+
+if (closeBtn) {
+  closeBtn.addEventListener('click', () => {
+    document.body.style.paddingBottom =
+  `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
+
+    // YouTube の場合は pauseVideo
+    if (iframe.src.includes("youtube.com")) {
+      iframe.contentWindow?.postMessage(JSON.stringify({
+        event: 'command',
+        func: 'pauseVideo',
+        args: []
+      }), '*');
+    } else {
+      // TikTok などは src をクリアして停止
+      iframe.src = "";
+    }
+    fixedPlayer.style.display = 'none';
+  });
+}
+
 
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
-
-window.addEventListener('resize', () => {
-  const fixedPlayer = document.getElementById('fixedPlayer');
-  const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
-  fixedPlayer.style.bottom = `${nowPlayingWrapper.offsetHeight + 8}px`;
-});
-
 
   document.getElementById('prevVideoBtn').addEventListener('click', () => {
   playAdjacentVideo(-1);
