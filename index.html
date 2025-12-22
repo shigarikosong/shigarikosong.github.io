@@ -544,6 +544,13 @@ function setPlayerHeight(px) {
     document.addEventListener('touchmove', preventScroll, { passive: false });
   };
 
+    const disableIframePointer = () => {
+    if (playerIframe) playerIframe.style.pointerEvents = 'none';
+  };
+  const enableIframePointer = () => {
+    if (playerIframe) playerIframe.style.pointerEvents = '';
+  };
+
   const unlockScroll = () => {
     document.body.style.overflow = prevOverflow;
     document.removeEventListener('touchmove', preventScroll, { passive: false });
@@ -558,6 +565,7 @@ function setPlayerHeight(px) {
     prevCursor = document.body.style.cursor;
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'ns-resize';
+    disableIframePointer(); 
     lockScroll();
   };
 
@@ -572,12 +580,17 @@ function setPlayerHeight(px) {
     dragging = false;
     document.body.style.userSelect = prevUserSelect;
     document.body.style.cursor = prevCursor;
+    enableIframePointer(); 
     unlockScroll();
   };
+
+     window.addEventListener('blur', end);
+    document.addEventListener('mouseleave', end);
 
   // マウス
   resizeHandle.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
+    e.preventDefault();
     start(e.clientY);
   });
   window.addEventListener('mousemove', (e) => move(e.clientY));
@@ -585,6 +598,7 @@ function setPlayerHeight(px) {
 
   // タッチ（passive: false で preventDefault を有効に）
   resizeHandle.addEventListener('touchstart', (e) => {
+    e.preventDefault();
     start(e.touches[0].clientY);
   }, { passive: false });
 
@@ -593,8 +607,9 @@ function setPlayerHeight(px) {
   }, { passive: false });
 
   window.addEventListener('touchend', end);
-})();
+  window.addEventListener('touchcancel', end);
 
+})();
 
       function populateFilters(videos) {
         const sets = {
