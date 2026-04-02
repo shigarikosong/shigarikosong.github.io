@@ -351,6 +351,10 @@ section {
     const sortOrder = document.getElementById('sortOrder');
     const resetButton = document.getElementById('resetFilters');
     const videoList = document.getElementById('videoList');
+
+    sortOrder.value = "";
+document.getElementById('modalSortOrder').value = "";
+    
     const SHOW_AUTONEXT_UI = false;
 
     const autoNextUI = document.getElementById('autoNextUI');
@@ -663,14 +667,15 @@ if (mobileRandomPlayButton) {
         });
 
         resetButton.addEventListener('click', () => {
-          categoryFilter.value = "";
-          dateFilter.value = "";
-          typeFilter.value = "";
-          roleFilter.value = "";
-          searchInput.value = "";
-          sortOrder.value = "desc";
-          applyFilters();
-        });
+  categoryFilter.value = "";
+  dateFilter.value = "";
+  typeFilter.value = "";
+  roleFilter.value = "";
+  searchInput.value = "";
+  sortOrder.value = "";
+  document.getElementById('modalSortOrder').value = "";
+  applyFilters();
+});
       }
 
       function addOptions(select, values) {
@@ -728,21 +733,23 @@ function videoTime(v) {
   return parseYmdToTime(v["公開日"] || v["公開月"]);
 }
 
-filtered.sort((a, b) => {
-  const order = sortOrder.value;
+const order = sortOrder.value;
 
-  if (order === "asc" || order === "desc") {
-    const ta = videoTime(a);
-    const tb = videoTime(b);
-    return order === "asc" ? ta - tb : tb - ta;
-  } else if (order === "title") {
-    return coll.compare(String(a["title"] || ""), String(b["title"] || ""));
-  } else if (order === "artist") {
-    return coll.compare(String(a["artist"] || ""), String(b["artist"] || ""));
-  } else {
-    return 0;
-  }
-});
+if (order) {
+  filtered.sort((a, b) => {
+    if (order === "asc" || order === "desc") {
+      const ta = videoTime(a);
+      const tb = videoTime(b);
+      return order === "asc" ? ta - tb : tb - ta;
+    } else if (order === "title") {
+      return coll.compare(String(a["title"] || ""), String(b["title"] || ""));
+    } else if (order === "artist") {
+      return coll.compare(String(a["artist"] || ""), String(b["artist"] || ""));
+    } else {
+      return 0;
+    }
+  });
+}
 
 
         renderVideoList(filtered);
