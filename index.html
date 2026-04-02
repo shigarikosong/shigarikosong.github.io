@@ -815,11 +815,44 @@ function renderVideoList(videos) {
   metaRow.appendChild(span);
 });
 
+   // 3行目：コラボタグ
+const collabLivers = (video["コラボライバー"] || "")
+  .split(",")
+  .map(v => v.trim())
+  .filter(Boolean);
 
-    item.appendChild(topRow);
-    item.appendChild(metaRow);
-    videoList.appendChild(item);
+const collabUnits = (video["コラボユニット"] || "")
+  .split(",")
+  .map(v => v.trim())
+  .filter(Boolean);
+
+let tagRow = null;
+
+if (collabLivers.length || collabUnits.length) {
+  tagRow = document.createElement('div');
+  tagRow.className = 'flex flex-wrap gap-1 text-xs mt-1';
+
+  collabLivers.forEach(name => {
+    const tag = document.createElement('span');
+    tag.className = 'bg-gray-200 px-2 py-0.5 rounded';
+    tag.textContent = name;
+    tagRow.appendChild(tag);
   });
+
+  collabUnits.forEach(unit => {
+    const tag = document.createElement('span');
+    tag.className = 'bg-blue-100 text-blue-800 px-2 py-0.5 rounded';
+    tag.textContent = unit;
+    tagRow.appendChild(tag);
+  });
+}
+
+item.appendChild(topRow);
+item.appendChild(metaRow);
+if (tagRow) item.appendChild(tagRow);
+videoList.appendChild(item);
+  });
+  
   // スクロール実行
   if (playingElement) {
     playingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
