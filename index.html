@@ -830,21 +830,21 @@ let tagRow = null;
 
 if (collabLivers.length || collabUnits.length) {
   tagRow = document.createElement('div');
-  tagRow.className = 'flex flex-wrap gap-1 text-xs mt-1';
+  tagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
-  collabLivers.forEach(name => {
-    const tag = document.createElement('span');
-    tag.className = 'bg-gray-200 px-2 py-0.5 rounded';
-    tag.textContent = name;
-    tagRow.appendChild(tag);
-  });
+collabLivers.forEach(name => {
+  const tag = document.createElement('span');
+  tag.className = 'border border-gray-300 text-gray-700 bg-white px-2.5 py-1 rounded-full text-xs';
+  tag.textContent = name;
+  tagRow.appendChild(tag);
+});
 
-  collabUnits.forEach(unit => {
-    const tag = document.createElement('span');
-    tag.className = 'bg-blue-100 text-blue-800 px-2 py-0.5 rounded';
-    tag.textContent = unit;
-    tagRow.appendChild(tag);
-  });
+collabUnits.forEach(unit => {
+  const tag = document.createElement('span');
+  tag.className = 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs';
+  tag.textContent = unit;
+  tagRow.appendChild(tag);
+});
 }
 
 item.appendChild(topRow);
