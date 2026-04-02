@@ -299,7 +299,7 @@ section {
 
 <p class="mt-6">歌枠のタイムスタンプや曲情報をコメントで掲載してくれている皆さまに感謝。</p>
 
- <p>最終更新日：2025/08/16</p>
+ <p id="lastUpdated">最終更新日：--</p>
 </footer>
  
 <!-- 再生中の曲名とボタンを一つの箱に入れる -->
@@ -361,8 +361,11 @@ document.getElementById('modalSortOrder').value = "";
 if (!SHOW_AUTONEXT_UI && autoNextUI) {
   autoNextUI.style.display = 'none';
 }
-    
+
+    // ===== スプレッドシートURL =====
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
+    const metaSheetUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/管理用';
+    
     let allVideos = [];
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
@@ -410,14 +413,25 @@ function tryInitYtPlayer() {
 }
 
     
-      fetch(sheetJsonUrl)
-        .then(response => response.json())
-        .then(data => {
-          allVideos = data;
-          populateFilters(data);
-          applyFilters();
-          requestAnimationFrame(adjustFixedPlayerBottom);
-         });
+     fetch(sheetJsonUrl)
+  .then(response => response.json())
+  .then(data => {
+    allVideos = data;
+    populateFilters(data);
+    applyFilters();
+    requestAnimationFrame(adjustFixedPlayerBottom);
+  });
+
+fetch(metaSheetUrl)
+  .then(res => res.json())
+  .then(data => {
+    const lastUpdate = data.find(row => row["項目"] === "最終更新日");
+    if (lastUpdate) {
+      document.getElementById("lastUpdated").textContent =
+        `最終更新日：${lastUpdate["値"]}`;
+    }
+  });
+    
 
     // モバイル用フィルターモーダル制御
 document.getElementById('openFilterModal').addEventListener('click', () => {
