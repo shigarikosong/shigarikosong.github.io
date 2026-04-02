@@ -366,6 +366,7 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let allVideos = [];
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
+    let selectedCollabTag = "";
 
     const AUTO_NEXT_KEY = 'autoNextEnabled';
     function isAutoNextEnabled() {
@@ -673,6 +674,7 @@ if (mobileRandomPlayButton) {
   roleFilter.value = "";
   searchInput.value = "";
   sortOrder.value = "";
+  selectedCollabTag = "";
   document.getElementById('modalSortOrder').value = "";
   applyFilters();
 });
@@ -690,18 +692,30 @@ if (mobileRandomPlayButton) {
 
       function applyFilters() {
         let filtered = allVideos.filter(video => {
-          return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
-                 (!dateFilter.value || (
-  typeof video["公開月"] === "string" &&
-  video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value
-))
- &&
-                 (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
-                 (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
-                 (!searchInput.value ||
-                  video["title"].toLowerCase().includes(searchInput.value.toLowerCase()) ||
-                  video["artist"].toLowerCase().includes(searchInput.value.toLowerCase()));
-        });
+  const collabLivers = (video["コラボライバー"] || "")
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean);
+
+  const collabUnits = (video["コラボユニット"] || "")
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean);
+
+  const collabTags = [...collabLivers, ...collabUnits];
+
+  return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
+         (!dateFilter.value || (
+           typeof video["公開月"] === "string" &&
+           video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value
+         )) &&
+         (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
+         (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
+         (!searchInput.value ||
+           video["title"].toLowerCase().includes(searchInput.value.toLowerCase()) ||
+           video["artist"].toLowerCase().includes(searchInput.value.toLowerCase())) &&
+         (!selectedCollabTag || collabTags.includes(selectedCollabTag));
+});
 
 const coll = new Intl.Collator('ja');
 
@@ -833,16 +847,40 @@ if (collabLivers.length || collabUnits.length) {
   tagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
 collabLivers.forEach(name => {
-  const tag = document.createElement('span');
-  tag.className = 'border border-gray-300 text-gray-700 bg-white px-2.5 py-1 rounded-full text-xs';
+  const tag = document.createElement('button');
+  tag.type = 'button';
+
+  const isActive = selectedCollabTag === name;
+  tag.className = isActive
+    ? 'border border-gray-500 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs transition'
+    : 'border border-gray-300 text-gray-700 bg-white px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+
   tag.textContent = name;
+
+  tag.addEventListener('click', () => {
+    selectedCollabTag = (selectedCollabTag === name) ? "" : name;
+    applyFilters();
+  });
+
   tagRow.appendChild(tag);
 });
 
 collabUnits.forEach(unit => {
-  const tag = document.createElement('span');
-  tag.className = 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs';
+  const tag = document.createElement('button');
+  tag.type = 'button';
+
+  const isActive = selectedCollabTag === unit;
+  tag.className = isActive
+    ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs transition'
+    : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100 transition';
+
   tag.textContent = unit;
+
+  tag.addEventListener('click', () => {
+    selectedCollabTag = (selectedCollabTag === unit) ? "" : unit;
+    applyFilters();
+  });
+
   tagRow.appendChild(tag);
 });
 }
