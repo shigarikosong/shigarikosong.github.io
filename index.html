@@ -225,7 +225,7 @@ section {
       <select id="roleFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <option value="">担当区分</option>
       </select>
-      <input id="searchInput" type="text" placeholder="曲名・アーティスト" 
+      <input id="searchInput" type="text" placeholder="曲名・アーティスト・タグ" 
         class="hidden sm:block col-span-1 sm:col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
 <select id="sortOrder" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
   <option value="desc">新しい順</option>
@@ -274,7 +274,7 @@ section {
       <select id="modalRoleFilter" class="w-full border p-2 rounded">
         <option value="">担当区分</option>
       </select>
-      <input id="modalSearchInput" type="text" placeholder="曲名・アーティスト" class="w-full border p-2 rounded" />
+      <input id="modalSearchInput" type="text" placeholder="曲名・アーティスト・タグ" class="w-full border p-2 rounded" />
     </div>
 
     <!-- モーダル操作 -->
@@ -370,6 +370,56 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
     let selectedCollabTag = "";
+
+    let selectedRoleTag = "";
+
+function parseCommaTags(value) {
+  return String(value || "")
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean);
+}
+
+function escapeHtml(str) {
+  return String(str || "").replace(/[&<>"']/g, s => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[s]));
+}
+
+function getRoleTagClass(role, isActive = false) {
+  const base = 'px-2.5 py-1 rounded-full text-xs border transition';
+  const map = {
+    VOCAL: isActive
+      ? 'bg-gray-700 text-white border-gray-700'
+      : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
+    DANCE: isActive
+      ? 'bg-rose-500 text-white border-rose-500'
+      : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100',
+    PIANO: isActive
+      ? 'bg-orange-400 text-white border-orange-400'
+      : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
+    EUPHONIUM: isActive
+      ? 'bg-amber-400 text-white border-amber-400'
+      : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
+    MOVIE: isActive
+      ? 'bg-lime-500 text-white border-lime-500'
+      : 'bg-lime-50 text-lime-700 border-lime-200 hover:bg-lime-100',
+    CHORUS: isActive
+      ? 'bg-sky-500 text-white border-sky-500'
+      : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100',
+    ILLUSTRATION: isActive
+      ? 'bg-cyan-500 text-white border-cyan-500'
+      : 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100',
+  };
+
+  return `${base} ${map[role] || (isActive
+    ? 'bg-blue-600 text-white border-blue-600'
+    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100')}`;
+}
 
     const AUTO_NEXT_KEY = 'autoNextEnabled';
     function isAutoNextEnabled() {
@@ -641,7 +691,7 @@ function setPlayerHeight(px) {
         videos.forEach(v => {
           sets.category.add(v["カテゴリ"]);
           sets.type.add(v["動画種別"]);
-          sets.role.add(v["担当区分"]);
+          parseCommaTags(v["担当区分"]).forEach(role => sets.role.add(role));
 
             // 公開月（例: 2023/07）だけ抽出して追加
 const rawDate = v["公開月"];
@@ -681,7 +731,7 @@ if (mobileRandomPlayButton) {
           el.addEventListener('input', applyFilters);
         });
 
-        resetButton.addEventListener('click', () => {
+  resetButton.addEventListener('click', () => {
   categoryFilter.value = "";
   dateFilter.value = "";
   typeFilter.value = "";
@@ -689,6 +739,13 @@ if (mobileRandomPlayButton) {
   searchInput.value = "";
   sortOrder.value = "";
   selectedCollabTag = "";
+  selectedRoleTag = "";
+    
+  document.getElementById('modalCategoryFilter').value = "";
+  document.getElementById('modalDateFilter').value = "";
+  document.getElementById('modalTypeFilter').value = "";
+  document.getElementById('modalRoleFilter').value = "";
+  document.getElementById('modalSearchInput').value = "";
   document.getElementById('modalSortOrder').value = "";
   applyFilters();
 });
@@ -717,6 +774,8 @@ if (mobileRandomPlayButton) {
     .filter(Boolean);
 
   const collabTags = [...collabLivers, ...collabUnits];
+  const roles = parseCommaTags(video["担当区分"]);
+  const searchTerm = searchInput.value.toLowerCase();
 
   return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
          (!dateFilter.value || (
@@ -724,11 +783,18 @@ if (mobileRandomPlayButton) {
            video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value
          )) &&
          (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
-         (!roleFilter.value || video["担当区分"] === roleFilter.value) &&
-         (!searchInput.value ||
-           video["title"].toLowerCase().includes(searchInput.value.toLowerCase()) ||
-           video["artist"].toLowerCase().includes(searchInput.value.toLowerCase())) &&
-         (!selectedCollabTag || collabTags.includes(selectedCollabTag));
+         (!roleFilter.value || roles.includes(roleFilter.value)) &&
+    
+         (!searchTerm ||
+  String(video["title"] || "").toLowerCase().includes(searchTerm) ||
+  String(video["artist"] || "").toLowerCase().includes(searchTerm) ||
+  roles.some(role => role.toLowerCase().includes(searchTerm)) ||
+  collabLivers.some(name => name.toLowerCase().includes(searchTerm)) ||
+  collabUnits.some(unit => unit.toLowerCase().includes(searchTerm))
+) &&
+    
+         (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
+(!selectedRoleTag || roles.includes(selectedRoleTag));
 });
 
 const coll = new Intl.Collator('ja');
@@ -835,13 +901,41 @@ function renderVideoList(videos) {
   video["カテゴリ"],
   video["公開月"],
   video["動画種別"],
-  video["担当区分"],
   video["platform"] // ← ここに undefined があると全部止まる
 ].filter(Boolean).forEach(text => {
   const span = document.createElement('span');
   span.textContent = text;
   metaRow.appendChild(span);
 });
+
+const roles = parseCommaTags(video["担当区分"]);
+let roleTagRow = null;
+
+if (roles.length) {
+  roleTagRow = document.createElement('div');
+  roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+
+  roles.forEach(role => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
+
+    const isActive = selectedRoleTag === role;
+    tag.className = getRoleTagClass(role, isActive);
+    tag.textContent = role;
+
+    tag.addEventListener('click', () => {
+      selectedRoleTag = (selectedRoleTag === role) ? "" : role;
+      roleFilter.value = "";
+
+      const modalRoleFilter = document.getElementById('modalRoleFilter');
+      if (modalRoleFilter) modalRoleFilter.value = "";
+
+      applyFilters();
+    });
+
+    roleTagRow.appendChild(tag);
+  });
+}
 
    // 3行目：コラボタグ
 const collabLivers = (video["コラボライバー"] || "")
@@ -901,6 +995,7 @@ collabUnits.forEach(unit => {
 
 item.appendChild(topRow);
 item.appendChild(metaRow);
+if (roleTagRow) item.appendChild(roleTagRow);
 if (tagRow) item.appendChild(tagRow);
 videoList.appendChild(item);
   });
