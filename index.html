@@ -683,6 +683,16 @@ function setPlayerHeight(px) {
 })();
 
       function populateFilters(videos) {
+
+  const roleOrder = [
+    "VOCAL",
+    "DANCE",
+    "PIANO",
+    "EUPHONIUM",
+    "MOVIE",
+    "CHORUS",
+    "ILLUSTRATION"
+  ];
         const sets = {
           category: new Set(),
           date: new Set(),
@@ -706,14 +716,18 @@ if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
         addOptions(categoryFilter, [...sets.category].sort());
         addOptions(dateFilter, [...sets.date].sort());
         addOptions(typeFilter, [...sets.type].sort());
-        addOptions(roleFilter, [...sets.role].sort());
+        addOptions(roleFilter, [...sets.role].sort((a, b) => roleOrder.indexOf(a) - roleOrder.indexOf(b))
+);
 
 
 // モーダル用にも同じく追加
 addOptions(document.getElementById('modalCategoryFilter'), [...sets.category].sort());
 addOptions(document.getElementById('modalDateFilter'), [...sets.date].sort());
 addOptions(document.getElementById('modalTypeFilter'), [...sets.type].sort());
-addOptions(document.getElementById('modalRoleFilter'), [...sets.role].sort());
+addOptions(
+  document.getElementById('modalRoleFilter'),
+  [...sets.role].sort((a, b) => roleOrder.indexOf(a) - roleOrder.indexOf(b))
+);
 
         // モバイル用ランダム再生ボタン
 const mobileRandomPlayButton = document.getElementById('mobileRandomPlayButton');
