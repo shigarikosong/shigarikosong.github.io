@@ -370,8 +370,8 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
     let selectedCollabTag = "";
-
     let selectedRoleTag = "";
+    let selectedPlatformTag = "";
 
 function parseCommaTags(value) {
   return String(value || "")
@@ -502,6 +502,7 @@ searchInput.value = document.getElementById('modalSearchInput').value;
 sortOrder.value = document.getElementById('modalSortOrder').value;
 
   selectedRoleTag = "";
+  selectedPlatformTag = "";
 
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
@@ -763,6 +764,7 @@ roleFilter.addEventListener('change', () => {
   sortOrder.value = "";
   selectedCollabTag = "";
   selectedRoleTag = "";
+  selectedPlatformTag = "";
     
   document.getElementById('modalCategoryFilter').value = "";
   document.getElementById('modalDateFilter').value = "";
@@ -816,8 +818,10 @@ roleFilter.addEventListener('change', () => {
   collabUnits.some(unit => unit.toLowerCase().includes(searchTerm))
 ) &&
     
-         (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
-(!selectedRoleTag || roles.includes(selectedRoleTag));
+         
+    (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
+(!selectedRoleTag || roles.includes(selectedRoleTag)) &&
+(!selectedPlatformTag || video["platform"] === selectedPlatformTag);
 });
 
 const coll = new Intl.Collator('ja');
@@ -924,7 +928,7 @@ function renderVideoList(videos) {
   video["カテゴリ"],
   video["公開月"],
   video["動画種別"],
-  video["platform"] // ← ここに undefined があると全部止まる
+  video["platform"] 
 ].filter(Boolean).forEach(text => {
   const span = document.createElement('span');
   span.textContent = text;
@@ -933,11 +937,34 @@ function renderVideoList(videos) {
 
 const roles = parseCommaTags(video["担当区分"]);
 let roleTagRow = null;
+const platform = video["platform"];
 
-if (roles.length) {
+if (platform || roles.length) {
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
+  // platformタグを先頭に追加
+  if (platform) {
+    const platformTag = document.createElement('button');
+    platformTag.type = 'button';
+
+    const isPlatformActive = selectedPlatformTag === platform;
+
+    platformTag.className = isPlatformActive
+      ? 'border border-purple-600 text-white bg-purple-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-purple-300 text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full text-xs hover:bg-purple-100';
+
+    platformTag.textContent = platform;
+
+    platformTag.addEventListener('click', () => {
+      selectedPlatformTag = selectedPlatformTag === platform ? "" : platform;
+      applyFilters();
+    });
+
+    roleTagRow.appendChild(platformTag);
+  }
+
+  // 担当区分タグをその後ろに追加
   roles.forEach(role => {
     const tag = document.createElement('button');
     tag.type = 'button';
@@ -960,7 +987,7 @@ if (roles.length) {
   });
 }
 
-   // 3行目：コラボタグ
+// 3行目：コラボタグ
 const collabLivers = (video["コラボライバー"] || "")
   .split(",")
   .map(v => v.trim())
@@ -977,51 +1004,52 @@ if (collabLivers.length || collabUnits.length) {
   tagRow = document.createElement('div');
   tagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
-collabLivers.forEach(name => {
-  const tag = document.createElement('button');
-  tag.type = 'button';
+  collabLivers.forEach(name => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
 
-  const isActive = selectedCollabTag === name;
-  tag.className = isActive
-    ? 'border border-gray-500 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs transition'
-    : 'border border-gray-300 text-gray-700 bg-white px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+    const isActive = selectedCollabTag === name;
+    tag.className = isActive
+      ? 'border border-gray-500 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs transition'
+      : 'border border-gray-300 text-gray-700 bg-white px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
 
-  tag.textContent = name;
+    tag.textContent = name;
 
-  tag.addEventListener('click', () => {
-    selectedCollabTag = (selectedCollabTag === name) ? "" : name;
-    applyFilters();
+    tag.addEventListener('click', () => {
+      selectedCollabTag = (selectedCollabTag === name) ? "" : name;
+      applyFilters();
+    });
+
+    tagRow.appendChild(tag);
   });
 
-  tagRow.appendChild(tag);
-});
+  collabUnits.forEach(unit => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
 
-collabUnits.forEach(unit => {
-  const tag = document.createElement('button');
-  tag.type = 'button';
+    const isActive = selectedCollabTag === unit;
+    tag.className = isActive
+      ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs transition'
+      : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100 transition';
 
-  const isActive = selectedCollabTag === unit;
-  tag.className = isActive
-    ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs transition'
-    : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100 transition';
+    tag.textContent = unit;
 
-  tag.textContent = unit;
+    tag.addEventListener('click', () => {
+      selectedCollabTag = (selectedCollabTag === unit) ? "" : unit;
+      applyFilters();
+    });
 
-  tag.addEventListener('click', () => {
-    selectedCollabTag = (selectedCollabTag === unit) ? "" : unit;
-    applyFilters();
+    tagRow.appendChild(tag);
   });
-
-  tagRow.appendChild(tag);
-});
 }
 
 item.appendChild(topRow);
 item.appendChild(metaRow);
 if (roleTagRow) item.appendChild(roleTagRow);
 if (tagRow) item.appendChild(tagRow);
+
 videoList.appendChild(item);
-  });
+      });
   
   // スクロール実行
   if (playingElement) {
