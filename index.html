@@ -501,6 +501,8 @@ document.getElementById('applyFilters').addEventListener('click', () => {
 searchInput.value = document.getElementById('modalSearchInput').value;
 sortOrder.value = document.getElementById('modalSortOrder').value;
 
+  selectedRoleTag = "";
+
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
 });
@@ -726,10 +728,17 @@ if (mobileRandomPlayButton) {
 
 
 
-        [categoryFilter, dateFilter, typeFilter, roleFilter, searchInput, sortOrder].forEach(el => {
-          el.addEventListener('change', applyFilters);
-          el.addEventListener('input', applyFilters);
-        });
+        [categoryFilter, dateFilter, typeFilter, searchInput, sortOrder].forEach(el => {
+  el.addEventListener('change', applyFilters);
+  el.addEventListener('input', applyFilters);
+});
+
+roleFilter.addEventListener('change', () => {
+  selectedRoleTag = "";
+  const modalRoleFilter = document.getElementById('modalRoleFilter');
+  if (modalRoleFilter) modalRoleFilter.value = roleFilter.value;
+  applyFilters();
+});
 
   resetButton.addEventListener('click', () => {
   categoryFilter.value = "";
