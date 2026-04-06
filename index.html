@@ -369,7 +369,9 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let allVideos = [];
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
+    
     // タグクリック用変数
+    let selectedCategoryTag = "";
     let selectedCollabTag = "";
     let selectedRoleTag = "";
     let selectedPlatformTag = "";
@@ -503,8 +505,11 @@ document.getElementById('applyFilters').addEventListener('click', () => {
 searchInput.value = document.getElementById('modalSearchInput').value;
 sortOrder.value = document.getElementById('modalSortOrder').value;
 
-  selectedRoleTag = "";
-  selectedPlatformTag = "";
+  //モーダル適用時のリセット
+selectedCategoryTag = "";
+selectedRoleTag = "";
+selectedPlatformTag = "";
+selected3DTag = false;
 
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
@@ -765,6 +770,7 @@ roleFilter.addEventListener('change', () => {
   roleFilter.value = "";
   searchInput.value = "";
   sortOrder.value = "";
+  selectedCategoryTag = "";
   selectedCollabTag = "";
   selectedRoleTag = "";
   selectedPlatformTag = "";
@@ -823,6 +829,7 @@ roleFilter.addEventListener('change', () => {
 ) &&
     
 // フィルタ条件
+    (!selectedCategoryTag || video["カテゴリ"] === selectedCategoryTag) &&
     (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
 (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
 (!selectedPlatformTag || video["platform"] === selectedPlatformTag) &&
@@ -930,7 +937,6 @@ function renderVideoList(videos) {
     const metaRow = document.createElement('div');
     metaRow.className = 'video-meta';
    [
-  video["カテゴリ"],
   video["公開月"],
   video["動画種別"],
 ].filter(Boolean).forEach(text => {
@@ -941,13 +947,53 @@ function renderVideoList(videos) {
 
 const roles = parseCommaTags(video["担当区分"]);
 let roleTagRow = null;
+const category = video["カテゴリ"];
 const platform = video["platform"];
 
-if (platform || roles.length) {
+if (category || platform || roles.length || video["3D"] === "TRUE") {
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
-  // platformタグを先頭に追加
+  // カテゴリタグ
+if (category) {
+  const categoryTag = document.createElement('button');
+  categoryTag.type = 'button';
+
+  const isCategoryActive = selectedCategoryTag === category;
+
+  const categoryClassMap = {
+    "ソロ": isCategoryActive
+      ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100',
+    "コラボ": isCategoryActive
+      ? 'border border-teal-600 text-white bg-teal-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-teal-300 text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full text-xs hover:bg-teal-100',
+    "あやかき": isCategoryActive
+      ? 'border border-green-600 text-white bg-green-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-green-300 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs hover:bg-green-100'
+  };
+
+  categoryTag.className = categoryClassMap[category] ||
+    (isCategoryActive
+      ? 'border border-gray-600 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100');
+
+  categoryTag.textContent = category;
+
+  categoryTag.addEventListener('click', () => {
+    selectedCategoryTag = selectedCategoryTag === category ? "" : category;
+    categoryFilter.value = "";
+
+    const modalCategoryFilter = document.getElementById('modalCategoryFilter');
+    if (modalCategoryFilter) modalCategoryFilter.value = "";
+
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(categoryTag);
+}
+
+  // platformタグ
   if (platform) {
     const platformTag = document.createElement('button');
     platformTag.type = 'button';
