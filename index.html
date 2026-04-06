@@ -245,6 +245,9 @@ section {
   <!-- 件数はJSで埋め込み -->
 </div>
 
+  <div id="activeTagChips" class="max-w-4xl mx-auto px-4 mb-4 hidden">
+  <div id="activeTagChipsInner" class="flex flex-wrap gap-1.5"></div>
+</div>
 
   <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"> 
   </main>
@@ -352,6 +355,8 @@ section {
     const sortOrder = document.getElementById('sortOrder');
     const resetButton = document.getElementById('resetFilters');
     const videoList = document.getElementById('videoList');
+    const activeTagChips = document.getElementById('activeTagChips');
+const activeTagChipsInner = document.getElementById('activeTagChipsInner');
 
     sortOrder.value = "";
 document.getElementById('modalSortOrder').value = "";
@@ -390,6 +395,87 @@ function parseCommaTags(value) {
     .map(v => v.trim())
     .filter(Boolean);
 }
+
+    //アクティブタグ描画関数
+    function renderActiveTagChips() {
+  if (!activeTagChips || !activeTagChipsInner) return;
+
+  activeTagChipsInner.innerHTML = '';
+
+  const activeTags = [];
+
+  // include状態のタグを収集
+  if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
+  if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
+  if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
+  if (selectedPlatformTag) activeTags.push({ label: selectedPlatformTag, type: 'include' });
+
+  if (selected3DTag) activeTags.push({ label: '3D', type: 'include' });
+  if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: 'include' });
+  if (selectedDigestTag) activeTags.push({ label: 'Digest', type: 'include' });
+  if (selectedFullTag) activeTags.push({ label: 'Full', type: 'include' });
+  if (selectedUtaTag) activeTags.push({ label: '歌枠', type: 'include' });
+  if (selectedLiveTag) activeTags.push({ label: 'ライブ', type: 'include' });
+  if (selectedProjectTag) activeTags.push({ label: '企画', type: 'include' });
+
+  // 何もなければ領域ごと隠す
+  if (activeTags.length === 0) {
+    activeTagChips.classList.add('hidden');
+    return;
+  }
+
+  activeTagChips.classList.remove('hidden');
+
+  activeTags.forEach(tagData => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+
+    chip.className =
+  'border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+    
+    chip.textContent = tagData.type === 'exclude'
+      ? `-${tagData.label}`
+      : tagData.label;
+
+    chip.addEventListener('click', () => {
+      // 解除処理
+      switch (tagData.label) {
+        case '3D':
+          selected3DTag = false;
+          break;
+        case 'Shorts':
+          selectedShortsTag = false;
+          break;
+        case 'Digest':
+          selectedDigestTag = false;
+          break;
+        case 'Full':
+          selectedFullTag = false;
+          break;
+        case '歌枠':
+          selectedUtaTag = false;
+          break;
+        case 'ライブ':
+          selectedLiveTag = false;
+          break;
+        case '企画':
+          selectedProjectTag = false;
+          break;
+        default:
+          if (selectedCategoryTag === tagData.label) selectedCategoryTag = "";
+          if (selectedCollabTag === tagData.label) selectedCollabTag = "";
+          if (selectedRoleTag === tagData.label) selectedRoleTag = "";
+          if (selectedPlatformTag === tagData.label) selectedPlatformTag = "";
+          break;
+      }
+
+      applyFilters();
+    });
+
+    activeTagChipsInner.appendChild(chip);
+  });
+}
+    
 
 function escapeHtml(str) {
   return String(str || "").replace(/[&<>"']/g, s => ({
@@ -914,6 +1000,7 @@ if (order) {
 
         renderVideoList(filtered);
         currentFilteredVideos = filtered;
+        renderActiveTagChips();
       }
 
     // フィルタ後の動画リストを描画（タグ・タイトル・メタ情報を生成）
