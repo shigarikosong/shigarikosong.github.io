@@ -381,19 +381,25 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let selectedCollabTag = "";
     let selectedRoleTag = "";
     let selectedPlatformTag = "";
-    let selected3DTag = false;
-    let selectedShortsTag = false;
-    let selectedDigestTag = false;
-    let selectedFullTag = false;
-    let selectedUtaTag = false;
-    let selectedLiveTag = false;
-    let selectedProjectTag = false;
+    let selected3DTag = null;
+    let selectedShortsTag = null;
+    let selectedDigestTag = null;
+    let selectedFullTag = null;
+    let selectedUtaTag = null;
+    let selectedLiveTag = null;
+    let selectedProjectTag = null;
 
 function parseCommaTags(value) {
   return String(value || "")
     .split(",")
     .map(v => v.trim())
     .filter(Boolean);
+}
+
+    function toggleTagState(state) {
+  if (state === null) return "include";
+  if (state === "include") return "exclude";
+  return null;
 }
 
     //アクティブタグ描画関数
@@ -404,19 +410,19 @@ function parseCommaTags(value) {
 
   const activeTags = [];
 
-  // include状態のタグを収集
+  // アクティブ状態のタグを収集（include / exclude）
   if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
   if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
   if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
   if (selectedPlatformTag) activeTags.push({ label: selectedPlatformTag, type: 'include' });
 
-  if (selected3DTag) activeTags.push({ label: '3D', type: 'include' });
-  if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: 'include' });
-  if (selectedDigestTag) activeTags.push({ label: 'Digest', type: 'include' });
-  if (selectedFullTag) activeTags.push({ label: 'Full', type: 'include' });
-  if (selectedUtaTag) activeTags.push({ label: '歌枠', type: 'include' });
-  if (selectedLiveTag) activeTags.push({ label: 'ライブ', type: 'include' });
-  if (selectedProjectTag) activeTags.push({ label: '企画', type: 'include' });
+ if (selected3DTag) activeTags.push({ label: '3D', type: selected3DTag });
+if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: selectedShortsTag });
+if (selectedDigestTag) activeTags.push({ label: 'Digest', type: selectedDigestTag });
+if (selectedFullTag) activeTags.push({ label: 'Full', type: selectedFullTag });
+if (selectedUtaTag) activeTags.push({ label: '歌枠', type: selectedUtaTag });
+if (selectedLiveTag) activeTags.push({ label: 'ライブ', type: selectedLiveTag });
+if (selectedProjectTag) activeTags.push({ label: '企画', type: selectedProjectTag });
 
   // 何もなければ領域ごと隠す
   if (activeTags.length === 0) {
@@ -441,26 +447,27 @@ function parseCommaTags(value) {
       // 解除処理
       switch (tagData.label) {
         case '3D':
-          selected3DTag = false;
-          break;
-        case 'Shorts':
-          selectedShortsTag = false;
-          break;
-        case 'Digest':
-          selectedDigestTag = false;
-          break;
-        case 'Full':
-          selectedFullTag = false;
-          break;
-        case '歌枠':
-          selectedUtaTag = false;
-          break;
-        case 'ライブ':
-          selectedLiveTag = false;
-          break;
-        case '企画':
-          selectedProjectTag = false;
-          break;
+  selected3DTag = null;
+  break;
+case 'Shorts':
+  selectedShortsTag = null;
+  break;
+case 'Digest':
+  selectedDigestTag = null;
+  break;
+case 'Full':
+  selectedFullTag = null;
+  break;
+case '歌枠':
+  selectedUtaTag = null;
+  break;
+case 'ライブ':
+  selectedLiveTag = null;
+  break;
+case '企画':
+  selectedProjectTag = null;
+  break;
+    
         default:
           if (selectedCategoryTag === tagData.label) selectedCategoryTag = "";
           if (selectedCollabTag === tagData.label) selectedCollabTag = "";
@@ -603,13 +610,13 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
   selectedCollabTag = "";
   selectedRoleTag = "";
   selectedPlatformTag = "";
-  selected3DTag = false;
-  selectedShortsTag = false;
-  selectedDigestTag = false;
-  selectedFullTag = false;
-selectedUtaTag = false;
-selectedLiveTag = false;
-selectedProjectTag = false;
+selected3DTag = null;
+selectedShortsTag = null;
+selectedDigestTag = null;
+selectedFullTag = null;
+selectedUtaTag = null;
+selectedLiveTag = null;
+selectedProjectTag = null;
 
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
@@ -874,13 +881,13 @@ roleFilter.addEventListener('change', () => {
   selectedCollabTag = "";
   selectedRoleTag = "";
   selectedPlatformTag = "";
-  selected3DTag = false;
-  selectedShortsTag = false;
-  selectedDigestTag = false;
-    selectedFullTag = false;
-selectedUtaTag = false;
-selectedLiveTag = false;
-selectedProjectTag = false;
+  selected3DTag = null;
+selectedShortsTag = null;
+selectedDigestTag = null;
+selectedFullTag = null;
+selectedUtaTag = null;
+selectedLiveTag = null;
+selectedProjectTag = null;
     
   document.getElementById('modalCategoryFilter').value = "";
   document.getElementById('modalDateFilter').value = "";
@@ -941,13 +948,41 @@ selectedProjectTag = false;
     (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
     (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
     (!selectedPlatformTag || video["platform"] === selectedPlatformTag) &&
-    (!selected3DTag || video["3D"] === "TRUE") &&
-    (!selectedShortsTag || video["Shorts"] === "TRUE") &&
-    (!selectedDigestTag || typeTags.includes("Digest")) &&
-    (!selectedFullTag || typeTags.includes("Full")) &&
-    (!selectedUtaTag || typeTags.includes("歌枠")) &&
-    (!selectedLiveTag || typeTags.includes("ライブ")) &&
-    (!selectedProjectTag || typeTags.includes("企画"))
+    (
+  selected3DTag === null ||
+  (selected3DTag === "include" && video["3D"] === "TRUE") ||
+  (selected3DTag === "exclude" && video["3D"] !== "TRUE")
+) &&
+(
+  selectedShortsTag === null ||
+  (selectedShortsTag === "include" && video["Shorts"] === "TRUE") ||
+  (selectedShortsTag === "exclude" && video["Shorts"] !== "TRUE")
+) &&
+(
+  selectedDigestTag === null ||
+  (selectedDigestTag === "include" && typeTags.includes("Digest")) ||
+  (selectedDigestTag === "exclude" && !typeTags.includes("Digest"))
+) &&
+(
+  selectedFullTag === null ||
+  (selectedFullTag === "include" && typeTags.includes("Full")) ||
+  (selectedFullTag === "exclude" && !typeTags.includes("Full"))
+) &&
+(
+  selectedUtaTag === null ||
+  (selectedUtaTag === "include" && typeTags.includes("歌枠")) ||
+  (selectedUtaTag === "exclude" && !typeTags.includes("歌枠"))
+) &&
+(
+  selectedLiveTag === null ||
+  (selectedLiveTag === "include" && typeTags.includes("ライブ")) ||
+  (selectedLiveTag === "exclude" && !typeTags.includes("ライブ"))
+) &&
+(
+  selectedProjectTag === null ||
+  (selectedProjectTag === "include" && typeTags.includes("企画")) ||
+  (selectedProjectTag === "exclude" && !typeTags.includes("企画"))
+)
 });
 
 const coll = new Intl.Collator('ja');
@@ -1146,16 +1181,19 @@ if (video["3D"] === "TRUE") {
   const tag3D = document.createElement('button');
   tag3D.type = 'button';
 
-  const isActive = selected3DTag;
+  const isInclude = selected3DTag === "include";
+  const isExclude = selected3DTag === "exclude";
 
-  tag3D.className = isActive
+  tag3D.className = isInclude
     ? 'border border-sky-600 text-white bg-sky-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-sky-300 text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full text-xs hover:bg-sky-100';
 
-  tag3D.textContent = "3D";
+  tag3D.textContent = isExclude ? '-3D' : '3D';
 
   tag3D.addEventListener('click', () => {
-    selected3DTag = !selected3DTag;
+    selected3DTag = toggleTagState(selected3DTag);
     applyFilters();
   });
 
@@ -1167,16 +1205,19 @@ if (video["Shorts"] === "TRUE") {
   const shortsTag = document.createElement('button');
   shortsTag.type = 'button';
 
-  const isActive = selectedShortsTag;
+  const isInclude = selectedShortsTag === "include";
+  const isExclude = selectedShortsTag === "exclude";
 
-  shortsTag.className = isActive
+  shortsTag.className = isInclude
     ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
 
-  shortsTag.textContent = "Shorts";
+  shortsTag.textContent = isExclude ? '-Shorts' : 'Shorts';
 
   shortsTag.addEventListener('click', () => {
-    selectedShortsTag = !selectedShortsTag;
+    selectedShortsTag = toggleTagState(selectedShortsTag);
     applyFilters();
   });
 
@@ -1188,16 +1229,19 @@ if (typeTags.includes("Digest")) {
   const digestTag = document.createElement('button');
   digestTag.type = 'button';
 
-  const isActive = selectedDigestTag;
+  const isInclude = selectedDigestTag === "include";
+  const isExclude = selectedDigestTag === "exclude";
 
-  digestTag.className = isActive
+  digestTag.className = isInclude
     ? 'border border-emerald-600 text-white bg-emerald-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-emerald-300 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full text-xs hover:bg-emerald-100';
 
-  digestTag.textContent = "Digest";
+  digestTag.textContent = isExclude ? '-Digest' : 'Digest';
 
   digestTag.addEventListener('click', () => {
-    selectedDigestTag = !selectedDigestTag;
+    selectedDigestTag = toggleTagState(selectedDigestTag);
     applyFilters();
   });
 
@@ -1209,16 +1253,19 @@ if (typeTags.includes("Full")) {
   const tag = document.createElement('button');
   tag.type = 'button';
 
-  const isActive = selectedFullTag;
+  const isInclude = selectedFullTag === "include";
+  const isExclude = selectedFullTag === "exclude";
 
-  tag.className = isActive
+  tag.className = isInclude
     ? 'border border-indigo-600 text-white bg-indigo-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-indigo-300 text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full text-xs hover:bg-indigo-100';
 
-  tag.textContent = "Full";
+  tag.textContent = isExclude ? '-Full' : 'Full';
 
   tag.addEventListener('click', () => {
-    selectedFullTag = !selectedFullTag;
+    selectedFullTag = toggleTagState(selectedFullTag);
     applyFilters();
   });
 
@@ -1230,16 +1277,19 @@ if (typeTags.includes("歌枠")) {
   const tag = document.createElement('button');
   tag.type = 'button';
 
-  const isActive = selectedUtaTag;
+  const isInclude = selectedUtaTag === "include";
+  const isExclude = selectedUtaTag === "exclude";
 
-  tag.className = isActive
+  tag.className = isInclude
     ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
 
-  tag.textContent = "歌枠";
+  tag.textContent = isExclude ? '-歌枠' : '歌枠';
 
   tag.addEventListener('click', () => {
-    selectedUtaTag = !selectedUtaTag;
+    selectedUtaTag = toggleTagState(selectedUtaTag);
     applyFilters();
   });
 
@@ -1251,16 +1301,19 @@ if (typeTags.includes("ライブ")) {
   const tag = document.createElement('button');
   tag.type = 'button';
 
-  const isActive = selectedLiveTag;
+  const isInclude = selectedLiveTag === "include";
+  const isExclude = selectedLiveTag === "exclude";
 
-  tag.className = isActive
+  tag.className = isInclude
     ? 'border border-red-600 text-white bg-red-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-red-300 text-red-700 bg-red-50 px-2.5 py-1 rounded-full text-xs hover:bg-red-100';
 
-  tag.textContent = "ライブ";
+  tag.textContent = isExclude ? '-ライブ' : 'ライブ';
 
   tag.addEventListener('click', () => {
-    selectedLiveTag = !selectedLiveTag;
+    selectedLiveTag = toggleTagState(selectedLiveTag);
     applyFilters();
   });
 
@@ -1272,16 +1325,19 @@ if (typeTags.includes("企画")) {
   const tag = document.createElement('button');
   tag.type = 'button';
 
-  const isActive = selectedProjectTag;
+  const isInclude = selectedProjectTag === "include";
+  const isExclude = selectedProjectTag === "exclude";
 
-  tag.className = isActive
+  tag.className = isInclude
     ? 'border border-yellow-600 text-white bg-yellow-500 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-yellow-300 text-yellow-700 bg-yellow-50 px-2.5 py-1 rounded-full text-xs hover:bg-yellow-100';
 
-  tag.textContent = "企画";
+  tag.textContent = isExclude ? '-企画' : '企画';
 
   tag.addEventListener('click', () => {
-    selectedProjectTag = !selectedProjectTag;
+    selectedProjectTag = toggleTagState(selectedProjectTag);
     applyFilters();
   });
 
