@@ -377,6 +377,7 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let selectedRoleTag = "";
     let selectedPlatformTag = "";
     let selected3DTag = false;
+    let selectedShortsTag = false;
 
 function parseCommaTags(value) {
   return String(value || "")
@@ -511,6 +512,7 @@ selectedCategoryTag = "";
 selectedRoleTag = "";
 selectedPlatformTag = "";
 selected3DTag = false;
+selectedShortsTag = false;
 
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
@@ -776,6 +778,7 @@ roleFilter.addEventListener('change', () => {
   selectedRoleTag = "";
   selectedPlatformTag = "";
     selected3DTag = false;
+    selectedShortsTag = false;
     
   document.getElementById('modalCategoryFilter').value = "";
   document.getElementById('modalDateFilter').value = "";
@@ -832,9 +835,10 @@ roleFilter.addEventListener('change', () => {
 // フィルタ条件
     (!selectedCategoryTag || video["カテゴリ"] === selectedCategoryTag) &&
     (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
-(!selectedRoleTag || roles.includes(selectedRoleTag)) &&
-(!selectedPlatformTag || video["platform"] === selectedPlatformTag) &&
- (!selected3DTag || video["3D"] === "TRUE")
+    (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
+    (!selectedPlatformTag || video["platform"] === selectedPlatformTag) &&
+    (!selected3DTag || video["3D"] === "TRUE") &&
+    (!selectedShortsTag || video["Shorts"] === "TRUE")
 });
 
 const coll = new Intl.Collator('ja');
@@ -951,7 +955,7 @@ let roleTagRow = null;
 const category = video["カテゴリ"];
 const platform = video["platform"];
 
-if (category || platform || roles.length || video["3D"] === "TRUE") {
+if (category || platform || roles.length || video["3D"] === "TRUE" || video["Shorts"] === "TRUE") {
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
@@ -1034,6 +1038,27 @@ if (video["3D"] === "TRUE") {
   });
 
   roleTagRow.appendChild(tag3D);
+}
+
+  // Shortsタグ
+if (video["Shorts"] === "TRUE") {
+  const shortsTag = document.createElement('button');
+  shortsTag.type = 'button';
+
+  const isActive = selectedShortsTag;
+
+  shortsTag.className = isActive
+    ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+
+  shortsTag.textContent = "Shorts";
+
+  shortsTag.addEventListener('click', () => {
+    selectedShortsTag = !selectedShortsTag;
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(shortsTag);
 }
 
   // 担当区分タグ
