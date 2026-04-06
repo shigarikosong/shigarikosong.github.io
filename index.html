@@ -379,6 +379,10 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let selected3DTag = false;
     let selectedShortsTag = false;
     let selectedDigestTag = false;
+    let selectedFullTag = false;
+    let selectedUtaTag = false;
+    let selectedLiveTag = false;
+    let selectedProjectTag = false;
 
 function parseCommaTags(value) {
   return String(value || "")
@@ -516,6 +520,10 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
   selected3DTag = false;
   selectedShortsTag = false;
   selectedDigestTag = false;
+  selectedFullTag = false;
+selectedUtaTag = false;
+selectedLiveTag = false;
+selectedProjectTag = false;
 
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
@@ -783,6 +791,10 @@ roleFilter.addEventListener('change', () => {
   selected3DTag = false;
   selectedShortsTag = false;
   selectedDigestTag = false;
+    selectedFullTag = false;
+selectedUtaTag = false;
+selectedLiveTag = false;
+selectedProjectTag = false;
     
   document.getElementById('modalCategoryFilter').value = "";
   document.getElementById('modalDateFilter').value = "";
@@ -816,8 +828,10 @@ roleFilter.addEventListener('change', () => {
     .map(v => v.trim())
     .filter(Boolean);
 
+          // タグ・検索用の前処理（動画1件ごとに配列化して扱いやすくする）
   const collabTags = [...collabLivers, ...collabUnits];
   const roles = parseCommaTags(video["担当区分"]);
+  const typeTags = parseCommaTags(video["動画種別"]); 
   const searchTerm = searchInput.value.toLowerCase();
 
   return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
@@ -843,7 +857,11 @@ roleFilter.addEventListener('change', () => {
     (!selectedPlatformTag || video["platform"] === selectedPlatformTag) &&
     (!selected3DTag || video["3D"] === "TRUE") &&
     (!selectedShortsTag || video["Shorts"] === "TRUE") &&
-    (!selectedDigestTag || video["動画種別"] === "Digest")
+    (!selectedDigestTag || typeTags.includes("Digest")) &&
+    (!selectedFullTag || typeTags.includes("Full")) &&
+    (!selectedUtaTag || typeTags.includes("歌枠")) &&
+    (!selectedLiveTag || typeTags.includes("ライブ")) &&
+    (!selectedProjectTag || typeTags.includes("企画"))
 });
 
 const coll = new Intl.Collator('ja');
@@ -894,11 +912,11 @@ if (order) {
   });
 }
 
-
         renderVideoList(filtered);
         currentFilteredVideos = filtered;
       }
 
+    // フィルタ後の動画リストを描画（タグ・タイトル・メタ情報を生成）
 function renderVideoList(videos) {
   videoList.innerHTML = '';
 
@@ -956,6 +974,7 @@ function renderVideoList(videos) {
 });
 
 const roles = parseCommaTags(video["担当区分"]);
+const typeTags = parseCommaTags(video["動画種別"]);
 let roleTagRow = null;
 const category = video["カテゴリ"];
 const platform = video["platform"];
@@ -966,7 +985,11 @@ if (
   roles.length ||
   video["3D"] === "TRUE" ||
   video["Shorts"] === "TRUE" ||
-  video["動画種別"] === "Digest"
+  typeTags.includes("Digest") ||
+  typeTags.includes("Full") ||
+  typeTags.includes("歌枠") ||
+  typeTags.includes("ライブ") ||
+  typeTags.includes("企画")
 ) {
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
@@ -1073,8 +1096,8 @@ if (video["Shorts"] === "TRUE") {
   roleTagRow.appendChild(shortsTag);
 }
 
-  // Digestタグ
-if (video["動画種別"] === "Digest") {
+// Digestタグ
+if (typeTags.includes("Digest")) {
   const digestTag = document.createElement('button');
   digestTag.type = 'button';
 
@@ -1092,6 +1115,90 @@ if (video["動画種別"] === "Digest") {
   });
 
   roleTagRow.appendChild(digestTag);
+}
+
+  // Fullタグ
+if (typeTags.includes("Full")) {
+  const tag = document.createElement('button');
+  tag.type = 'button';
+
+  const isActive = selectedFullTag;
+
+  tag.className = isActive
+    ? 'border border-indigo-600 text-white bg-indigo-600 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-indigo-300 text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full text-xs hover:bg-indigo-100';
+
+  tag.textContent = "Full";
+
+  tag.addEventListener('click', () => {
+    selectedFullTag = !selectedFullTag;
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(tag);
+}
+
+  // 歌枠タグ
+if (typeTags.includes("歌枠")) {
+  const tag = document.createElement('button');
+  tag.type = 'button';
+
+  const isActive = selectedUtaTag;
+
+  tag.className = isActive
+    ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+
+  tag.textContent = "歌枠";
+
+  tag.addEventListener('click', () => {
+    selectedUtaTag = !selectedUtaTag;
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(tag);
+}
+
+  // ライブタグ
+if (typeTags.includes("ライブ")) {
+  const tag = document.createElement('button');
+  tag.type = 'button';
+
+  const isActive = selectedLiveTag;
+
+  tag.className = isActive
+    ? 'border border-red-600 text-white bg-red-600 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-red-300 text-red-700 bg-red-50 px-2.5 py-1 rounded-full text-xs hover:bg-red-100';
+
+  tag.textContent = "ライブ";
+
+  tag.addEventListener('click', () => {
+    selectedLiveTag = !selectedLiveTag;
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(tag);
+}
+
+  // 企画タグ
+if (typeTags.includes("企画")) {
+  const tag = document.createElement('button');
+  tag.type = 'button';
+
+  const isActive = selectedProjectTag;
+
+  tag.className = isActive
+    ? 'border border-yellow-600 text-white bg-yellow-500 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-yellow-300 text-yellow-700 bg-yellow-50 px-2.5 py-1 rounded-full text-xs hover:bg-yellow-100';
+
+  tag.textContent = "企画";
+
+  tag.addEventListener('click', () => {
+    selectedProjectTag = !selectedProjectTag;
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(tag);
 }
 
   // 担当区分タグ
