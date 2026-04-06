@@ -369,9 +369,11 @@ if (!SHOW_AUTONEXT_UI && autoNextUI) {
     let allVideos = [];
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
+    // タグクリック用変数
     let selectedCollabTag = "";
     let selectedRoleTag = "";
     let selectedPlatformTag = "";
+    let selected3DTag = false;
 
 function parseCommaTags(value) {
   return String(value || "")
@@ -755,6 +757,7 @@ roleFilter.addEventListener('change', () => {
   applyFilters();
 });
 
+     // リセットボタン
   resetButton.addEventListener('click', () => {
   categoryFilter.value = "";
   dateFilter.value = "";
@@ -765,6 +768,7 @@ roleFilter.addEventListener('change', () => {
   selectedCollabTag = "";
   selectedRoleTag = "";
   selectedPlatformTag = "";
+    selected3DTag = false;
     
   document.getElementById('modalCategoryFilter').value = "";
   document.getElementById('modalDateFilter').value = "";
@@ -818,10 +822,11 @@ roleFilter.addEventListener('change', () => {
   collabUnits.some(unit => unit.toLowerCase().includes(searchTerm))
 ) &&
     
-         
+// フィルタ条件
     (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
 (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
-(!selectedPlatformTag || video["platform"] === selectedPlatformTag);
+(!selectedPlatformTag || video["platform"] === selectedPlatformTag) &&
+ (!selected3DTag || video["3D"] === "TRUE")
 });
 
 const coll = new Intl.Collator('ja');
@@ -963,7 +968,28 @@ if (platform || roles.length) {
     roleTagRow.appendChild(platformTag);
   }
 
-  // 担当区分タグをその後ろに追加
+  // 3Dタグ
+if (video["3D"] === "TRUE") {
+  const tag3D = document.createElement('button');
+  tag3D.type = 'button';
+
+  const isActive = selected3DTag;
+
+  tag3D.className = isActive
+    ? 'border border-sky-600 text-white bg-sky-600 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-sky-300 text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full text-xs hover:bg-sky-100';
+
+  tag3D.textContent = "3D";
+
+  tag3D.addEventListener('click', () => {
+    selected3DTag = !selected3DTag;
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(tag3D);
+}
+
+  // 担当区分タグ
   roles.forEach(role => {
     const tag = document.createElement('button');
     tag.type = 'button';
