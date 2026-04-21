@@ -121,6 +121,37 @@ section {
   padding-bottom: 10px;
 }
 
+    #activeTagChips {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  margin-bottom: 12px;
+  pointer-events: none;
+}
+
+#activeTagChipsInner {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.375rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
+  pointer-events: auto;
+}
+
+#activeTagChipsInner::-webkit-scrollbar {
+  display: none;
+}
+
       /* 固定プレイヤー用のCSS */
   #fixedPlayer {
     display: none; /* 最初は非表示 */
@@ -200,8 +231,8 @@ section {
   tiktokのみ、仕様上youtubeに比べると再生音が大きい為、ご注意ください。<br>
 </div>
 
-  <section class="max-w-8xl mx-auto mt-6 mb-6 px-4">
-
+<section id="filterSection" class="max-w-8xl mx-auto mt-6 mb-6 px-4">
+  
 <!-- モバイル用：絞り込み＋ランダム再生を横並び -->
 <div class="flex sm:hidden items-center justify-center gap-2 mt-4 px-4">
   <button id="openFilterModal" class="bg-blue-500 text-white px-4 py-2 rounded-md w-full">
@@ -241,8 +272,10 @@ section {
     </div>
   </section>
 
-<div id="activeTagChips" class="max-w-4xl mx-auto px-4 mb-3 hidden">
-  <div id="activeTagChipsInner" class="flex flex-wrap gap-1.5 rounded-xl border border-white/60 bg-white/70 backdrop-blur-sm px-3 py-2 shadow-sm"></div>
+<div id="activeTagChips" class="hidden">
+  <div class="max-w-4xl mx-auto px-4">
+    <div id="activeTagChipsInner" class="active-tag-chips-inner"></div>
+  </div>
 </div>
   
   <div id="songCount" class="text-center text-sm text-gray-700 mb-4">
@@ -357,6 +390,7 @@ section {
     const videoList = document.getElementById('videoList');
     const activeTagChips = document.getElementById('activeTagChips');
 const activeTagChipsInner = document.getElementById('activeTagChipsInner');
+    const filterSection = document.getElementById('filterSection');
 
     sortOrder.value = "";
 document.getElementById('modalSortOrder').value = "";
@@ -402,6 +436,13 @@ function parseCommaTags(value) {
   return null;
 }
 
+    function updateActiveTagChipsPosition() {
+  if (!filterSection || !activeTagChips) return;
+
+  const filterHeight = filterSection.offsetHeight || 0;
+  activeTagChips.style.top = `${filterHeight}px`;
+}
+
     //アクティブタグ描画関数
     function renderActiveTagChips() {
   if (!activeTagChips || !activeTagChipsInner) return;
@@ -426,18 +467,20 @@ if (selectedProjectTag) activeTags.push({ label: '企画', type: selectedProject
 
   // 何もなければ領域ごと隠す
   if (activeTags.length === 0) {
-    activeTagChips.classList.add('hidden');
-    return;
-  }
+  activeTagChips.classList.add('hidden');
+  updateActiveTagChipsPosition();
+  return;
+}
 
-  activeTagChips.classList.remove('hidden');
+activeTagChips.classList.remove('hidden');
+updateActiveTagChipsPosition();
 
-  activeTags.forEach(tagData => {
+activeTags.forEach(tagData => {
     const chip = document.createElement('button');
     chip.type = 'button';
 
     chip.className =
-  'border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+  'shrink-0 border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
     
     chip.textContent = tagData.type === 'exclude'
       ? `-${tagData.label}`
@@ -567,13 +610,16 @@ function tryInitYtPlayer() {
 }
 
     
-     fetch(sheetJsonUrl)
+fetch(sheetJsonUrl)
   .then(response => response.json())
   .then(data => {
     allVideos = data;
     populateFilters(data);
     applyFilters();
-    requestAnimationFrame(adjustFixedPlayerBottom);
+    requestAnimationFrame(() => {
+      adjustFixedPlayerBottom();
+      updateActiveTagChipsPosition();
+    });
   });
 
 fetch(metaSheetUrl)
@@ -662,6 +708,16 @@ window.addEventListener('orientationchange', () => {
   setTimeout(adjustFixedPlayerBottom, 50);
 });
 window.visualViewport?.addEventListener('resize', adjustFixedPlayerBottom);
+
+    window.addEventListener('resize', () => {
+  requestAnimationFrame(updateActiveTagChipsPosition);
+});
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(updateActiveTagChipsPosition, 50);
+});
+
+window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 
 
 // === リサイズ（高さ可変）関連 ===
