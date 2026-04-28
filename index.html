@@ -304,6 +304,7 @@ section {
 
       <div id="desktopCategoryTags" class="hidden sm:flex flex-wrap gap-2 items-center"></div>
       <div id="desktopPlatformTags" class="hidden sm:flex flex-wrap gap-2 items-center"></div>
+      <div id="desktopDateTags" class="hidden sm:flex flex-wrap gap-2 items-center"></div>
       
       <button id="resetFilters" class="hidden sm:block bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">リセット</button>
           <!-- ランダム再生ボタン -->
@@ -345,6 +346,7 @@ section {
 
       <div id="modalCategoryTags" class="flex flex-wrap gap-2 mt-2"></div>
       <div id="modalPlatformTags" class="flex flex-wrap gap-2 mt-2"></div>
+      <div id="modalDateTags" class="flex flex-wrap gap-2 mt-2"></div>
       
       <select id="modalDateFilter" class="w-full border p-2 rounded">
         <option value="">公開日</option>
@@ -492,6 +494,7 @@ document.getElementById('modalSortOrder').value = "";
     
     // タグクリック用変数
     let selectedCategoryTag = "";
+    let selectedDateTag = "";
     let selectedCollabTag = "";
     let selectedRoleTag = "";
     let selectedPlatformTag = "";
@@ -1091,6 +1094,7 @@ if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
 
         renderPlatformTags();
         renderCategoryTags([...sets.category].sort());
+        renderDateTags();
 
 // モーダル用にも同じく追加
 addOptions(document.getElementById('modalCategoryFilter'), [...sets.category].sort());
@@ -1142,7 +1146,9 @@ roleFilter.addEventListener('change', () => {
   selectedCollabTag = "";
   selectedRoleTag = "";
   selectedPlatformTag = "";
-    renderPlatformTags();
+  selectedDateTag = "";
+  renderDateTags();
+  renderPlatformTags();
     
   selected3DTag = null;
 selectedShortsTag = null;
@@ -1213,12 +1219,53 @@ function renderPlatformTags() {
 
       btn.onclick = () => {
         selectedCategoryTag = selectedCategoryTag === category ? "" : category;
-
         categoryFilter.value = "";
+
         const modalCategoryFilter = document.getElementById('modalCategoryFilter');
         if (modalCategoryFilter) modalCategoryFilter.value = "";
 
         renderCategoryTags(categories);
+        applyFilters();
+      };
+
+      container.appendChild(btn);
+    });
+  });
+}
+
+function renderDateTags() {
+  const containers = [
+    document.getElementById('modalDateTags'),
+    document.getElementById('desktopDateTags')
+  ].filter(Boolean);
+
+  const options = [
+    { label: "最近", value: "recent" },
+    { label: "1年以内", value: "year" },
+    { label: "1年以上前", value: "old" }
+  ];
+
+  containers.forEach(container => {
+    container.innerHTML = '';
+
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      const isActive = selectedDateTag === opt.value;
+
+      btn.className = isActive
+        ? 'bg-green-600 text-white px-3 py-1 rounded-full text-xs'
+        : 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs';
+
+      btn.textContent = opt.label;
+
+      btn.onclick = () => {
+        selectedDateTag = selectedDateTag === opt.value ? "" : opt.value;
+
+        dateFilter.value = "";
+        const modalDate = document.getElementById('modalDateFilter');
+        if (modalDate) modalDate.value = "";
+
+        renderDateTags();
         applyFilters();
       };
 
@@ -1249,11 +1296,17 @@ function renderPlatformTags() {
     .map(v => v.trim())
     .filter(Boolean);
 
+          
+
           // タグ・検索用の前処理（動画1件ごとに配列化して扱いやすくする）
   const collabTags = [...collabLivers, ...collabUnits];
   const roles = parseCommaTags(video["担当区分"]);
   const typeTags = parseCommaTags(video["動画種別"]); 
   const searchTerm = searchInput.value.toLowerCase();
+
+  const now = new Date();
+  const videoTime = parseYmdToTime(video["公開日"] || video["公開月"]);
+  const diffMonths = (now - videoTime) / (1000 * 60 * 60 * 24 * 30);
 
   return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
          (!dateFilter.value || (
@@ -1276,8 +1329,13 @@ function renderPlatformTags() {
     (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
     (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
     (!selectedPlatformTag || String(video["platform"] || "").toLowerCase() === selectedPlatformTag) &&
-    (
-  selected3DTag === null ||
+(!selectedDateTag ||
+  (selectedDateTag === "recent" && diffMonths <= 3) ||
+  (selectedDateTag === "year" && diffMonths <= 12) ||
+  (selectedDateTag === "old" && diffMonths > 12)
+) &&
+  
+  (selected3DTag === null ||
   (selected3DTag === "include" && video["3D"] === "TRUE") ||
   (selected3DTag === "exclude" && video["3D"] !== "TRUE")
 ) &&
