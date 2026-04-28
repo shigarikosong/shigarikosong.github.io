@@ -399,7 +399,9 @@ section {
     <div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
 
     <div id="playerFrameWrapper" class="bg-black rounded-xl overflow-hidden shadow-lg">
-      <div id="youtubePlayer" class="w-full aspect-video"></div>
+      
+     <div id="youtubePlayer" class="w-full aspect-video"></div>
+<div id="tiktokPlayer" class="hidden w-full flex justify-center bg-black"></div>
 
 <iframe id="playerIframe"
   class="w-full aspect-video hidden"
@@ -416,6 +418,7 @@ section {
     const fixedPlayerEl = document.getElementById('fixedPlayer');
     const playerIframe = document.getElementById('playerIframe');
     const youtubePlayerEl = document.getElementById('youtubePlayer');
+    const tiktokPlayerEl = document.getElementById('tiktokPlayer');
     const playerFrameWrapper = document.getElementById('playerFrameWrapper');
     const resizeHandle = document.getElementById('playerResizeHandle');
     const closeBtn = document.getElementById('closePlayerBtn');
@@ -847,6 +850,43 @@ function getMaxPlayerHeight() {
 function getYouTubeIframeElement() {
   return document.querySelector('#youtubePlayer iframe') || document.getElementById('youtubePlayer');
 }
+
+    function getTikTokId(videoId) {
+  const match = String(videoId).match(/video\/(\d+)/);
+  return match ? match[1] : String(videoId).trim();
+}
+
+function loadTikTokEmbed(tiktokId) {
+  if (!tiktokPlayerEl) return;
+
+  const tiktokUrl = `https://www.tiktok.com/@riko14218/video/${tiktokId}`;
+
+  tiktokPlayerEl.innerHTML = `
+    <blockquote
+      class="tiktok-embed"
+      cite="${tiktokUrl}"
+      data-video-id="${tiktokId}"
+      data-embed-from="embed_page"
+      style="max-width:605px; min-width:325px;">
+      <section>
+        <a target="_blank" rel="noopener" href="${tiktokUrl}">TikTokで見る</a>
+      </section>
+    </blockquote>
+  `;
+
+  reloadTikTokEmbedScript();
+}
+
+function reloadTikTokEmbedScript() {
+  document.querySelectorAll('script[src="https://www.tiktok.com/embed.js"]').forEach(script => {
+    script.remove();
+  });
+
+  const script = document.createElement('script');
+  script.src = 'https://www.tiktok.com/embed.js';
+  script.async = true;
+  document.body.appendChild(script);
+}
     
 function setPlayerHeight(px) {
   const maxH = getMaxPlayerHeight();
@@ -868,6 +908,11 @@ if (ytEl) {
     youtubePlayerEl.classList.remove('aspect-video');
     youtubePlayerEl.style.height = h + 'px';
   }
+
+  if (tiktokPlayerEl) {
+  tiktokPlayerEl.style.height = h + 'px';
+  tiktokPlayerEl.style.overflow = 'auto';
+}
 
   if (playerFrameWrapper) {
     playerFrameWrapper.style.height = h + 'px';
@@ -1656,6 +1701,11 @@ function loadVideo(video, item) {
     youtubePlayerEl.classList.remove('hidden');
   }
 
+    if (tiktokPlayerEl) {
+  tiktokPlayerEl.classList.add('hidden');
+  tiktokPlayerEl.innerHTML = "";
+}
+
   fixedPlayerEl.style.display = 'block';
 
   if (ytApiReady) {
@@ -1669,22 +1719,28 @@ function loadVideo(video, item) {
   applyStoredPlayerHeight();
 
   } else if (platform === "tiktok") {
-    if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-  ytPlayer.stopVideo();
-}
+  if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+    ytPlayer.stopVideo();
+  }
 
-if (youtubePlayerEl) {
-  youtubePlayerEl.classList.add('hidden');
-}
-if (playerIframe) {
-  playerIframe.classList.remove('hidden');
-}
-    // TikTok は従来どおり src を差し替え
-    const match = videoId.match(/video\/(\d+)/);
-    const tiktokId = match ? match[1] : videoId;
-    playerIframe.src = `https://www.tiktok.com/embed/v2/${tiktokId}`;
-    fixedPlayerEl.style.display = 'block';
-    applyStoredPlayerHeight();
+  if (youtubePlayerEl) {
+    youtubePlayerEl.classList.add('hidden');
+  }
+
+  if (playerIframe) {
+    playerIframe.classList.add('hidden');
+    playerIframe.src = "";
+  }
+
+  if (tiktokPlayerEl) {
+    tiktokPlayerEl.classList.remove('hidden');
+  }
+
+  const tiktokId = getTikTokId(videoId);
+  loadTikTokEmbed(tiktokId);
+
+  fixedPlayerEl.style.display = 'block';
+  applyStoredPlayerHeight();
 
   } else {
     alert(`未対応の platform: ${platform}`);
