@@ -338,6 +338,8 @@ section {
       <select id="modalCategoryFilter" class="w-full border p-2 rounded">
         <option value="">カテゴリ</option>
       </select>
+
+      <div id="modalPlatformTags" class="flex flex-wrap gap-2 mt-2"></div>
       <select id="modalDateFilter" class="w-full border p-2 rounded">
         <option value="">公開日</option>
       </select>
@@ -1079,6 +1081,7 @@ if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
         addOptions(roleFilter, [...sets.role].sort((a, b) => roleOrder.indexOf(a) - roleOrder.indexOf(b))
 );
 
+        renderPlatformTags();
 
 // モーダル用にも同じく追加
 addOptions(document.getElementById('modalCategoryFilter'), [...sets.category].sort());
@@ -1143,6 +1146,32 @@ selectedProjectTag = null;
   applyFilters();
 });
       }
+
+function renderPlatformTags() {
+  const container = document.getElementById('modalPlatformTags');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  ['youtube', 'tiktok'].forEach(p => {
+    const btn = document.createElement('button');
+    const isActive = selectedPlatformTag === p;
+
+    btn.className = isActive
+      ? 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs'
+      : 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs';
+
+    btn.textContent = p;
+
+    btn.onclick = () => {
+      selectedPlatformTag = selectedPlatformTag === p ? "" : p;
+      renderPlatformTags();
+      applyFilters();
+    };
+
+    container.appendChild(btn);
+  });
+}
 
       function addOptions(select, values) {
         values.forEach(v => {
