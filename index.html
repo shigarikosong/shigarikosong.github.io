@@ -301,6 +301,10 @@ section {
   <option value="title">曲名順</option>
   <option value="artist">アーティスト順</option>
 </select>
+
+      <div id="desktopCategoryTags" class="hidden sm:flex flex-wrap gap-2 items-center"></div>
+      <div id="desktopPlatformTags" class="hidden sm:flex flex-wrap gap-2 items-center"></div>
+      
       <button id="resetFilters" class="hidden sm:block bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">リセット</button>
           <!-- ランダム再生ボタン -->
 <button id="randomPlayButton" class="hidden sm:block bg-green-100 hover:bg-green-200 text-green-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">
@@ -339,7 +343,9 @@ section {
         <option value="">カテゴリ</option>
       </select>
 
+      <div id="modalCategoryTags" class="flex flex-wrap gap-2 mt-2"></div>
       <div id="modalPlatformTags" class="flex flex-wrap gap-2 mt-2"></div>
+      
       <select id="modalDateFilter" class="w-full border p-2 rounded">
         <option value="">公開日</option>
       </select>
@@ -733,9 +739,11 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
 
   //モーダル適用時のリセット
   selectedCategoryTag = "";
+
+  renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
+  
   selectedCollabTag = "";
   selectedRoleTag = "";
-  selectedPlatformTag = "";
 selected3DTag = null;
 selectedShortsTag = null;
 selectedDigestTag = null;
@@ -1082,6 +1090,7 @@ if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
 );
 
         renderPlatformTags();
+        renderCategoryTags([...sets.category].sort());
 
 // モーダル用にも同じく追加
 addOptions(document.getElementById('modalCategoryFilter'), [...sets.category].sort());
@@ -1102,12 +1111,15 @@ if (mobileRandomPlayButton) {
   });
 }
 
-
-
-
-        [categoryFilter, dateFilter, typeFilter, searchInput, sortOrder].forEach(el => {
+       [dateFilter, typeFilter, searchInput, sortOrder].forEach(el => {
   el.addEventListener('change', applyFilters);
   el.addEventListener('input', applyFilters);
+});
+
+categoryFilter.addEventListener('change', () => {
+  selectedCategoryTag = "";
+  renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
+  applyFilters();
 });
 
 roleFilter.addEventListener('change', () => {
@@ -1126,9 +1138,12 @@ roleFilter.addEventListener('change', () => {
   searchInput.value = "";
   sortOrder.value = "";
   selectedCategoryTag = "";
+    renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
   selectedCollabTag = "";
   selectedRoleTag = "";
   selectedPlatformTag = "";
+    renderPlatformTags();
+    
   selected3DTag = null;
 selectedShortsTag = null;
 selectedDigestTag = null;
@@ -1148,28 +1163,67 @@ selectedProjectTag = null;
       }
 
 function renderPlatformTags() {
-  const container = document.getElementById('modalPlatformTags');
-  if (!container) return;
+  const containers = [
+    document.getElementById('modalPlatformTags'),
+    document.getElementById('desktopPlatformTags')
+  ].filter(Boolean);
 
-  container.innerHTML = '';
+  containers.forEach(container => {
+    container.innerHTML = '';
 
-  ['youtube', 'tiktok'].forEach(p => {
-    const btn = document.createElement('button');
-    const isActive = selectedPlatformTag === p;
+    ['youtube', 'tiktok'].forEach(p => {
+      const btn = document.createElement('button');
+      const isActive = selectedPlatformTag === p;
 
-    btn.className = isActive
-      ? 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs'
-      : 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs';
+      btn.className = isActive
+        ? 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs'
+        : 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs';
 
-    btn.textContent = p;
+      btn.textContent = p;
 
-    btn.onclick = () => {
-      selectedPlatformTag = selectedPlatformTag === p ? "" : p;
-      renderPlatformTags();
-      applyFilters();
-    };
+      btn.onclick = () => {
+        selectedPlatformTag = selectedPlatformTag === p ? "" : p;
+        renderPlatformTags();
+        applyFilters();
+      };
 
-    container.appendChild(btn);
+      container.appendChild(btn);
+    });
+  });
+}
+
+    function renderCategoryTags(categories = []) {
+  const containers = [
+    document.getElementById('modalCategoryTags'),
+    document.getElementById('desktopCategoryTags')
+  ].filter(Boolean);
+
+  containers.forEach(container => {
+    container.innerHTML = '';
+
+    categories.forEach(category => {
+      const btn = document.createElement('button');
+      const isActive = selectedCategoryTag === category;
+
+      btn.className = isActive
+        ? 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs'
+        : 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs';
+
+      btn.textContent = category;
+
+      btn.onclick = () => {
+        selectedCategoryTag = selectedCategoryTag === category ? "" : category;
+
+        categoryFilter.value = "";
+        const modalCategoryFilter = document.getElementById('modalCategoryFilter');
+        if (modalCategoryFilter) modalCategoryFilter.value = "";
+
+        renderCategoryTags(categories);
+        applyFilters();
+      };
+
+      container.appendChild(btn);
+    });
   });
 }
 
