@@ -210,7 +210,6 @@ section {
   border: none;
   padding: 0;
   transition: opacity 0.2s ease, transform 0.1s ease;
-}ansition: opacity 0.2s ease, background 0.2s ease, transform 0.1s ease;
 }
 
 .random-auto-play-btn img {
@@ -845,6 +844,10 @@ function getMaxPlayerHeight() {
   return playerIframe;
 }
 
+function getYouTubeIframeElement() {
+  return document.querySelector('#youtubePlayer iframe') || document.getElementById('youtubePlayer');
+}
+    
 function setPlayerHeight(px) {
   const maxH = getMaxPlayerHeight();
   const h = Math.max(MIN_PLAYER_H, Math.min(Math.round(px), maxH));
@@ -853,6 +856,13 @@ function setPlayerHeight(px) {
     playerIframe.classList.remove('aspect-video');
     playerIframe.style.height = h + 'px';
   }
+
+ const ytEl = getYouTubeIframeElement();
+if (ytEl) {
+  ytEl.classList.remove('aspect-video');
+  ytEl.style.height = h + 'px';
+  ytEl.style.width = '100%';
+}
 
   if (youtubePlayerEl) {
     youtubePlayerEl.classList.remove('aspect-video');
