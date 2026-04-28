@@ -651,18 +651,22 @@ function tryInitYtPlayer() {
   if (!iframeEl) return;
 
   ytPlayer = new YT.Player('playerIframe', {
-    playerVars: {
-    playsinline: 1,      // iOSでインライン再生
-    rel: 0,              // 終了後の関連動画を抑制
-    modestbranding: 1    // YouTubeロゴ控えめ
-  },
+   playerVars: {
+  playsinline: 1,
+  rel: 0,
+  modestbranding: 1,
+  origin: location.origin
+},
     events: {
-      onStateChange: (e) => {
-        // 再生終了
-        if (e.data === YT.PlayerState.ENDED && isRandomAutoPlayEnabled()) {
-  playRandomAutoNextVideo();
+onStateChange: (e) => {
+  console.log('YouTube state:', e.data, 'randomAutoPlay:', isRandomAutoPlayEnabled());
+
+  if (e.data === YT.PlayerState.ENDED && isRandomAutoPlayEnabled()) {
+    console.log('ランダム連続再生します');
+    playRandomAutoNextVideo();
+  }
 }
-      }
+      
     }
   });
 }
@@ -1597,7 +1601,7 @@ function loadVideo(video, item) {
       } else {
         // フォールバック：直URL
         playerIframe.src =
-          `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1`;
+          `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1&origin=${location.origin}`;
         fixedPlayerEl.style.display = 'block';
         applyStoredPlayerHeight();
       }
