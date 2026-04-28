@@ -1605,10 +1605,10 @@ function loadVideo(video, item) {
         fixedPlayerEl.style.display = 'block';
         applyStoredPlayerHeight();
       }
-    } else {
-      // API未準備：直URL
-      playerIframe.src =
-        `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1`;
+   } else {
+  // API未準備：直URL
+  playerIframe.src =
+    `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1&origin=${location.origin}`;
       fixedPlayerEl.style.display = 'block';
       applyStoredPlayerHeight();
     }
