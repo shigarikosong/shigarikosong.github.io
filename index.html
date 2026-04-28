@@ -398,12 +398,14 @@ section {
     <div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
 
     <div id="playerFrameWrapper" class="bg-black rounded-xl overflow-hidden shadow-lg">
-      <iframe id="playerIframe"
-        class="w-full aspect-video"
-        loading="lazy"
-        src=""
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen title="動画プレイヤー"></iframe>
+      <div id="youtubePlayer" class="w-full aspect-video"></div>
+
+<iframe id="playerIframe"
+  class="w-full aspect-video hidden"
+  loading="lazy"
+  src=""
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen title="動画プレイヤー"></iframe>
     </div>
   </div>
 </div>
@@ -412,6 +414,7 @@ section {
 
     const fixedPlayerEl = document.getElementById('fixedPlayer');
     const playerIframe = document.getElementById('playerIframe');
+    const youtubePlayerEl = document.getElementById('youtubePlayer');
     const playerFrameWrapper = document.getElementById('playerFrameWrapper');
     const resizeHandle = document.getElementById('playerResizeHandle');
     const closeBtn = document.getElementById('closePlayerBtn');
@@ -647,26 +650,24 @@ window.onYouTubeIframeAPIReady = () => {
 function tryInitYtPlayer() {
   if (!ytApiReady) return;
   if (ytPlayer) return;
-  const iframeEl = document.getElementById('playerIframe');
-  if (!iframeEl) return;
+  if (!youtubePlayerEl) return;
 
-  ytPlayer = new YT.Player('playerIframe', {
-   playerVars: {
-  playsinline: 1,
-  rel: 0,
-  modestbranding: 1,
-  origin: location.origin
-},
+  ytPlayer = new YT.Player('youtubePlayer', {
+    playerVars: {
+      playsinline: 1,
+      rel: 0,
+      modestbranding: 1,
+      origin: location.origin
+    },
     events: {
-onStateChange: (e) => {
-  console.log('YouTube state:', e.data, 'randomAutoPlay:', isRandomAutoPlayEnabled());
+      onStateChange: (e) => {
+        console.log('YouTube state:', e.data, 'randomAutoPlay:', isRandomAutoPlayEnabled());
 
-  if (e.data === YT.PlayerState.ENDED && isRandomAutoPlayEnabled()) {
-    console.log('ランダム連続再生します');
-    playRandomAutoNextVideo();
-  }
-}
-      
+        if (e.data === YT.PlayerState.ENDED && isRandomAutoPlayEnabled()) {
+          console.log('ランダム連続再生します');
+          playRandomAutoNextVideo();
+        }
+      }
     }
   });
 }
@@ -795,10 +796,22 @@ function applyStoredPlayerHeight() {
   if (!isNaN(stored)) {
     const maxH = getMaxPlayerHeight();
     const clamped = Math.max(MIN_PLAYER_H, Math.min(stored, maxH));
-    playerIframe.classList.remove('aspect-video');
-    playerIframe.style.height = clamped + 'px';
-    if (playerFrameWrapper) playerFrameWrapper.style.height = clamped + 'px';
+
+    if (playerIframe) {
+      playerIframe.classList.remove('aspect-video');
+      playerIframe.style.height = clamped + 'px';
+    }
+
+    if (youtubePlayerEl) {
+      youtubePlayerEl.classList.remove('aspect-video');
+      youtubePlayerEl.style.height = clamped + 'px';
+    }
+
+    if (playerFrameWrapper) {
+      playerFrameWrapper.style.height = clamped + 'px';
+    }
   }
+
   adjustFixedPlayerBottom();
 }
 
@@ -825,12 +838,23 @@ function getMaxPlayerHeight() {
 
 
 function setPlayerHeight(px) {
-  const maxH = getMaxPlayerHeight();        // ← 画面からはみ出さない上限
+  const maxH = getMaxPlayerHeight();
   const h = Math.max(MIN_PLAYER_H, Math.min(Math.round(px), maxH));
 
-  playerIframe.classList.remove('aspect-video');
-  playerIframe.style.height = h + 'px';
-  if (playerFrameWrapper) playerFrameWrapper.style.height = h + 'px';
+  if (playerIframe) {
+    playerIframe.classList.remove('aspect-video');
+    playerIframe.style.height = h + 'px';
+  }
+
+  if (youtubePlayerEl) {
+    youtubePlayerEl.classList.remove('aspect-video');
+    youtubePlayerEl.style.height = h + 'px';
+  }
+
+  if (playerFrameWrapper) {
+    playerFrameWrapper.style.height = h + 'px';
+  }
+
   localStorage.setItem(PLAYER_HEIGHT_KEY, String(h));
   adjustFixedPlayerBottom();
 }
@@ -1587,33 +1611,40 @@ function loadVideo(video, item) {
   }
 
   if (platform.includes("youtube")) {
-    const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
-    if (match) videoId = match[1];
+  const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
+  if (match) videoId = match[1];
 
-    // IFrame API 優先
-    if (ytApiReady) {
-      tryInitYtPlayer(); // 未初期化なら初期化
-      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-        const wasHidden = fixedPlayerEl.style.display === 'none';
-        fixedPlayerEl.style.display = 'block';
-        ytPlayer.loadVideoById({ videoId, startSeconds: start });
-        if (wasHidden) applyStoredPlayerHeight();
-      } else {
-        // フォールバック：直URL
-       playerIframe.src =
-  `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1&origin=${location.origin}`;
-        fixedPlayerEl.style.display = 'block';
-        applyStoredPlayerHeight();
-      }
-   } else {
-  // API未準備：直URL
-  playerIframe.src =
-    `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1&origin=${location.origin}`;
-      fixedPlayerEl.style.display = 'block';
-      applyStoredPlayerHeight();
+  if (playerIframe) {
+    playerIframe.classList.add('hidden');
+    playerIframe.src = "";
+  }
+  if (youtubePlayerEl) {
+    youtubePlayerEl.classList.remove('hidden');
+  }
+
+  fixedPlayerEl.style.display = 'block';
+
+  if (ytApiReady) {
+    tryInitYtPlayer();
+
+    if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+      ytPlayer.loadVideoById({ videoId, startSeconds: start });
     }
+  }
+
+  applyStoredPlayerHeight();
 
   } else if (platform === "tiktok") {
+    if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+  ytPlayer.stopVideo();
+}
+
+if (youtubePlayerEl) {
+  youtubePlayerEl.classList.add('hidden');
+}
+if (playerIframe) {
+  playerIframe.classList.remove('hidden');
+}
     // TikTok は従来どおり src を差し替え
     const match = videoId.match(/video\/(\d+)/);
     const tiktokId = match ? match[1] : videoId;
