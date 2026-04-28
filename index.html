@@ -200,6 +200,42 @@ section {
   background: rgba(0,0,0,0.25);  /* つまみの目印（好みで調整/削除OK） */
 }
 
+    .random-auto-play-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.1s ease;
+}
+
+.random-auto-play-btn img {
+  width: 28px;
+  height: 28px;
+}
+
+.random-auto-play-btn.is-off {
+  opacity: 0.35;
+}
+
+.random-auto-play-btn.is-on {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.random-auto-play-btn:active {
+  transform: scale(0.96);
+}
+
+.auto-play-notice {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  margin-top: -4px;
+  margin-bottom: 4px;
+}
 
   </style>
 
@@ -349,10 +385,9 @@ section {
     <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
     <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
     <button id="randomFromFilteredBtn" class="bg-gray-300 px-3 py-1 rounded">🎲 ランダム</button>
-    <label id="autoNextUI" class="flex items-center gap-1 text-sm ml-3 select-none">
-    <input type="checkbox" id="autoNextToggle" class="w-4 h-4">
-    連続再生
-  </label>
+    <button id="randomAutoPlayBtn" class="random-auto-play-btn is-off" type="button" aria-label="ランダム連続再生 OFF">
+  <img src="./shuffle_play.svg" alt="" aria-hidden="true">
+</button>
   </div>
 </div>
 
@@ -392,15 +427,45 @@ section {
 const activeTagChipsInner = document.getElementById('activeTagChipsInner');
     const filterSection = document.getElementById('filterSection');
 
+    const RANDOM_AUTO_PLAY_KEY = 'randomAutoPlayEnabled';
+
+function isRandomAutoPlayEnabled() {
+  return localStorage.getItem(RANDOM_AUTO_PLAY_KEY) === '1';
+}
+
+function setRandomAutoPlayEnabled(on) {
+  localStorage.setItem(RANDOM_AUTO_PLAY_KEY, on ? '1' : '0');
+}
+
+function isTikTokVideo(video) {
+  return String(video?.["platform"] || "").toLowerCase() === "tiktok";
+}
+
+function getRandomAutoPlayableVideos() {
+  const baseList = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+  return baseList.filter(video => !isTikTokVideo(video));
+}
+
+function playRandomAutoNextVideo() {
+  const list = getRandomAutoPlayableVideos();
+  if (!list.length) return;
+
+  const randomVideo = list[Math.floor(Math.random() * list.length)];
+  loadVideo(randomVideo, null);
+}
+
+function updateRandomAutoPlayButton() {
+  const btn = document.getElementById('randomAutoPlayBtn');
+  if (!btn) return;
+
+  const on = isRandomAutoPlayEnabled();
+  btn.classList.toggle('is-on', on);
+  btn.classList.toggle('is-off', !on);
+}
+
     sortOrder.value = "";
 document.getElementById('modalSortOrder').value = "";
     
-    const SHOW_AUTONEXT_UI = false;
-
-    const autoNextUI = document.getElementById('autoNextUI');
-if (!SHOW_AUTONEXT_UI && autoNextUI) {
-  autoNextUI.style.display = 'none';
-}
 
     // ===== スプレッドシートURL =====
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
@@ -568,13 +633,6 @@ function getRoleTagClass(role, isActive = false) {
     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100')}`;
 }
 
-    const AUTO_NEXT_KEY = 'autoNextEnabled';
-    function isAutoNextEnabled() {
-      return localStorage.getItem(AUTO_NEXT_KEY) === '1';
-    }
-    function setAutoNextEnabled(on) {
-      localStorage.setItem(AUTO_NEXT_KEY, on ? '1' : '0');
-    }
 
     let ytPlayer = null;
 let ytApiReady = false;
@@ -601,9 +659,9 @@ function tryInitYtPlayer() {
     events: {
       onStateChange: (e) => {
         // 再生終了
-        if (e.data === YT.PlayerState.ENDED && isAutoNextEnabled()) {
-          playAdjacentVideo(1);
-        }
+        if (e.data === YT.PlayerState.ENDED && isRandomAutoPlayEnabled()) {
+  playRandomAutoNextVideo();
+}
       }
     }
   });
@@ -631,7 +689,18 @@ fetch(metaSheetUrl)
         `最終更新日：${lastUpdate["値"]}`;
     }
   });
-    
+
+    const randomAutoPlayBtn = document.getElementById('randomAutoPlayBtn');
+
+if (randomAutoPlayBtn) {
+  updateRandomAutoPlayButton();
+
+  randomAutoPlayBtn.addEventListener('click', () => {
+    setRandomAutoPlayEnabled(!isRandomAutoPlayEnabled());
+    updateRandomAutoPlayButton();
+    applyFilters();
+  });
+}
 
     // モバイル用フィルターモーダル制御
 document.getElementById('openFilterModal').addEventListener('click', () => {
@@ -676,14 +745,6 @@ selectedProjectTag = null;
     loadVideo(randomVideo, null);
 });
 
-    // 連続再生トグルの初期化
-const autoNextToggle = document.getElementById('autoNextToggle');
-if (autoNextToggle) {
-  autoNextToggle.checked = isAutoNextEnabled();
-  autoNextToggle.addEventListener('change', (e) => {
-    setAutoNextEnabled(e.target.checked);
-  });
-}
 
     // === 固定プレイヤーと NowPlaying の重なり対策 ===
 function adjustFixedPlayerBottom() {
@@ -1089,9 +1150,9 @@ if (order) {
   });
 }
 
-        renderVideoList(filtered);
         currentFilteredVideos = filtered;
-        renderActiveTagChips();
+renderVideoList(filtered);
+renderActiveTagChips();
       }
 
     // フィルタ後の動画リストを描画（タグ・タイトル・メタ情報を生成）
@@ -1101,6 +1162,19 @@ function renderVideoList(videos) {
     // 件数表示を更新
   const countElement = document.getElementById('songCount');
   countElement.textContent = `${allVideos.length}曲中 ${videos.length}曲表示中`;
+
+  const oldNotice = document.getElementById('autoPlayNotice');
+if (oldNotice) oldNotice.remove();
+
+const playableCount = videos.filter(video => !isTikTokVideo(video)).length;
+
+if (isRandomAutoPlayEnabled() && videos.length > 0 && playableCount === 0) {
+  const notice = document.createElement('div');
+  notice.id = 'autoPlayNotice';
+  notice.className = 'auto-play-notice';
+  notice.textContent = 'この条件では連続再生できる動画がありません（TikTokは対象外です）';
+  countElement.insertAdjacentElement('afterend', notice);
+}
 
   let playingElement = null;
 
