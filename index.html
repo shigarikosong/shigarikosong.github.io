@@ -942,21 +942,31 @@ startH = parseInt(activePlayer.style.height || 0, 10) ||
      window.addEventListener('blur', end);
     document.addEventListener('mouseleave', end);
 
+  document.addEventListener('mouseup', end);
+document.addEventListener('touchend', end);
+document.addEventListener('touchcancel', end);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) end();
+});
+
   // マウス
-  resizeHandle.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    start(e.clientY);
-  });
+ resizeHandle.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  start(e.clientY);
+});
   window.addEventListener('mousemove', (e) => move(e.clientY));
   window.addEventListener('mouseup', end);
 
   // タッチ（passive: false で preventDefault を有効に）
   resizeHandle.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    start(e.touches[0].clientY);
-  }, { passive: false });
-
+  e.preventDefault();
+  e.stopPropagation();
+  start(e.touches[0].clientY);
+}, { passive: false });
+  
   window.addEventListener('touchmove', (e) => {
     move(e.touches[0].clientY);
   }, { passive: false });
