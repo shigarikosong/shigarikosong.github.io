@@ -1600,8 +1600,8 @@ function loadVideo(video, item) {
         if (wasHidden) applyStoredPlayerHeight();
       } else {
         // フォールバック：直URL
-        playerIframe.src =
-          `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1&origin=${location.origin}`;
+       playerIframe.src =
+  `https://www.youtube.com/embed/${videoId}?start=${start}&autoplay=1&enablejsapi=1&playsinline=1&origin=${location.origin}`;
         fixedPlayerEl.style.display = 'block';
         applyStoredPlayerHeight();
       }
