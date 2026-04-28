@@ -1275,7 +1275,7 @@ function renderPlatformTags() {
     (!selectedCategoryTag || video["カテゴリ"] === selectedCategoryTag) &&
     (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
     (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
-    (!selectedPlatformTag || video["platform"] === selectedPlatformTag) &&
+    (!selectedPlatformTag || String(video["platform"] || "").toLowerCase() === selectedPlatformTag) &&
     (
   selected3DTag === null ||
   (selected3DTag === "include" && video["3D"] === "TRUE") ||
@@ -1510,7 +1510,8 @@ if (category) {
     platformTag.textContent = platform;
 
     platformTag.addEventListener('click', () => {
-      selectedPlatformTag = selectedPlatformTag === platform ? "" : platform;
+     const normalizedPlatform = String(platform || "").toLowerCase();
+selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normalizedPlatform;
       applyFilters();
     });
 
