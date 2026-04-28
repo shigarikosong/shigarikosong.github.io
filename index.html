@@ -836,6 +836,12 @@ function getMaxPlayerHeight() {
   return Math.max(MIN_PLAYER_H, Math.floor(maxH));
 }
 
+    function getActivePlayerElement() {
+  if (youtubePlayerEl && !youtubePlayerEl.classList.contains('hidden')) {
+    return youtubePlayerEl;
+  }
+  return playerIframe;
+}
 
 function setPlayerHeight(px) {
   const maxH = getMaxPlayerHeight();
@@ -861,7 +867,7 @@ function setPlayerHeight(px) {
 
 
 (function enablePlayerResize() {
-  if (!resizeHandle || !playerIframe) return;
+  if (!resizeHandle) return;
 
   let dragging = false, startY = 0, startH = 0;
   let prevUserSelect = '', prevCursor = '', prevOverflow = '';
@@ -876,11 +882,14 @@ function setPlayerHeight(px) {
   };
 
     const disableIframePointer = () => {
-    if (playerIframe) playerIframe.style.pointerEvents = 'none';
-  };
-  const enableIframePointer = () => {
-    if (playerIframe) playerIframe.style.pointerEvents = '';
-  };
+  const active = getActivePlayerElement();
+  if (active) active.style.pointerEvents = 'none';
+};
+
+const enableIframePointer = () => {
+  const active = getActivePlayerElement();
+  if (active) active.style.pointerEvents = '';
+};
 
   const unlockScroll = () => {
     document.body.style.overflow = prevOverflow;
@@ -890,8 +899,11 @@ function setPlayerHeight(px) {
   const start = (y) => {
     dragging = true;
     startY = y;
-    startH = parseInt(playerIframe.style.height || 0, 10) ||
-             playerIframe.getBoundingClientRect().height;
+    
+    const activePlayer = getActivePlayerElement();
+startH = parseInt(activePlayer.style.height || 0, 10) ||
+         activePlayer.getBoundingClientRect().height;
+    
     prevUserSelect = document.body.style.userSelect;
     prevCursor = document.body.style.cursor;
     document.body.style.userSelect = 'none';
