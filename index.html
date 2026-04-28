@@ -841,14 +841,35 @@ function getMaxPlayerHeight() {
 }
 
     function getActivePlayerElement() {
-  if (youtubePlayerEl && !youtubePlayerEl.classList.contains('hidden')) {
-    return youtubePlayerEl;
+  const ytEl = getYouTubePlayerElement();
+
+  if (ytEl && !ytEl.classList.contains('hidden')) {
+    return ytEl;
   }
+
+  if (tiktokPlayerEl && !tiktokPlayerEl.classList.contains('hidden')) {
+    return tiktokPlayerEl;
+  }
+
   return playerIframe;
 }
 
 function getYouTubeIframeElement() {
   return document.querySelector('#youtubePlayer iframe') || document.getElementById('youtubePlayer');
+}
+
+    function getYouTubePlayerElement() {
+  return document.getElementById('youtubePlayer');
+}
+
+function hideYouTubePlayer() {
+  const el = getYouTubePlayerElement();
+  if (el) el.classList.add('hidden');
+}
+
+function showYouTubePlayer() {
+  const el = getYouTubePlayerElement();
+  if (el) el.classList.remove('hidden');
 }
 
     function getTikTokId(videoId) {
@@ -1697,14 +1718,17 @@ function loadVideo(video, item) {
     playerIframe.classList.add('hidden');
     playerIframe.src = "";
   }
-  if (youtubePlayerEl) {
-    youtubePlayerEl.classList.remove('hidden');
+
+  // YouTube表示
+  const ytEl = document.getElementById('youtubePlayer');
+  if (ytEl) ytEl.classList.remove('hidden');
+
+  // TikTok非表示
+  if (tiktokPlayerEl) {
+    tiktokPlayerEl.classList.add('hidden');
+    tiktokPlayerEl.innerHTML = "";
   }
 
-    if (tiktokPlayerEl) {
-  tiktokPlayerEl.classList.add('hidden');
-  tiktokPlayerEl.innerHTML = "";
-}
 
   fixedPlayerEl.style.display = 'block';
 
@@ -1723,9 +1747,8 @@ function loadVideo(video, item) {
     ytPlayer.stopVideo();
   }
 
-  if (youtubePlayerEl) {
-    youtubePlayerEl.classList.add('hidden');
-  }
+ const ytEl = document.getElementById('youtubePlayer');
+if (ytEl) ytEl.classList.add('hidden');
 
   if (playerIframe) {
     playerIframe.classList.add('hidden');
@@ -1734,6 +1757,7 @@ function loadVideo(video, item) {
 
   if (tiktokPlayerEl) {
     tiktokPlayerEl.classList.remove('hidden');
+    tiktokPlayerEl.innerHTML = "";
   }
 
   const tiktokId = getTikTokId(videoId);
