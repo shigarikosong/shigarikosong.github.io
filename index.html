@@ -281,18 +281,7 @@ section {
 </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <select id="categoryFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">カテゴリ</option>
-      </select>
-      <select id="dateFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">公開日</option>
-      </select>
-      <select id="typeFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">動画種別</option>
-      </select>
-      <select id="roleFilter" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
-        <option value="">担当区分</option>
-      </select>
+
       <input id="searchInput" type="text" placeholder="曲名・アーティスト・タグ" 
         class="hidden sm:block col-span-1 sm:col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
 <select id="sortOrder" class="hidden sm:block rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-300 transition duration-200">
@@ -432,10 +421,6 @@ section {
     const playerFrameWrapper = document.getElementById('playerFrameWrapper');
     const resizeHandle = document.getElementById('playerResizeHandle');
     const closeBtn = document.getElementById('closePlayerBtn');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const dateFilter = document.getElementById('dateFilter');
-    const typeFilter = document.getElementById('typeFilter');
-    const roleFilter = document.getElementById('roleFilter');
     const searchInput = document.getElementById('searchInput');
     const sortOrder = document.getElementById('sortOrder');
     const resetButton = document.getElementById('resetFilters');
@@ -733,10 +718,6 @@ document.getElementById('closeFilterModal').addEventListener('click', () => {
 
 document.getElementById('applyFilters').addEventListener('click', () => {
   // モーダルから値を取得して本体に反映
-  categoryFilter.value = document.getElementById('modalCategoryFilter').value;
-  dateFilter.value = document.getElementById('modalDateFilter').value;
-  typeFilter.value = document.getElementById('modalTypeFilter').value;
-  roleFilter.value = document.getElementById('modalRoleFilter').value;
 searchInput.value = document.getElementById('modalSearchInput').value;
 sortOrder.value = document.getElementById('modalSortOrder').value;
 
@@ -1086,12 +1067,6 @@ if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
 }
         });
 
-        addOptions(categoryFilter, [...sets.category].sort());
-        addOptions(dateFilter, [...sets.date].sort());
-        addOptions(typeFilter, [...sets.type].sort());
-        addOptions(roleFilter, [...sets.role].sort((a, b) => roleOrder.indexOf(a) - roleOrder.indexOf(b))
-);
-
         renderPlatformTags();
         renderCategoryTags([...sets.category].sort());
         renderDateTags();
@@ -1115,30 +1090,14 @@ if (mobileRandomPlayButton) {
   });
 }
 
-       [dateFilter, typeFilter, searchInput, sortOrder].forEach(el => {
+       [searchInput, sortOrder].forEach(el => {
   el.addEventListener('change', applyFilters);
   el.addEventListener('input', applyFilters);
 });
 
-categoryFilter.addEventListener('change', () => {
-  selectedCategoryTag = "";
-  renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
-  applyFilters();
-});
-
-roleFilter.addEventListener('change', () => {
-  selectedRoleTag = "";
-  const modalRoleFilter = document.getElementById('modalRoleFilter');
-  if (modalRoleFilter) modalRoleFilter.value = roleFilter.value;
-  applyFilters();
-});
 
      // リセットボタン
   resetButton.addEventListener('click', () => {
-  categoryFilter.value = "";
-  dateFilter.value = "";
-  typeFilter.value = "";
-  roleFilter.value = "";
   searchInput.value = "";
   sortOrder.value = "";
   selectedCategoryTag = "";
@@ -1219,7 +1178,6 @@ function renderPlatformTags() {
 
       btn.onclick = () => {
         selectedCategoryTag = selectedCategoryTag === category ? "" : category;
-        categoryFilter.value = "";
 
         const modalCategoryFilter = document.getElementById('modalCategoryFilter');
         if (modalCategoryFilter) modalCategoryFilter.value = "";
@@ -1261,7 +1219,6 @@ function renderDateTags() {
       btn.onclick = () => {
         selectedDateTag = selectedDateTag === opt.value ? "" : opt.value;
 
-        dateFilter.value = "";
         const modalDate = document.getElementById('modalDateFilter');
         if (modalDate) modalDate.value = "";
 
@@ -1308,15 +1265,7 @@ function renderDateTags() {
   const videoTime = parseYmdToTime(video["公開日"] || video["公開月"]);
   const diffMonths = (now - videoTime) / (1000 * 60 * 60 * 24 * 30);
 
-  return (!categoryFilter.value || video["カテゴリ"] === categoryFilter.value) &&
-         (!dateFilter.value || (
-           typeof video["公開月"] === "string" &&
-           video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value
-         )) &&
-         (!typeFilter.value || typeTags.includes(typeFilter.value)) &&
-         (!roleFilter.value || roles.includes(roleFilter.value)) &&
-    
-         (!searchTerm ||
+  return (!searchTerm ||
   String(video["title"] || "").toLowerCase().includes(searchTerm) ||
   String(video["artist"] || "").toLowerCase().includes(searchTerm) ||
   roles.some(role => role.toLowerCase().includes(searchTerm)) ||
@@ -1521,7 +1470,6 @@ if (
     tag.textContent = type;
 
     tag.addEventListener('click', () => {
-      typeFilter.value = type;
 
       const modalTypeFilter = document.getElementById('modalTypeFilter');
       if (modalTypeFilter) modalTypeFilter.value = type;
@@ -1562,8 +1510,7 @@ if (category) {
 
   categoryTag.addEventListener('click', () => {
     selectedCategoryTag = selectedCategoryTag === category ? "" : category;
-    categoryFilter.value = "";
-
+    
     const modalCategoryFilter = document.getElementById('modalCategoryFilter');
     if (modalCategoryFilter) modalCategoryFilter.value = "";
 
@@ -1655,7 +1602,6 @@ if (video["Shorts"] === "TRUE") {
 
     tag.addEventListener('click', () => {
       selectedRoleTag = (selectedRoleTag === role) ? "" : role;
-      roleFilter.value = "";
 
       const modalRoleFilter = document.getElementById('modalRoleFilter');
       if (modalRoleFilter) modalRoleFilter.value = "";
@@ -1665,6 +1611,7 @@ if (video["Shorts"] === "TRUE") {
 
     roleTagRow.appendChild(tag);
   });
+    }
 
 // 3行目：コラボタグ
 const collabLivers = (video["コラボライバー"] || "")
