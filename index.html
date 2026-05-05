@@ -1075,7 +1075,7 @@ document.addEventListener('visibilitychange', () => {
 
         videos.forEach(v => {
           sets.category.add(v["カテゴリ"]);
-          sets.type.add(v["動画種別"]);
+          parseCommaTags(v["動画種別"]).forEach(type => sets.type.add(type));
           parseCommaTags(v["担当区分"]).forEach(role => sets.role.add(role));
 
             // 公開月（例: 2023/07）だけ抽出して追加
@@ -1313,7 +1313,7 @@ function renderDateTags() {
            typeof video["公開月"] === "string" &&
            video["公開月"].slice(0, 7).replace('-', '/') === dateFilter.value
          )) &&
-         (!typeFilter.value || video["動画種別"] === typeFilter.value) &&
+         (!typeFilter.value || typeTags.includes(typeFilter.value)) &&
          (!roleFilter.value || roles.includes(roleFilter.value)) &&
     
          (!searchTerm ||
@@ -1487,7 +1487,6 @@ if (isRandomAutoPlayEnabled() && videos.length > 0 && playableCount === 0) {
     metaRow.className = 'video-meta';
    [
   video["公開月"],
-  video["動画種別"],
 ].filter(Boolean).forEach(text => {
   const span = document.createElement('span');
   span.textContent = text;
@@ -1496,24 +1495,44 @@ if (isRandomAutoPlayEnabled() && videos.length > 0 && playableCount === 0) {
 
 const roles = parseCommaTags(video["担当区分"]);
 const typeTags = parseCommaTags(video["動画種別"]);
-let roleTagRow = null;
-const category = video["カテゴリ"];
+    const category = video["カテゴリ"];
 const platform = video["platform"];
+let roleTagRow = null;
 
 if (
   category ||
   platform ||
   roles.length ||
+  typeTags.length ||
   video["3D"] === "TRUE" ||
-  video["Shorts"] === "TRUE" ||
-  typeTags.includes("Digest") ||
-  typeTags.includes("Full") ||
-  typeTags.includes("歌枠") ||
-  typeTags.includes("ライブ") ||
-  typeTags.includes("企画")
+  video["Shorts"] === "TRUE"
 ) {
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+
+  // 🔽 ここに移動！！
+  typeTags.forEach(type => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
+
+    tag.className =
+      'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+
+    tag.textContent = type;
+
+    tag.addEventListener('click', () => {
+      typeFilter.value = type;
+
+      const modalTypeFilter = document.getElementById('modalTypeFilter');
+      if (modalTypeFilter) modalTypeFilter.value = type;
+
+      applyFilters();
+    });
+
+    roleTagRow.appendChild(tag);
+  });
+}
+
 
   // カテゴリタグ
 if (category) {
@@ -1624,125 +1643,6 @@ if (video["Shorts"] === "TRUE") {
   roleTagRow.appendChild(shortsTag);
 }
 
-// Digestタグ
-if (typeTags.includes("Digest")) {
-  const digestTag = document.createElement('button');
-  digestTag.type = 'button';
-
-  const isInclude = selectedDigestTag === "include";
-  const isExclude = selectedDigestTag === "exclude";
-
-  digestTag.className = isInclude
-    ? 'border border-emerald-600 text-white bg-emerald-600 px-2.5 py-1 rounded-full text-xs'
-    : isExclude
-    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
-    : 'border border-emerald-300 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full text-xs hover:bg-emerald-100';
-
-  digestTag.textContent = isExclude ? '-Digest' : 'Digest';
-
-  digestTag.addEventListener('click', () => {
-    selectedDigestTag = toggleTagState(selectedDigestTag);
-    applyFilters();
-  });
-
-  roleTagRow.appendChild(digestTag);
-}
-
-  // Fullタグ
-if (typeTags.includes("Full")) {
-  const tag = document.createElement('button');
-  tag.type = 'button';
-
-  const isInclude = selectedFullTag === "include";
-  const isExclude = selectedFullTag === "exclude";
-
-  tag.className = isInclude
-    ? 'border border-indigo-600 text-white bg-indigo-600 px-2.5 py-1 rounded-full text-xs'
-    : isExclude
-    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
-    : 'border border-indigo-300 text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full text-xs hover:bg-indigo-100';
-
-  tag.textContent = isExclude ? '-Full' : 'Full';
-
-  tag.addEventListener('click', () => {
-    selectedFullTag = toggleTagState(selectedFullTag);
-    applyFilters();
-  });
-
-  roleTagRow.appendChild(tag);
-}
-
-  // 歌枠タグ
-if (typeTags.includes("歌枠")) {
-  const tag = document.createElement('button');
-  tag.type = 'button';
-
-  const isInclude = selectedUtaTag === "include";
-  const isExclude = selectedUtaTag === "exclude";
-
-  tag.className = isInclude
-    ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
-    : isExclude
-    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
-    : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
-
-  tag.textContent = isExclude ? '-歌枠' : '歌枠';
-
-  tag.addEventListener('click', () => {
-    selectedUtaTag = toggleTagState(selectedUtaTag);
-    applyFilters();
-  });
-
-  roleTagRow.appendChild(tag);
-}
-
-  // ライブタグ
-if (typeTags.includes("ライブ")) {
-  const tag = document.createElement('button');
-  tag.type = 'button';
-
-  const isInclude = selectedLiveTag === "include";
-  const isExclude = selectedLiveTag === "exclude";
-
-  tag.className = isInclude
-    ? 'border border-red-600 text-white bg-red-600 px-2.5 py-1 rounded-full text-xs'
-    : isExclude
-    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
-    : 'border border-red-300 text-red-700 bg-red-50 px-2.5 py-1 rounded-full text-xs hover:bg-red-100';
-
-  tag.textContent = isExclude ? '-ライブ' : 'ライブ';
-
-  tag.addEventListener('click', () => {
-    selectedLiveTag = toggleTagState(selectedLiveTag);
-    applyFilters();
-  });
-
-  roleTagRow.appendChild(tag);
-}
-
-  // 企画タグ
-if (typeTags.includes("企画")) {
-  const tag = document.createElement('button');
-  tag.type = 'button';
-
-  const isInclude = selectedProjectTag === "include";
-  const isExclude = selectedProjectTag === "exclude";
-
-  tag.className = isInclude
-    ? 'border border-yellow-600 text-white bg-yellow-500 px-2.5 py-1 rounded-full text-xs'
-    : isExclude
-    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
-    : 'border border-yellow-300 text-yellow-700 bg-yellow-50 px-2.5 py-1 rounded-full text-xs hover:bg-yellow-100';
-
-  tag.textContent = isExclude ? '-企画' : '企画';
-
-  tag.addEventListener('click', () => {
-    selectedProjectTag = toggleTagState(selectedProjectTag);
-    applyFilters();
-  });
-
-  roleTagRow.appendChild(tag);
-}
 
   // 担当区分タグ
   roles.forEach(role => {
