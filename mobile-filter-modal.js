@@ -7,6 +7,8 @@
   const dateSelect = document.getElementById("modalDateFilter");
   const typeSelect = document.getElementById("modalTypeFilter");
   const roleSelect = document.getElementById("modalRoleFilter");
+  const formatTagsContainer = document.getElementById("modalFormatTags");
+  const roleTagsContainer = document.getElementById("modalRoleTags");
 
   if (!modal || !applyButton) return;
 
@@ -62,6 +64,105 @@
     if (dateSelect) dateSelect.classList.add("hidden");
   }
 
+  function configureFormatButtons() {
+    if (typeSelect) typeSelect.classList.add("hidden");
+  }
+
+  function configureRoleButtons() {
+    if (roleSelect) roleSelect.classList.add("hidden");
+  }
+
+  function getSelectValues(select) {
+    if (!select) return [];
+
+    return [...select.options]
+      .map(option => option.value)
+      .filter(Boolean);
+  }
+
+  function getFormatValues() {
+    const values = getSelectValues(typeSelect);
+
+    if (allVideos.some(video => video["3D"] === "TRUE")) values.push("3D");
+    if (allVideos.some(video => video["Shorts"] === "TRUE")) values.push("Shorts");
+
+    return [...new Set(values)];
+  }
+
+  function getFormatButtonClass(isActive) {
+    return isActive
+      ? "bg-pink-600 text-white px-3 py-1 rounded-full text-xs"
+      : "bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs";
+  }
+
+  function renderFormatTags() {
+    if (!formatTagsContainer) return;
+
+    formatTagsContainer.innerHTML = "";
+
+    getFormatValues().forEach(format => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = format;
+
+      const is3D = format === "3D";
+      const isShorts = format === "Shorts";
+      const isActive = is3D
+        ? selected3DTag === "include"
+        : isShorts
+          ? selectedShortsTag === "include"
+          : selectedVideoTypeTags.has(format);
+
+      button.className = getFormatButtonClass(isActive);
+      button.addEventListener("click", () => {
+        if (is3D) {
+          selected3DTag = selected3DTag === "include" ? null : "include";
+        } else if (isShorts) {
+          selectedShortsTag = selectedShortsTag === "include" ? null : "include";
+        } else {
+          toggleVideoTypeTag(format);
+        }
+
+        if (typeSelect) typeSelect.value = "";
+        renderFormatTags();
+        applyFilters();
+      });
+
+      formatTagsContainer.appendChild(button);
+    });
+  }
+
+  function renderRoleTags() {
+    if (!roleTagsContainer) return;
+
+    roleTagsContainer.innerHTML = "";
+
+    getSelectValues(roleSelect).forEach(role => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = role;
+
+      const isActive = selectedRoleTag === role;
+      button.className = isActive
+        ? "bg-amber-600 text-white px-3 py-1 rounded-full text-xs"
+        : "bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs";
+      button.addEventListener("click", () => {
+        selectedRoleTag = selectedRoleTag === role ? "" : role;
+
+        if (roleSelect) roleSelect.value = "";
+        renderRoleTags();
+        applyFilters();
+      });
+
+      roleTagsContainer.appendChild(button);
+    });
+  }
+
+  function renderMobileTagSections() {
+    renderFormatTags();
+    renderRoleTags();
+  }
+
   function resetModalFilters() {
     if (searchField) searchField.value = "";
     if (searchInput) searchInput.value = "";
@@ -84,6 +185,7 @@
     renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
     renderDateTags();
     renderPlatformTags();
+    renderMobileTagSections();
     updateSortButtons();
     applyFilters();
   }
@@ -109,27 +211,24 @@
   function syncModalValues() {
     if (searchField && searchInput) searchInput.value = searchField.value;
     if (sortSelect && sortOrder) sortOrder.value = sortSelect.value || "desc";
-
-    if (roleSelect && roleSelect.value) selectedRoleTag = roleSelect.value;
-    if (typeSelect && typeSelect.value) {
-      selectedVideoTypeTags.clear();
-      selectedVideoTypeTags.add(typeSelect.value);
-    }
   }
 
   function syncModalControls() {
     if (searchField && searchInput) searchField.value = searchInput.value;
     if (sortSelect && sortOrder) sortSelect.value = sortOrder.value || "desc";
     if (categorySelect) categorySelect.value = selectedCategoryTag || "";
-    if (roleSelect) roleSelect.value = selectedRoleTag || "";
-    if (typeSelect) typeSelect.value = [...selectedVideoTypeTags][0] || "";
+    if (roleSelect) roleSelect.value = "";
+    if (typeSelect) typeSelect.value = "";
     updateSortButtons();
+    renderMobileTagSections();
   }
 
   document.getElementById("openFilterModal")?.addEventListener("click", () => {
     configureSortButtons();
     configureCategoryButtons();
     configureDateButtons();
+    configureFormatButtons();
+    configureRoleButtons();
     configureResetButton();
     syncModalControls();
   });
@@ -151,6 +250,8 @@
     configureSortButtons();
     configureCategoryButtons();
     configureDateButtons();
+    configureFormatButtons();
+    configureRoleButtons();
     configureResetButton();
     syncModalValues();
 
@@ -158,20 +259,19 @@
       selectedCategoryTag = filtersBeforeApply.category;
       selectedDateTag = filtersBeforeApply.date;
       selectedCollabTag = filtersBeforeApply.collab;
-      if (!roleSelect || !roleSelect.value) selectedRoleTag = filtersBeforeApply.role;
+      selectedRoleTag = filtersBeforeApply.role;
       selectedPlatformTag = filtersBeforeApply.platform;
       selected3DTag = filtersBeforeApply.tag3D;
       selectedShortsTag = filtersBeforeApply.shorts;
-      if (!typeSelect || !typeSelect.value) {
-        selectedVideoTypeTags.clear();
-        filtersBeforeApply.videoTypes.forEach(tag => selectedVideoTypeTags.add(tag));
-      }
+      selectedVideoTypeTags.clear();
+      filtersBeforeApply.videoTypes.forEach(tag => selectedVideoTypeTags.add(tag));
       filtersBeforeApply = null;
     }
 
     renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
     renderDateTags();
     renderPlatformTags();
+    renderMobileTagSections();
     applyFilters();
   });
 })();
