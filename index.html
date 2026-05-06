@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=22">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -37,14 +37,14 @@
 </header>
 
   <!-- サイト説明 -->
-  <div class="max-w-4xl mx-auto px-4 mt-4 text-center text-sm text-gray-600">
+  <div class="max-w-4xl mx-auto px-4 mt-2 text-center text-xs sm:text-sm text-gray-600 leading-relaxed">
   にじさんじ所属 司賀りこさんの歌ってみたや歌枠などをまとめた非公式ファンアーカイブです。<br>
   Youtube(歌ってみた、shorts、歌枠) / tiktok を掲載しています。<br>
   tiktokのみ、仕様上youtubeに比べると再生音が大きい為、ご注意ください。<br>
 </div>
 
 <!-- 絞り込み -->
-<section id="filterSection" class="max-w-8xl mx-auto mt-6 mb-6 px-4">
+<section id="filterSection" class="max-w-8xl mx-auto mt-4 mb-4 px-4">
   
 <!-- モバイル用：絞り込み＋ランダム再生を横並び -->
 <div class="flex sm:hidden items-center justify-center gap-2 mt-4 px-4">
@@ -59,19 +59,27 @@
     <div class="hidden sm:block max-w-5xl mx-auto">
       <div class="flex flex-wrap md:flex-nowrap items-center gap-3">
         <input id="searchInput" type="text" placeholder="曲名・アーティスト・タグ" 
-          class="min-w-0 basis-full md:basis-auto md:flex-1 rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:ring-blue-300 transition duration-200">
+          class="min-w-0 basis-full md:basis-auto md:flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm focus:ring-blue-300 transition duration-200">
         <button id="desktopToggleFilters" type="button" aria-controls="desktopFilterPanel" aria-expanded="false"
-          class="shrink-0 bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2.5 rounded-md transition-all duration-300">
+          class="shrink-0 bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">
           絞り込み
         </button>
-        <button id="resetFilters" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium text-sm px-4 py-2.5 rounded-md transition-all duration-300">リセット</button>
+        <button id="resetFilters" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">リセット</button>
         <!-- ランダム再生ボタン -->
-        <button id="randomPlayButton" class="shrink-0 bg-green-100 hover:bg-green-200 text-green-900 font-medium text-sm px-4 py-2.5 rounded-md transition-all duration-300">
+        <button id="randomPlayButton" class="shrink-0 bg-green-100 hover:bg-green-200 text-green-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">
           ランダム再生
         </button>
       </div>
 
-      <div id="desktopFilterPanel" class="hidden mt-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <div id="desktopResultCount" class="hidden mt-2 text-center sm:text-right text-gray-500" aria-live="polite">
+        <span class="text-xs">全</span>
+        <span id="desktopResultTotal" class="text-base font-semibold text-gray-700">0</span>
+        <span class="text-xs">件中</span>
+        <span id="desktopResultVisible" class="text-xl font-bold text-blue-600">0</span>
+        <span class="text-xs">件表示</span>
+      </div>
+
+      <div id="desktopFilterPanel" class="hidden mt-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <select id="sortOrder" class="hidden">
           <option value="desc">新しい順</option>
           <option value="asc">古い順</option>
@@ -79,7 +87,7 @@
           <option value="artist">アーティスト順</option>
         </select>
 
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div>
             <p class="modal-section-title">Sort</p>
             <div id="desktopSortButtons" class="flex flex-wrap gap-2"></div>
@@ -134,7 +142,7 @@
   </div>
 </div>
   
-  <div id="songCount" class="text-center text-sm text-gray-700 mb-4"></div>
+  <div id="songCount" class="sm:hidden text-center text-sm text-gray-700 mb-4"></div>
 
   <!-- 動画一覧 -->
   <main id="videoList" class="max-w-4xl mx-auto px-4 py-8 divide-y divide-gray-200"> 
@@ -246,15 +254,15 @@
 </footer>
  
 <!-- 再生中の曲名とボタンを一つの箱に入れる -->
-<div id="nowPlayingWrapper" class="fixed bottom-0 left-0 w-full bg-blue-100 text-blue-900 z-30">
-  <div id="nowPlaying" class="py-2 text-center font-medium">
+<div id="nowPlayingWrapper" class="hidden fixed bottom-0 left-0 w-full bg-blue-100 text-blue-900 z-30">
+  <div id="nowPlaying" class="py-1 text-center text-sm font-medium">
     <span id="nowPlayingTitle">再生中</span>
   </div>
   
-  <div id="playerControls" class="flex justify-center gap-2 py-2">
-    <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded">◀ 戻る</button>
-    <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded">▶ 次へ</button>
-    <button id="randomFromFilteredBtn" class="bg-gray-300 px-3 py-1 rounded">🎲 ランダム</button>
+  <div id="playerControls" class="flex justify-center gap-2 py-1">
+    <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded text-sm">◀ 戻る</button>
+    <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded text-sm">▶ 次へ</button>
+    <button id="randomFromFilteredBtn" class="bg-gray-300 px-3 py-1 rounded text-sm">🎲 ランダム</button>
     <button id="randomAutoPlayBtn" class="random-auto-play-btn is-off" type="button" aria-label="ランダム連続再生 OFF">
   <img src="./shuffle_play.svg" alt="" aria-hidden="true">
 </button>
@@ -282,10 +290,11 @@
   </div>
 </div>
 
-  <script src="./script.js?v=21"></script>
-  <script src="./mobile-filter-modal.js?v=21"></script>
-  <script src="./desktop-filter-panel.js?v=21"></script>
-  <script src="./youtube-stability.js?v=21"></script>
+  <script src="./script.js?v=22"></script>
+  <script src="./mobile-filter-modal.js?v=22"></script>
+  <script src="./desktop-filter-panel.js?v=22"></script>
+  <script src="./ui-polish.js?v=22"></script>
+  <script src="./youtube-stability.js?v=22"></script>
 
 </body>
 </html>
