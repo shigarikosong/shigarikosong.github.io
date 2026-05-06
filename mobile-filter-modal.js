@@ -177,7 +177,8 @@
   function reorderCategoryTags() {
     if (!categoryTagsContainer) return;
 
-    [...categoryTagsContainer.querySelectorAll("button")].sort((a, b) => {
+    const buttons = [...categoryTagsContainer.querySelectorAll("button")];
+    const sortedButtons = [...buttons].sort((a, b) => {
       const indexA = categoryOrder.indexOf(a.textContent);
       const indexB = categoryOrder.indexOf(b.textContent);
 
@@ -185,7 +186,12 @@
       if (indexA !== -1) return -1;
       if (indexB !== -1) return 1;
       return String(a.textContent).localeCompare(String(b.textContent), "ja");
-    }).forEach(button => {
+    });
+
+    const isAlreadySorted = buttons.every((button, index) => button === sortedButtons[index]);
+    if (isAlreadySorted) return;
+
+    sortedButtons.forEach(button => {
       categoryTagsContainer.appendChild(button);
     });
   }
