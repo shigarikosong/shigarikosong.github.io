@@ -26,11 +26,13 @@
     if (!fixedPlayer || !nowPlayingWrapper) return;
 
     if (isFixedPlayerVisible()) {
+      document.body.classList.add("player-visible");
       nowPlayingWrapper.classList.remove("hidden");
       requestAnimationFrame(() => {
         if (typeof adjustFixedPlayerBottom === "function") adjustFixedPlayerBottom();
       });
     } else {
+      document.body.classList.remove("player-visible");
       nowPlayingWrapper.classList.add("hidden");
       document.body.style.paddingBottom = "0px";
     }

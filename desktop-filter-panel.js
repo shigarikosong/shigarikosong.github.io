@@ -55,7 +55,7 @@
         : "border border-gray-200 text-gray-700 bg-white hover:bg-gray-100"
     };
 
-    return `${colors[color] || colors.gray} px-4 py-2 rounded-full text-sm font-medium transition`;
+    return `${colors[color] || colors.gray} px-3 py-1.5 rounded-full text-sm font-medium transition`;
   }
 
   function createButton(label, isActive, color, onClick) {
