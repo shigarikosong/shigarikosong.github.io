@@ -30,6 +30,16 @@
     const tryPlay = () => {
       if (!pendingYouTubeVideo) return;
 
+      if (
+        (typeof ytPlayer === "undefined" || !ytPlayer) &&
+        typeof YT !== "undefined" &&
+        typeof YT.Player === "function" &&
+        typeof tryInitYtPlayer === "function"
+      ) {
+        ytApiReady = true;
+        tryInitYtPlayer();
+      }
+
       if (typeof ytPlayer !== "undefined" && ytPlayer && typeof ytPlayer.loadVideoById === "function") {
         const { videoId, start } = pendingYouTubeVideo;
         pendingYouTubeVideo = null;
