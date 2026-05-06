@@ -11,32 +11,56 @@
   if (!modal || !applyButton) return;
 
   let filtersBeforeApply = null;
+  let sortButtonGroup = null;
 
-  function configureDateOptions() {
-    if (!dateSelect || dateSelect.dataset.mobileOptionsReady === "1") return;
+  function updateSortButtons() {
+    if (!sortButtonGroup || !sortSelect) return;
 
-    dateSelect.innerHTML = "";
+    sortButtonGroup.querySelectorAll("button[data-sort]").forEach(button => {
+      const isActive = button.dataset.sort === (sortSelect.value || "desc");
+      button.className = isActive
+        ? "bg-blue-600 text-white px-3 py-2 rounded-md text-sm"
+        : "bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm";
+    });
+  }
+
+  function configureSortButtons() {
+    if (!sortSelect || sortButtonGroup) return;
+
+    sortSelect.classList.add("hidden");
+
+    sortButtonGroup = document.createElement("div");
+    sortButtonGroup.className = "flex gap-2";
+
     [
-      ["", "公開時期"],
-      ["recent", "最近"],
-      ["year", "1年以内"],
-      ["old", "1年以上前"]
+      ["desc", "新しい順 ↓"],
+      ["asc", "古い順 ↑"]
     ].forEach(([value, label]) => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = label;
-      dateSelect.appendChild(option);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.sort = value;
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        sortSelect.value = value;
+        if (sortOrder) sortOrder.value = value;
+        updateSortButtons();
+      });
+      sortButtonGroup.appendChild(button);
     });
 
-    dateSelect.dataset.mobileOptionsReady = "1";
+    sortSelect.insertAdjacentElement("afterend", sortButtonGroup);
+    updateSortButtons();
+  }
+
+  function configureDateButtons() {
+    if (dateSelect) dateSelect.classList.add("hidden");
   }
 
   function syncModalValues() {
     if (searchField && searchInput) searchInput.value = searchField.value;
-    if (sortSelect && sortOrder) sortOrder.value = sortSelect.value;
+    if (sortSelect && sortOrder) sortOrder.value = sortSelect.value || "desc";
 
     if (categorySelect) selectedCategoryTag = categorySelect.value || "";
-    if (dateSelect) selectedDateTag = dateSelect.value || "";
     if (roleSelect) selectedRoleTag = roleSelect.value || "";
 
     selectedVideoTypeTags.clear();
@@ -47,20 +71,22 @@
 
   function syncModalControls() {
     if (searchField && searchInput) searchField.value = searchInput.value;
-    if (sortSelect && sortOrder) sortSelect.value = sortOrder.value;
+    if (sortSelect && sortOrder) sortSelect.value = sortOrder.value || "desc";
     if (categorySelect) categorySelect.value = selectedCategoryTag || "";
-    if (dateSelect) dateSelect.value = selectedDateTag || "";
     if (roleSelect) roleSelect.value = selectedRoleTag || "";
     if (typeSelect) typeSelect.value = [...selectedVideoTypeTags][0] || "";
+    updateSortButtons();
   }
 
   document.getElementById("openFilterModal")?.addEventListener("click", () => {
-    configureDateOptions();
+    configureSortButtons();
+    configureDateButtons();
     syncModalControls();
   });
 
   applyButton.addEventListener("click", () => {
     filtersBeforeApply = {
+      date: selectedDateTag,
       collab: selectedCollabTag,
       platform: selectedPlatformTag,
       tag3D: selected3DTag,
@@ -69,10 +95,12 @@
   }, true);
 
   applyButton.addEventListener("click", () => {
-    configureDateOptions();
+    configureSortButtons();
+    configureDateButtons();
     syncModalValues();
 
     if (filtersBeforeApply) {
+      selectedDateTag = filtersBeforeApply.date;
       selectedCollabTag = filtersBeforeApply.collab;
       selectedPlatformTag = filtersBeforeApply.platform;
       selected3DTag = filtersBeforeApply.tag3D;
