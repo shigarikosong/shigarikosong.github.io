@@ -10,6 +10,8 @@
 
   if (!modal || !applyButton) return;
 
+  let filtersBeforeApply = null;
+
   function configureDateOptions() {
     if (!dateSelect || dateSelect.dataset.mobileOptionsReady === "1") return;
 
@@ -58,8 +60,25 @@
   });
 
   applyButton.addEventListener("click", () => {
+    filtersBeforeApply = {
+      collab: selectedCollabTag,
+      platform: selectedPlatformTag,
+      tag3D: selected3DTag,
+      shorts: selectedShortsTag
+    };
+  }, true);
+
+  applyButton.addEventListener("click", () => {
     configureDateOptions();
     syncModalValues();
+
+    if (filtersBeforeApply) {
+      selectedCollabTag = filtersBeforeApply.collab;
+      selectedPlatformTag = filtersBeforeApply.platform;
+      selected3DTag = filtersBeforeApply.tag3D;
+      selectedShortsTag = filtersBeforeApply.shorts;
+      filtersBeforeApply = null;
+    }
 
     renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
     renderDateTags();
