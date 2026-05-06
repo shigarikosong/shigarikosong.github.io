@@ -791,26 +791,23 @@ const MIN_PLAYER_H = 240;
 
 function applyStoredPlayerHeight() {
   const stored = parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
+  const maxH = getMaxPlayerHeight();
+
+  let h;
+
   if (!isNaN(stored)) {
-    const maxH = getMaxPlayerHeight();
-    const clamped = Math.max(MIN_PLAYER_H, Math.min(stored, maxH));
-
-    if (playerIframe) {
-      playerIframe.classList.remove('aspect-video');
-      playerIframe.style.height = clamped + 'px';
-    }
-
-    if (youtubePlayerEl) {
-      youtubePlayerEl.classList.remove('aspect-video');
-      youtubePlayerEl.style.height = clamped + 'px';
-    }
-
-    if (playerFrameWrapper) {
-      playerFrameWrapper.style.height = clamped + 'px';
-    }
+    h = stored;
+  } else {
+    h =
+      playerFrameWrapper?.getBoundingClientRect().height ||
+      youtubePlayerEl?.getBoundingClientRect().height ||
+      playerIframe?.getBoundingClientRect().height ||
+      360;
   }
 
-  adjustFixedPlayerBottom();
+  h = Math.max(MIN_PLAYER_H, Math.min(Math.round(h), maxH));
+
+  setPlayerHeight(h);
 }
 
 // 画面からはみ出さない最大高さを計算（ハンドルが見えるように上部に余白を確保）
@@ -1726,12 +1723,14 @@ function loadVideo(video, item) {
     }
   }
 
-  applyStoredPlayerHeight();
-
   } else if (platform === "tiktok") {
   if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
     ytPlayer.stopVideo();
   }
+
+    requestAnimationFrame(() => {
+  applyStoredPlayerHeight();
+});
 
  const ytEl = document.getElementById('youtubePlayer');
 if (ytEl) ytEl.classList.add('hidden');
@@ -1750,12 +1749,18 @@ if (ytEl) ytEl.classList.add('hidden');
   loadTikTokEmbed(tiktokId);
 
   fixedPlayerEl.style.display = 'block';
+
+    requestAnimationFrame(() => {
   applyStoredPlayerHeight();
+});
+    
 
   } else {
     alert(`未対応の platform: ${platform}`);
     return;
   }
+
+  
 
   // 再生中の曲名・ハイライト更新
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
