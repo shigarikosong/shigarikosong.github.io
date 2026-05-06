@@ -213,8 +213,12 @@
 
     toggleButton.setAttribute("aria-expanded", String(isOpen));
     toggleButton.textContent = isOpen ? "閉じる" : "絞り込み";
+    document.body.classList.toggle("desktop-filter-open", isOpen);
 
     if (isOpen) renderDesktopPanel();
+    requestAnimationFrame(() => {
+      if (typeof updateActiveTagChipsPosition === "function") updateActiveTagChipsPosition();
+    });
   });
 
   if (categoryTags) {
