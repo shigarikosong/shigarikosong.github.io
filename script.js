@@ -72,11 +72,7 @@ document.getElementById('modalSortOrder').value = "";
     let selectedPlatformTag = "";
     let selected3DTag = null;
     let selectedShortsTag = null;
-    let selectedDigestTag = null;
-    let selectedFullTag = null;
-    let selectedUtaTag = null;
-    let selectedLiveTag = null;
-    let selectedProjectTag = null;
+    const selectedVideoTypeTags = new Set();
 
 // ===== タグの表示・解除 =====
 function parseCommaTags(value) {
@@ -88,8 +84,15 @@ function parseCommaTags(value) {
 
     function toggleTagState(state) {
   if (state === null) return "include";
-  if (state === "include") return "exclude";
   return null;
+}
+
+function toggleVideoTypeTag(type) {
+  if (selectedVideoTypeTags.has(type)) {
+    selectedVideoTypeTags.delete(type);
+  } else {
+    selectedVideoTypeTags.add(type);
+  }
 }
 
     function updateActiveTagChipsPosition() {
@@ -107,19 +110,17 @@ function parseCommaTags(value) {
 
   const activeTags = [];
 
-  // アクティブ状態のタグを収集（include / exclude）
-  if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
-  if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
-  if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
-  if (selectedPlatformTag) activeTags.push({ label: selectedPlatformTag, type: 'include' });
-
- if (selected3DTag) activeTags.push({ label: '3D', type: selected3DTag });
+// アクティブ状態のタグを収集
+if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
+if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
+if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
+if (selectedPlatformTag) activeTags.push({ label: selectedPlatformTag, type: 'include' });
+if (selected3DTag) activeTags.push({ label: '3D', type: selected3DTag });
 if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: selectedShortsTag });
-if (selectedDigestTag) activeTags.push({ label: 'Digest', type: selectedDigestTag });
-if (selectedFullTag) activeTags.push({ label: 'Full', type: selectedFullTag });
-if (selectedUtaTag) activeTags.push({ label: '歌枠', type: selectedUtaTag });
-if (selectedLiveTag) activeTags.push({ label: 'ライブ', type: selectedLiveTag });
-if (selectedProjectTag) activeTags.push({ label: '企画', type: selectedProjectTag });
+
+selectedVideoTypeTags.forEach(type => {
+  activeTags.push({ label: type, type: 'include', source: 'videoType' });
+});
 
   if (activeTags.length === 0) {
   activeTagChips.classList.add('hidden');
@@ -136,34 +137,23 @@ activeTags.forEach(tagData => {
 
     chip.className =
   'shrink-0 border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
-    
-    chip.textContent = tagData.type === 'exclude'
-      ? `-${tagData.label}`
-      : tagData.label;
 
+    chip.textContent = tagData.label;
+    
     chip.addEventListener('click', () => {
       // 解除処理
+        if (tagData.source === 'videoType') {
+        selectedVideoTypeTags.delete(tagData.label);
+        applyFilters();
+        return;
+      }
+        
       switch (tagData.label) {
         case '3D':
   selected3DTag = null;
   break;
 case 'Shorts':
   selectedShortsTag = null;
-  break;
-case 'Digest':
-  selectedDigestTag = null;
-  break;
-case 'Full':
-  selectedFullTag = null;
-  break;
-case '歌枠':
-  selectedUtaTag = null;
-  break;
-case 'ライブ':
-  selectedLiveTag = null;
-  break;
-case '企画':
-  selectedProjectTag = null;
   break;
     
         default:
@@ -321,12 +311,8 @@ sortOrder.value = document.getElementById('modalSortOrder').value;
   selectedRoleTag = "";
 selected3DTag = null;
 selectedShortsTag = null;
-selectedDigestTag = null;
-selectedFullTag = null;
-selectedUtaTag = null;
-selectedLiveTag = null;
-selectedProjectTag = null;
-
+selectedVideoTypeTags.clear();
+    
   applyFilters();
   document.getElementById('filterModal').classList.add('hidden');
 });
@@ -687,13 +673,9 @@ if (mobileRandomPlayButton) {
   renderDateTags();
   renderPlatformTags();
     
-  selected3DTag = null;
+selected3DTag = null;
 selectedShortsTag = null;
-selectedDigestTag = null;
-selectedFullTag = null;
-selectedUtaTag = null;
-selectedLiveTag = null;
-selectedProjectTag = null;
+selectedVideoTypeTags.clear();
     
   document.getElementById('modalCategoryFilter').value = "";
   document.getElementById('modalDateFilter').value = "";
@@ -864,41 +846,18 @@ function renderDateTags() {
   (selectedDateTag === "year" && diffMonths <= 12) ||
   (selectedDateTag === "old" && diffMonths > 12)
 ) &&
-  
-  (selected3DTag === null ||
-  (selected3DTag === "include" && video["3D"] === "TRUE") ||
-  (selected3DTag === "exclude" && video["3D"] !== "TRUE")
+  (
+selected3DTag === null ||
+  (selected3DTag === "include" && video["3D"] === "TRUE")
 ) &&
 (
-  selectedShortsTag === null ||
-  (selectedShortsTag === "include" && video["Shorts"] === "TRUE") ||
-  (selectedShortsTag === "exclude" && video["Shorts"] !== "TRUE")
+selectedShortsTag === null ||   
+(selectedShortsTag === "include" && video["Shorts"] === "TRUE")
 ) &&
 (
-  selectedDigestTag === null ||
-  (selectedDigestTag === "include" && typeTags.includes("Digest")) ||
-  (selectedDigestTag === "exclude" && !typeTags.includes("Digest"))
-) &&
-(
-  selectedFullTag === null ||
-  (selectedFullTag === "include" && typeTags.includes("Full")) ||
-  (selectedFullTag === "exclude" && !typeTags.includes("Full"))
-) &&
-(
-  selectedUtaTag === null ||
-  (selectedUtaTag === "include" && typeTags.includes("歌枠")) ||
-  (selectedUtaTag === "exclude" && !typeTags.includes("歌枠"))
-) &&
-(
-  selectedLiveTag === null ||
-  (selectedLiveTag === "include" && typeTags.includes("ライブ")) ||
-  (selectedLiveTag === "exclude" && !typeTags.includes("ライブ"))
-) &&
-(
-  selectedProjectTag === null ||
-  (selectedProjectTag === "include" && typeTags.includes("企画")) ||
-  (selectedProjectTag === "exclude" && !typeTags.includes("企画"))
-)
+ selectedVideoTypeTags.size === 0 ||
+  [...selectedVideoTypeTags].every(tag => typeTags.includes(tag))
+ )
 });
 
 const coll = new Intl.Collator('ja');
@@ -1045,16 +1004,17 @@ if (
     const tag = document.createElement('button');
     tag.type = 'button';
 
-    tag.className =
-      'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+      const isTypeActive = selectedVideoTypeTags.has(type);
+
+    tag.className = isTypeActive
+      ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
 
     tag.textContent = type;
 
     tag.addEventListener('click', () => {
 
-      const modalTypeFilter = document.getElementById('modalTypeFilter');
-      if (modalTypeFilter) modalTypeFilter.value = type;
-
+      toggleVideoTypeTag(type);
       applyFilters();
     });
 
@@ -1127,15 +1087,12 @@ if (video["3D"] === "TRUE") {
   tag3D.type = 'button';
 
   const isInclude = selected3DTag === "include";
-  const isExclude = selected3DTag === "exclude";
 
   tag3D.className = isInclude
     ? 'border border-sky-600 text-white bg-sky-600 px-2.5 py-1 rounded-full text-xs'
-    : isExclude
-    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-sky-300 text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full text-xs hover:bg-sky-100';
 
-  tag3D.textContent = isExclude ? '-3D' : '3D';
+  tag3D.textContent = '3D';
 
   tag3D.addEventListener('click', () => {
     selected3DTag = toggleTagState(selected3DTag);
@@ -1151,15 +1108,12 @@ if (video["Shorts"] === "TRUE") {
   shortsTag.type = 'button';
 
   const isInclude = selectedShortsTag === "include";
-  const isExclude = selectedShortsTag === "exclude";
 
   shortsTag.className = isInclude
     ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
-    : isExclude
-    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
     : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
 
-  shortsTag.textContent = isExclude ? '-Shorts' : 'Shorts';
+  shortsTag.textContent = 'Shorts';
 
   shortsTag.addEventListener('click', () => {
     selectedShortsTag = toggleTagState(selectedShortsTag);
