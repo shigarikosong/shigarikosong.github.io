@@ -165,6 +165,13 @@ body.player-visible #desktopFilterPanel {
   display: none;
 }
 
+@media (min-width: 640px) {
+  body.desktop-filter-open #activeTagChips {
+    display: none !important;
+    top: 0 !important;
+  }
+}
+
       /* 固定プレイヤー用のCSS */
   #fixedPlayer {
     display: none; /* 最初は非表示 */
