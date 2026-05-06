@@ -225,3 +225,34 @@ section {
   margin-top: -4px;
   margin-bottom: 4px;
 }
+
+.modal-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.modal-section-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.modal-subsection-title {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.modal-collab-scroll {
+  max-height: 132px;
+  overflow-y: auto;
+  padding: 8px 4px 8px 0;
+}
