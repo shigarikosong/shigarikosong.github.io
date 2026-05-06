@@ -9,6 +9,8 @@
   const roleSelect = document.getElementById("modalRoleFilter");
   const formatTagsContainer = document.getElementById("modalFormatTags");
   const roleTagsContainer = document.getElementById("modalRoleTags");
+  const collabLiverTagsContainer = document.getElementById("modalCollabLiverTags");
+  const collabUnitTagsContainer = document.getElementById("modalCollabUnitTags");
 
   if (!modal || !applyButton) return;
 
@@ -78,6 +80,20 @@
     return [...select.options]
       .map(option => option.value)
       .filter(Boolean);
+  }
+
+  function getCsvTagValues(columnName) {
+    const values = new Set();
+
+    allVideos.forEach(video => {
+      String(video[columnName] || "")
+        .split(",")
+        .map(value => value.trim())
+        .filter(Boolean)
+        .forEach(value => values.add(value));
+    });
+
+    return [...values].sort((a, b) => a.localeCompare(b, "ja"));
   }
 
   function getFormatValues() {
@@ -158,9 +174,49 @@
     });
   }
 
+  function getCollabButtonClass(isActive) {
+    return isActive
+      ? "bg-gray-700 text-white px-3 py-1 rounded-full text-xs"
+      : "bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs";
+  }
+
+  function renderCollabTagGroup(container, values) {
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    values.forEach(value => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = value;
+
+      const isActive = selectedCollabTag === value;
+      button.className = getCollabButtonClass(isActive);
+      button.addEventListener("click", () => {
+        selectedCollabTag = selectedCollabTag === value ? "" : value;
+        renderCollabTags();
+        applyFilters();
+      });
+
+      container.appendChild(button);
+    });
+  }
+
+  function renderCollabTags() {
+    renderCollabTagGroup(
+      collabLiverTagsContainer,
+      getCsvTagValues("コラボライバー")
+    );
+    renderCollabTagGroup(
+      collabUnitTagsContainer,
+      getCsvTagValues("コラボユニット")
+    );
+  }
+
   function renderMobileTagSections() {
     renderFormatTags();
     renderRoleTags();
+    renderCollabTags();
   }
 
   function resetModalFilters() {
