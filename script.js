@@ -1,0 +1,1407 @@
+    const fixedPlayerEl = document.getElementById('fixedPlayer');
+    const playerIframe = document.getElementById('playerIframe');
+    const youtubePlayerEl = document.getElementById('youtubePlayer');
+    const tiktokPlayerEl = document.getElementById('tiktokPlayer');
+    const playerFrameWrapper = document.getElementById('playerFrameWrapper');
+    const resizeHandle = document.getElementById('playerResizeHandle');
+    const closeBtn = document.getElementById('closePlayerBtn');
+    const searchInput = document.getElementById('searchInput');
+    const sortOrder = document.getElementById('sortOrder');
+    const resetButton = document.getElementById('resetFilters');
+    const videoList = document.getElementById('videoList');
+    const activeTagChips = document.getElementById('activeTagChips');
+const activeTagChipsInner = document.getElementById('activeTagChipsInner');
+    const filterSection = document.getElementById('filterSection');
+
+    const RANDOM_AUTO_PLAY_KEY = 'randomAutoPlayEnabled';
+
+function isRandomAutoPlayEnabled() {
+  return localStorage.getItem(RANDOM_AUTO_PLAY_KEY) === '1';
+}
+
+function setRandomAutoPlayEnabled(on) {
+  localStorage.setItem(RANDOM_AUTO_PLAY_KEY, on ? '1' : '0');
+}
+
+function isTikTokVideo(video) {
+  return String(video?.["platform"] || "").toLowerCase() === "tiktok";
+}
+
+function getRandomAutoPlayableVideos() {
+  const baseList = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+  return baseList.filter(video => !isTikTokVideo(video));
+}
+
+function playRandomAutoNextVideo() {
+  const list = getRandomAutoPlayableVideos();
+  if (!list.length) return;
+
+  const randomVideo = list[Math.floor(Math.random() * list.length)];
+  loadVideo(randomVideo, null);
+}
+
+function updateRandomAutoPlayButton() {
+  const btn = document.getElementById('randomAutoPlayBtn');
+  if (!btn) return;
+
+  const on = isRandomAutoPlayEnabled();
+  btn.classList.toggle('is-on', on);
+  btn.classList.toggle('is-off', !on);
+}
+
+    sortOrder.value = "";
+document.getElementById('modalSortOrder').value = "";
+    
+
+    // ===== スプレッドシートURL =====
+    const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
+    const metaSheetUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/管理用';
+    
+    let allVideos = [];
+    let currentFilteredVideos = [];
+    let nowPlayingKey = null;
+    
+    // タグクリック用変数
+    let selectedCategoryTag = "";
+    let selectedDateTag = "";
+    let selectedCollabTag = "";
+    let selectedRoleTag = "";
+    let selectedPlatformTag = "";
+    let selected3DTag = null;
+    let selectedShortsTag = null;
+    let selectedDigestTag = null;
+    let selectedFullTag = null;
+    let selectedUtaTag = null;
+    let selectedLiveTag = null;
+    let selectedProjectTag = null;
+
+function parseCommaTags(value) {
+  return String(value || "")
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean);
+}
+
+    function toggleTagState(state) {
+  if (state === null) return "include";
+  if (state === "include") return "exclude";
+  return null;
+}
+
+    function updateActiveTagChipsPosition() {
+  if (!filterSection || !activeTagChips) return;
+
+  const filterHeight = filterSection.offsetHeight || 0;
+  activeTagChips.style.top = `${filterHeight}px`;
+}
+
+    //アクティブタグ描画関数
+    function renderActiveTagChips() {
+  if (!activeTagChips || !activeTagChipsInner) return;
+
+  activeTagChipsInner.innerHTML = '';
+
+  const activeTags = [];
+
+  // アクティブ状態のタグを収集（include / exclude）
+  if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
+  if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
+  if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
+  if (selectedPlatformTag) activeTags.push({ label: selectedPlatformTag, type: 'include' });
+
+ if (selected3DTag) activeTags.push({ label: '3D', type: selected3DTag });
+if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: selectedShortsTag });
+if (selectedDigestTag) activeTags.push({ label: 'Digest', type: selectedDigestTag });
+if (selectedFullTag) activeTags.push({ label: 'Full', type: selectedFullTag });
+if (selectedUtaTag) activeTags.push({ label: '歌枠', type: selectedUtaTag });
+if (selectedLiveTag) activeTags.push({ label: 'ライブ', type: selectedLiveTag });
+if (selectedProjectTag) activeTags.push({ label: '企画', type: selectedProjectTag });
+
+  // 何もなければ領域ごと隠す
+  if (activeTags.length === 0) {
+  activeTagChips.classList.add('hidden');
+  updateActiveTagChipsPosition();
+  return;
+}
+
+activeTagChips.classList.remove('hidden');
+updateActiveTagChipsPosition();
+
+activeTags.forEach(tagData => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+
+    chip.className =
+  'shrink-0 border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+    
+    chip.textContent = tagData.type === 'exclude'
+      ? `-${tagData.label}`
+      : tagData.label;
+
+    chip.addEventListener('click', () => {
+      // 解除処理
+      switch (tagData.label) {
+        case '3D':
+  selected3DTag = null;
+  break;
+case 'Shorts':
+  selectedShortsTag = null;
+  break;
+case 'Digest':
+  selectedDigestTag = null;
+  break;
+case 'Full':
+  selectedFullTag = null;
+  break;
+case '歌枠':
+  selectedUtaTag = null;
+  break;
+case 'ライブ':
+  selectedLiveTag = null;
+  break;
+case '企画':
+  selectedProjectTag = null;
+  break;
+    
+        default:
+          if (selectedCategoryTag === tagData.label) selectedCategoryTag = "";
+          if (selectedCollabTag === tagData.label) selectedCollabTag = "";
+          if (selectedRoleTag === tagData.label) selectedRoleTag = "";
+          if (selectedPlatformTag === tagData.label) selectedPlatformTag = "";
+          break;
+      }
+
+      applyFilters();
+    });
+
+    activeTagChipsInner.appendChild(chip);
+  });
+}
+    
+
+function escapeHtml(str) {
+  return String(str || "").replace(/[&<>"']/g, s => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[s]));
+}
+
+function getRoleTagClass(role, isActive = false) {
+  const base = 'px-2.5 py-1 rounded-full text-xs border transition';
+  const map = {
+    VOCAL: isActive
+      ? 'bg-gray-700 text-white border-gray-700'
+      : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
+    DANCE: isActive
+      ? 'bg-rose-500 text-white border-rose-500'
+      : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100',
+    PIANO: isActive
+      ? 'bg-orange-400 text-white border-orange-400'
+      : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
+    EUPHONIUM: isActive
+      ? 'bg-amber-400 text-white border-amber-400'
+      : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
+    MOVIE: isActive
+      ? 'bg-lime-500 text-white border-lime-500'
+      : 'bg-lime-50 text-lime-700 border-lime-200 hover:bg-lime-100',
+    CHORUS: isActive
+      ? 'bg-sky-500 text-white border-sky-500'
+      : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100',
+    ILLUSTRATION: isActive
+      ? 'bg-cyan-500 text-white border-cyan-500'
+      : 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100',
+  };
+
+  return `${base} ${map[role] || (isActive
+    ? 'bg-blue-600 text-white border-blue-600'
+    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100')}`;
+}
+
+
+    let ytPlayer = null;
+let ytApiReady = false;
+
+// YouTube IFrame API の準備完了コールバック
+window.onYouTubeIframeAPIReady = () => {
+  ytApiReady = true;
+  tryInitYtPlayer();
+};
+
+// 既存の iframe(id="playerIframe") を YT.Player 化
+function tryInitYtPlayer() {
+  if (!ytApiReady) return;
+  if (ytPlayer) return;
+  if (!youtubePlayerEl) return;
+
+  ytPlayer = new YT.Player('youtubePlayer', {
+    playerVars: {
+      playsinline: 1,
+      rel: 0,
+      modestbranding: 1,
+      origin: location.origin
+    },
+    events: {
+      onStateChange: (e) => {
+        console.log('YouTube state:', e.data, 'randomAutoPlay:', isRandomAutoPlayEnabled());
+
+        if (e.data === YT.PlayerState.ENDED && isRandomAutoPlayEnabled()) {
+          console.log('ランダム連続再生します');
+          playRandomAutoNextVideo();
+        }
+      }
+    }
+  });
+}
+
+    
+fetch(sheetJsonUrl)
+  .then(response => response.json())
+  .then(data => {
+    allVideos = data;
+    populateFilters(data);
+    applyFilters();
+    requestAnimationFrame(() => {
+      adjustFixedPlayerBottom();
+      updateActiveTagChipsPosition();
+    });
+  });
+
+fetch(metaSheetUrl)
+  .then(res => res.json())
+  .then(data => {
+    const lastUpdate = data.find(row => row["項目"] === "最終更新日");
+    if (lastUpdate) {
+      document.getElementById("lastUpdated").textContent =
+        `最終更新日：${lastUpdate["値"]}`;
+    }
+  });
+
+    const randomAutoPlayBtn = document.getElementById('randomAutoPlayBtn');
+
+if (randomAutoPlayBtn) {
+  updateRandomAutoPlayButton();
+
+  randomAutoPlayBtn.addEventListener('click', () => {
+    setRandomAutoPlayEnabled(!isRandomAutoPlayEnabled());
+    updateRandomAutoPlayButton();
+    applyFilters();
+  });
+}
+
+    // モバイル用フィルターモーダル制御
+document.getElementById('openFilterModal').addEventListener('click', () => {
+  document.getElementById('filterModal').classList.remove('hidden');
+});
+
+document.getElementById('closeFilterModal').addEventListener('click', () => {
+  document.getElementById('filterModal').classList.add('hidden');
+});
+
+document.getElementById('applyFilters').addEventListener('click', () => {
+  // モーダルから値を取得して本体に反映
+searchInput.value = document.getElementById('modalSearchInput').value;
+sortOrder.value = document.getElementById('modalSortOrder').value;
+
+  //モーダル適用時のリセット
+  selectedCategoryTag = "";
+
+  renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
+  
+  selectedCollabTag = "";
+  selectedRoleTag = "";
+selected3DTag = null;
+selectedShortsTag = null;
+selectedDigestTag = null;
+selectedFullTag = null;
+selectedUtaTag = null;
+selectedLiveTag = null;
+selectedProjectTag = null;
+
+  applyFilters();
+  document.getElementById('filterModal').classList.add('hidden');
+});
+
+
+  const randomPlayButton = document.getElementById('randomPlayButton');
+    randomPlayButton.addEventListener('click', () => {
+  const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+  const randomVideo = list[Math.floor(Math.random() * list.length)];
+    loadVideo(randomVideo, null);
+});
+
+
+    // === 固定プレイヤーと NowPlaying の重なり対策 ===
+function adjustFixedPlayerBottom() {
+  const nowPlayingWrapperEl = document.getElementById('nowPlayingWrapper');
+  if (!fixedPlayerEl || !nowPlayingWrapperEl || !playerIframe) return; 
+
+  const h = nowPlayingWrapperEl.offsetHeight || 0;
+  fixedPlayerEl.style.bottom = `${h + 8}px`;
+  const total = (fixedPlayerEl.offsetHeight || 0) + h + 12;
+  document.body.style.paddingBottom = `${total}px`;
+
+  const maxH = getMaxPlayerHeight();
+  const current = parseInt(playerIframe.style.height || 0, 10) ||
+                  playerIframe.getBoundingClientRect().height;
+  if (current > maxH) setPlayerHeight(maxH);
+}
+
+window.addEventListener('resize', () => {
+  requestAnimationFrame(adjustFixedPlayerBottom);
+});
+window.addEventListener('orientationchange', () => {
+  setTimeout(adjustFixedPlayerBottom, 50);
+});
+window.visualViewport?.addEventListener('resize', adjustFixedPlayerBottom);
+
+    window.addEventListener('resize', () => {
+  requestAnimationFrame(updateActiveTagChipsPosition);
+});
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(updateActiveTagChipsPosition, 50);
+});
+
+window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
+
+
+// === リサイズ（高さ可変）関連 ===
+
+const PLAYER_HEIGHT_KEY = 'playerHeightPx';
+const MIN_PLAYER_H = 240;
+
+function applyStoredPlayerHeight() {
+  const stored = parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
+  const maxH = getMaxPlayerHeight();
+
+  let h;
+
+  if (!isNaN(stored)) {
+    h = stored;
+  } else {
+    h =
+      playerFrameWrapper?.getBoundingClientRect().height ||
+      youtubePlayerEl?.getBoundingClientRect().height ||
+      playerIframe?.getBoundingClientRect().height ||
+      360;
+  }
+
+  h = Math.max(MIN_PLAYER_H, Math.min(Math.round(h), maxH));
+
+  setPlayerHeight(h);
+}
+
+// 画面からはみ出さない最大高さを計算（ハンドルが見えるように上部に余白を確保）
+function getMaxPlayerHeight() {
+  const vh = window.innerHeight;
+
+  // fixedPlayer の bottom は NowPlaying 高さ + 8px
+  const nowH = document.getElementById('nowPlayingWrapper')?.offsetHeight || 0;
+  const bottomOffset = nowH + 8;
+
+  // 内側の p-4（上下16pxずつ）＝合計32px（Tailwind）
+  const fixedPlayerVerticalPadding = 16 * 2;
+
+  // ハンドル分の出っ張り + 余白（見やすさのために少し多め）
+  const handleAndTopSafety = 24 + 16; // だいたい 40px
+
+  // 画面高さから下マージン・パディング・上の安全余白を引いた値が上限
+  const maxH = vh - (bottomOffset + fixedPlayerVerticalPadding + handleAndTopSafety);
+
+  // 最低でも MIN_PLAYER_H 以上、かつ負にならないように
+  return Math.max(MIN_PLAYER_H, Math.floor(maxH));
+}
+
+    function getActivePlayerElement() {
+  const ytEl = getYouTubePlayerElement();
+
+  if (ytEl && !ytEl.classList.contains('hidden')) {
+    return ytEl;
+  }
+
+  if (tiktokPlayerEl && !tiktokPlayerEl.classList.contains('hidden')) {
+    return tiktokPlayerEl;
+  }
+
+  return playerIframe;
+}
+
+function getYouTubeIframeElement() {
+  return document.querySelector('#youtubePlayer iframe') || document.getElementById('youtubePlayer');
+}
+
+    function getYouTubePlayerElement() {
+  return document.getElementById('youtubePlayer');
+}
+
+function hideYouTubePlayer() {
+  const el = getYouTubePlayerElement();
+  if (el) el.classList.add('hidden');
+}
+
+function showYouTubePlayer() {
+  const el = getYouTubePlayerElement();
+  if (el) el.classList.remove('hidden');
+}
+
+    function getTikTokId(videoId) {
+  const match = String(videoId).match(/video\/(\d+)/);
+  return match ? match[1] : String(videoId).trim();
+}
+
+function loadTikTokEmbed(tiktokId) {
+  if (!tiktokPlayerEl) return;
+
+  const tiktokUrl = `https://www.tiktok.com/@riko14218/video/${tiktokId}`;
+
+  tiktokPlayerEl.innerHTML = `
+    <blockquote
+      class="tiktok-embed"
+      cite="${tiktokUrl}"
+      data-video-id="${tiktokId}"
+      data-embed-from="embed_page"
+      style="max-width:605px; min-width:325px;">
+      <section>
+        <a target="_blank" rel="noopener" href="${tiktokUrl}">TikTokで見る</a>
+      </section>
+    </blockquote>
+  `;
+
+  reloadTikTokEmbedScript();
+}
+
+function reloadTikTokEmbedScript() {
+  document.querySelectorAll('script[src="https://www.tiktok.com/embed.js"]').forEach(script => {
+    script.remove();
+  });
+
+  const script = document.createElement('script');
+  script.src = 'https://www.tiktok.com/embed.js';
+  script.async = true;
+  document.body.appendChild(script);
+}
+    
+function setPlayerHeight(px) {
+  const maxH = getMaxPlayerHeight();
+  const h = Math.max(MIN_PLAYER_H, Math.min(Math.round(px), maxH));
+
+  if (playerIframe) {
+    playerIframe.classList.remove('aspect-video');
+    playerIframe.style.height = h + 'px';
+  }
+
+ const ytEl = getYouTubeIframeElement();
+if (ytEl) {
+  ytEl.classList.remove('aspect-video');
+  ytEl.style.height = h + 'px';
+  ytEl.style.width = '100%';
+}
+
+  if (youtubePlayerEl) {
+    youtubePlayerEl.classList.remove('aspect-video');
+    youtubePlayerEl.style.height = h + 'px';
+  }
+
+  if (tiktokPlayerEl) {
+  tiktokPlayerEl.style.height = h + 'px';
+  tiktokPlayerEl.style.overflow = 'auto';
+}
+
+  if (playerFrameWrapper) {
+    playerFrameWrapper.style.height = h + 'px';
+  }
+
+  localStorage.setItem(PLAYER_HEIGHT_KEY, String(h));
+  adjustFixedPlayerBottom();
+}
+
+
+(function enablePlayerResize() {
+  if (!resizeHandle) return;
+
+  let dragging = false, startY = 0, startH = 0;
+  let prevUserSelect = '', prevCursor = '', prevOverflow = '';
+  const preventScroll = (e) => e.preventDefault();
+
+  const lockScroll = () => {
+    // スクロール抑止（iOS含む）
+    prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // タッチスクロールを完全停止
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+  };
+
+    const disableIframePointer = () => {
+  const active = getActivePlayerElement();
+  if (active) active.style.pointerEvents = 'none';
+};
+
+const enableIframePointer = () => {
+  const active = getActivePlayerElement();
+  if (active) active.style.pointerEvents = '';
+};
+
+  const unlockScroll = () => {
+    document.body.style.overflow = prevOverflow;
+    document.removeEventListener('touchmove', preventScroll, { passive: false });
+  };
+
+  const start = (y) => {
+    dragging = true;
+    startY = y;
+    
+    const activePlayer = getActivePlayerElement();
+startH = parseInt(activePlayer.style.height || 0, 10) ||
+         activePlayer.getBoundingClientRect().height;
+    
+    prevUserSelect = document.body.style.userSelect;
+    prevCursor = document.body.style.cursor;
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'ns-resize';
+    disableIframePointer(); 
+    lockScroll();
+  };
+
+  const move = (y) => {
+    if (!dragging) return;
+    const dy = y - startY;
+    setPlayerHeight(startH - dy); // 上に動かすと高さが増える
+  };
+
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = prevUserSelect;
+    document.body.style.cursor = prevCursor;
+    enableIframePointer(); 
+    unlockScroll();
+  };
+
+     window.addEventListener('blur', end);
+    document.addEventListener('mouseleave', end);
+
+  document.addEventListener('mouseup', end);
+document.addEventListener('touchend', end);
+document.addEventListener('touchcancel', end);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) end();
+});
+
+  // マウス
+ resizeHandle.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  start(e.clientY);
+});
+  window.addEventListener('mousemove', (e) => move(e.clientY));
+  window.addEventListener('mouseup', end);
+
+  // タッチ（passive: false で preventDefault を有効に）
+  resizeHandle.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  start(e.touches[0].clientY);
+}, { passive: false });
+  
+  window.addEventListener('touchmove', (e) => {
+    move(e.touches[0].clientY);
+  }, { passive: false });
+
+  window.addEventListener('touchend', end);
+  window.addEventListener('touchcancel', end);
+
+})();
+
+      function populateFilters(videos) {
+
+  const roleOrder = [
+    "VOCAL",
+    "DANCE",
+    "PIANO",
+    "EUPHONIUM",
+    "MOVIE",
+    "CHORUS",
+    "ILLUSTRATION"
+  ];
+        const sets = {
+          category: new Set(),
+          date: new Set(),
+          type: new Set(),
+          role: new Set()
+        };
+
+        videos.forEach(v => {
+          sets.category.add(v["カテゴリ"]);
+          parseCommaTags(v["動画種別"]).forEach(type => sets.type.add(type));
+          parseCommaTags(v["担当区分"]).forEach(role => sets.role.add(role));
+
+            // 公開月（例: 2023/07）だけ抽出して追加
+const rawDate = v["公開月"];
+if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
+  const month = rawDate.slice(0, 7).replace('-', '/'); // "YYYY/MM"
+  sets.date.add(month);
+}
+        });
+
+        renderPlatformTags();
+        renderCategoryTags([...sets.category].sort());
+        renderDateTags();
+
+// モーダル用にも同じく追加
+addOptions(document.getElementById('modalCategoryFilter'), [...sets.category].sort());
+addOptions(document.getElementById('modalDateFilter'), [...sets.date].sort());
+addOptions(document.getElementById('modalTypeFilter'), [...sets.type].sort());
+addOptions(
+  document.getElementById('modalRoleFilter'),
+  [...sets.role].sort((a, b) => roleOrder.indexOf(a) - roleOrder.indexOf(b))
+);
+
+        // モバイル用ランダム再生ボタン
+const mobileRandomPlayButton = document.getElementById('mobileRandomPlayButton');
+if (mobileRandomPlayButton) {
+  mobileRandomPlayButton.addEventListener('click', () => {
+    const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+    const randomVideo = list[Math.floor(Math.random() * list.length)];
+    loadVideo(randomVideo, null);
+  });
+}
+
+       [searchInput, sortOrder].forEach(el => {
+  el.addEventListener('change', applyFilters);
+  el.addEventListener('input', applyFilters);
+});
+
+
+     // リセットボタン
+  resetButton.addEventListener('click', () => {
+  searchInput.value = "";
+  sortOrder.value = "";
+  selectedCategoryTag = "";
+    renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
+  selectedCollabTag = "";
+  selectedRoleTag = "";
+  selectedPlatformTag = "";
+  selectedDateTag = "";
+  renderDateTags();
+  renderPlatformTags();
+    
+  selected3DTag = null;
+selectedShortsTag = null;
+selectedDigestTag = null;
+selectedFullTag = null;
+selectedUtaTag = null;
+selectedLiveTag = null;
+selectedProjectTag = null;
+    
+  document.getElementById('modalCategoryFilter').value = "";
+  document.getElementById('modalDateFilter').value = "";
+  document.getElementById('modalTypeFilter').value = "";
+  document.getElementById('modalRoleFilter').value = "";
+  document.getElementById('modalSearchInput').value = "";
+  document.getElementById('modalSortOrder').value = "";
+  applyFilters();
+});
+      }
+
+function renderPlatformTags() {
+  const containers = [
+    document.getElementById('modalPlatformTags'),
+    document.getElementById('desktopPlatformTags')
+  ].filter(Boolean);
+
+  containers.forEach(container => {
+    container.innerHTML = '';
+
+    ['youtube', 'tiktok'].forEach(p => {
+      const btn = document.createElement('button');
+      const isActive = selectedPlatformTag === p;
+
+      btn.className = isActive
+        ? 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs'
+        : 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs';
+
+      btn.textContent = p;
+
+      btn.onclick = () => {
+        selectedPlatformTag = selectedPlatformTag === p ? "" : p;
+        renderPlatformTags();
+        applyFilters();
+      };
+
+      container.appendChild(btn);
+    });
+  });
+}
+
+    function renderCategoryTags(categories = []) {
+  const containers = [
+    document.getElementById('modalCategoryTags'),
+    document.getElementById('desktopCategoryTags')
+  ].filter(Boolean);
+
+  containers.forEach(container => {
+    container.innerHTML = '';
+
+    categories.forEach(category => {
+      const btn = document.createElement('button');
+      const isActive = selectedCategoryTag === category;
+
+      btn.className = isActive
+        ? 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs'
+        : 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs';
+
+      btn.textContent = category;
+
+      btn.onclick = () => {
+        selectedCategoryTag = selectedCategoryTag === category ? "" : category;
+
+        const modalCategoryFilter = document.getElementById('modalCategoryFilter');
+        if (modalCategoryFilter) modalCategoryFilter.value = "";
+
+        renderCategoryTags(categories);
+        applyFilters();
+      };
+
+      container.appendChild(btn);
+    });
+  });
+}
+
+function renderDateTags() {
+  const containers = [
+    document.getElementById('modalDateTags'),
+    document.getElementById('desktopDateTags')
+  ].filter(Boolean);
+
+  const options = [
+    { label: "最近", value: "recent" },
+    { label: "1年以内", value: "year" },
+    { label: "1年以上前", value: "old" }
+  ];
+
+  containers.forEach(container => {
+    container.innerHTML = '';
+
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      const isActive = selectedDateTag === opt.value;
+
+      btn.className = isActive
+        ? 'bg-green-600 text-white px-3 py-1 rounded-full text-xs'
+        : 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs';
+
+      btn.textContent = opt.label;
+
+      btn.onclick = () => {
+        selectedDateTag = selectedDateTag === opt.value ? "" : opt.value;
+
+        const modalDate = document.getElementById('modalDateFilter');
+        if (modalDate) modalDate.value = "";
+
+        renderDateTags();
+        applyFilters();
+      };
+
+      container.appendChild(btn);
+    });
+  });
+}
+
+      function addOptions(select, values) {
+        values.forEach(v => {
+          if (!v) return;
+          const option = document.createElement('option');
+          option.value = v;
+          option.textContent = v;
+          select.appendChild(option);
+        });
+      }
+
+      function applyFilters() {
+        let filtered = allVideos.filter(video => {
+  const collabLivers = (video["コラボライバー"] || "")
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean);
+
+  const collabUnits = (video["コラボユニット"] || "")
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean);
+
+          
+
+          // タグ・検索用の前処理（動画1件ごとに配列化して扱いやすくする）
+  const collabTags = [...collabLivers, ...collabUnits];
+  const roles = parseCommaTags(video["担当区分"]);
+  const typeTags = parseCommaTags(video["動画種別"]); 
+  const searchTerm = searchInput.value.toLowerCase();
+
+  const now = new Date();
+  const videoTime = parseYmdToTime(video["公開日"] || video["公開月"]);
+  const diffMonths = (now - videoTime) / (1000 * 60 * 60 * 24 * 30);
+
+  return (!searchTerm ||
+  String(video["title"] || "").toLowerCase().includes(searchTerm) ||
+  String(video["artist"] || "").toLowerCase().includes(searchTerm) ||
+  roles.some(role => role.toLowerCase().includes(searchTerm)) ||
+  collabLivers.some(name => name.toLowerCase().includes(searchTerm)) ||
+  collabUnits.some(unit => unit.toLowerCase().includes(searchTerm))
+) &&
+    
+// フィルタ条件
+    (!selectedCategoryTag || video["カテゴリ"] === selectedCategoryTag) &&
+    (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
+    (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
+    (!selectedPlatformTag || String(video["platform"] || "").toLowerCase() === selectedPlatformTag) &&
+(!selectedDateTag ||
+  (selectedDateTag === "recent" && diffMonths <= 3) ||
+  (selectedDateTag === "year" && diffMonths <= 12) ||
+  (selectedDateTag === "old" && diffMonths > 12)
+) &&
+  
+  (selected3DTag === null ||
+  (selected3DTag === "include" && video["3D"] === "TRUE") ||
+  (selected3DTag === "exclude" && video["3D"] !== "TRUE")
+) &&
+(
+  selectedShortsTag === null ||
+  (selectedShortsTag === "include" && video["Shorts"] === "TRUE") ||
+  (selectedShortsTag === "exclude" && video["Shorts"] !== "TRUE")
+) &&
+(
+  selectedDigestTag === null ||
+  (selectedDigestTag === "include" && typeTags.includes("Digest")) ||
+  (selectedDigestTag === "exclude" && !typeTags.includes("Digest"))
+) &&
+(
+  selectedFullTag === null ||
+  (selectedFullTag === "include" && typeTags.includes("Full")) ||
+  (selectedFullTag === "exclude" && !typeTags.includes("Full"))
+) &&
+(
+  selectedUtaTag === null ||
+  (selectedUtaTag === "include" && typeTags.includes("歌枠")) ||
+  (selectedUtaTag === "exclude" && !typeTags.includes("歌枠"))
+) &&
+(
+  selectedLiveTag === null ||
+  (selectedLiveTag === "include" && typeTags.includes("ライブ")) ||
+  (selectedLiveTag === "exclude" && !typeTags.includes("ライブ"))
+) &&
+(
+  selectedProjectTag === null ||
+  (selectedProjectTag === "include" && typeTags.includes("企画")) ||
+  (selectedProjectTag === "exclude" && !typeTags.includes("企画"))
+)
+});
+
+const coll = new Intl.Collator('ja');
+
+function parseYmdToTime(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return 0;
+
+  // YYYY[/-.\u5e74]MM[/-.\u6708]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
+  let m = s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);
+  if (m) {
+    const y = +m[1], mo = +m[2], d = +m[3];
+    if (y && mo && d) return new Date(y, mo - 1, d).getTime();
+  }
+
+  // 年月だけ（公開月対策） 例: 2024/06, 2024-6, 2024年6月
+  m = s.match(/(\d{4})[\/\-.年](\d{1,2})/);
+  if (m) {
+    const y = +m[1], mo = +m[2];
+    if (y && mo) return new Date(y, mo - 1, 1).getTime(); // 日が無ければ1日で補完
+  }
+
+  // 最後の保険：Date.parse に賭ける（失敗なら 0）
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? t : 0;
+}
+
+function videoTime(v) {
+  // 公開日があれば最優先、無ければ公開月
+  return parseYmdToTime(v["公開日"] || v["公開月"]);
+}
+
+const order = sortOrder.value;
+
+if (order) {
+  filtered.sort((a, b) => {
+    if (order === "asc" || order === "desc") {
+      const ta = videoTime(a);
+      const tb = videoTime(b);
+      return order === "asc" ? ta - tb : tb - ta;
+    } else if (order === "title") {
+      return coll.compare(String(a["title"] || ""), String(b["title"] || ""));
+    } else if (order === "artist") {
+      return coll.compare(String(a["artist"] || ""), String(b["artist"] || ""));
+    } else {
+      return 0;
+    }
+  });
+}
+
+        currentFilteredVideos = filtered;
+renderVideoList(filtered);
+renderActiveTagChips();
+      }
+
+    // フィルタ後の動画リストを描画（タグ・タイトル・メタ情報を生成）
+function renderVideoList(videos) {
+  videoList.innerHTML = '';
+
+    // 件数表示を更新
+  const countElement = document.getElementById('songCount');
+  countElement.textContent = `${allVideos.length}曲中 ${videos.length}曲表示中`;
+
+  const oldNotice = document.getElementById('autoPlayNotice');
+if (oldNotice) oldNotice.remove();
+
+const playableCount = videos.filter(video => !isTikTokVideo(video)).length;
+
+if (isRandomAutoPlayEnabled() && videos.length > 0 && playableCount === 0) {
+  const notice = document.createElement('div');
+  notice.id = 'autoPlayNotice';
+  notice.className = 'auto-play-notice';
+  notice.textContent = 'この条件では連続再生できる動画がありません（TikTokは対象外です）';
+  countElement.insertAdjacentElement('afterend', notice);
+}
+
+  let playingElement = null;
+
+  videos.forEach(video => {
+    const item = document.createElement('div');
+    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
+
+    const key = `${video["videoId"]}__${parseInt(video["start"] || 0)}`;
+    if (key === nowPlayingKey) {
+      item.classList.add('playing');
+      playingElement = item;
+    }
+
+    
+    // 1行目：タイトル / アーティスト
+    const topRow = document.createElement('div');
+    topRow.className = 'video-item-row';
+
+    const title = document.createElement('a');
+    title.href = "#";
+    title.className = 'video-title hover:underline';
+    title.textContent = video["title"];
+    title.onclick = e => {
+      e.preventDefault();
+      loadVideo(video, item);
+    };
+
+    const slash = document.createElement('span');
+    slash.textContent = ' / ';
+
+    const artist = document.createElement('span');
+    artist.className = 'video-artist';
+    artist.textContent = video["artist"];
+
+    topRow.appendChild(title);
+    topRow.appendChild(slash);
+    topRow.appendChild(artist);
+
+    // 2行目：詳細情報
+    const metaRow = document.createElement('div');
+    metaRow.className = 'video-meta';
+   [
+  video["公開月"],
+].filter(Boolean).forEach(text => {
+  const span = document.createElement('span');
+  span.textContent = text;
+  metaRow.appendChild(span);
+});
+
+const roles = parseCommaTags(video["担当区分"]);
+const typeTags = parseCommaTags(video["動画種別"]);
+    const category = video["カテゴリ"];
+const platform = video["platform"];
+let roleTagRow = null;
+
+if (
+  category ||
+  platform ||
+  roles.length ||
+  typeTags.length ||
+  video["3D"] === "TRUE" ||
+  video["Shorts"] === "TRUE"
+) {
+  roleTagRow = document.createElement('div');
+  roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+
+  // 🔽 ここに移動！！
+  typeTags.forEach(type => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
+
+    tag.className =
+      'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+
+    tag.textContent = type;
+
+    tag.addEventListener('click', () => {
+
+      const modalTypeFilter = document.getElementById('modalTypeFilter');
+      if (modalTypeFilter) modalTypeFilter.value = type;
+
+      applyFilters();
+    });
+
+    roleTagRow.appendChild(tag);
+  });
+
+  // カテゴリタグ
+if (category) {
+  const categoryTag = document.createElement('button');
+  categoryTag.type = 'button';
+
+  const isCategoryActive = selectedCategoryTag === category;
+
+  const categoryClassMap = {
+    "ソロ": isCategoryActive
+      ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100',
+    "コラボ": isCategoryActive
+      ? 'border border-teal-600 text-white bg-teal-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-teal-300 text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full text-xs hover:bg-teal-100',
+    "あやかき": isCategoryActive
+      ? 'border border-green-600 text-white bg-green-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-green-300 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs hover:bg-green-100'
+  };
+
+  categoryTag.className = categoryClassMap[category] ||
+    (isCategoryActive
+      ? 'border border-gray-600 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100');
+
+  categoryTag.textContent = category;
+
+  categoryTag.addEventListener('click', () => {
+    selectedCategoryTag = selectedCategoryTag === category ? "" : category;
+    
+    const modalCategoryFilter = document.getElementById('modalCategoryFilter');
+    if (modalCategoryFilter) modalCategoryFilter.value = "";
+
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(categoryTag);
+}
+
+  // platformタグ
+  if (platform) {
+    const platformTag = document.createElement('button');
+    platformTag.type = 'button';
+
+    const isPlatformActive = selectedPlatformTag === platform;
+
+    platformTag.className = isPlatformActive
+      ? 'border border-purple-600 text-white bg-purple-600 px-2.5 py-1 rounded-full text-xs'
+      : 'border border-purple-300 text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full text-xs hover:bg-purple-100';
+
+    platformTag.textContent = platform;
+
+    platformTag.addEventListener('click', () => {
+     const normalizedPlatform = String(platform || "").toLowerCase();
+selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normalizedPlatform;
+      applyFilters();
+    });
+
+    roleTagRow.appendChild(platformTag);
+  }
+
+  // 3Dタグ
+if (video["3D"] === "TRUE") {
+  const tag3D = document.createElement('button');
+  tag3D.type = 'button';
+
+  const isInclude = selected3DTag === "include";
+  const isExclude = selected3DTag === "exclude";
+
+  tag3D.className = isInclude
+    ? 'border border-sky-600 text-white bg-sky-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-sky-300 text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full text-xs hover:bg-sky-100';
+
+  tag3D.textContent = isExclude ? '-3D' : '3D';
+
+  tag3D.addEventListener('click', () => {
+    selected3DTag = toggleTagState(selected3DTag);
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(tag3D);
+}
+
+  // Shortsタグ
+if (video["Shorts"] === "TRUE") {
+  const shortsTag = document.createElement('button');
+  shortsTag.type = 'button';
+
+  const isInclude = selectedShortsTag === "include";
+  const isExclude = selectedShortsTag === "exclude";
+
+  shortsTag.className = isInclude
+    ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
+    : isExclude
+    ? 'border border-gray-400 text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full text-xs'
+    : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+
+  shortsTag.textContent = isExclude ? '-Shorts' : 'Shorts';
+
+  shortsTag.addEventListener('click', () => {
+    selectedShortsTag = toggleTagState(selectedShortsTag);
+    applyFilters();
+  });
+
+  roleTagRow.appendChild(shortsTag);
+}
+
+
+  // 担当区分タグ
+  roles.forEach(role => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
+
+    const isActive = selectedRoleTag === role;
+    tag.className = getRoleTagClass(role, isActive);
+    tag.textContent = role;
+
+    tag.addEventListener('click', () => {
+      selectedRoleTag = (selectedRoleTag === role) ? "" : role;
+
+      const modalRoleFilter = document.getElementById('modalRoleFilter');
+      if (modalRoleFilter) modalRoleFilter.value = "";
+
+      applyFilters();
+    });
+
+    roleTagRow.appendChild(tag);
+  });
+    }
+
+// 3行目：コラボタグ
+const collabLivers = (video["コラボライバー"] || "")
+  .split(",")
+  .map(v => v.trim())
+  .filter(Boolean);
+
+const collabUnits = (video["コラボユニット"] || "")
+  .split(",")
+  .map(v => v.trim())
+  .filter(Boolean);
+
+let tagRow = null;
+
+if (collabLivers.length || collabUnits.length) {
+  tagRow = document.createElement('div');
+  tagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+
+  collabLivers.forEach(name => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
+
+    const isActive = selectedCollabTag === name;
+    tag.className = isActive
+      ? 'border border-gray-500 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs transition'
+      : 'border border-gray-300 text-gray-700 bg-white px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+
+    tag.textContent = name;
+
+    tag.addEventListener('click', () => {
+      selectedCollabTag = (selectedCollabTag === name) ? "" : name;
+      applyFilters();
+    });
+
+    tagRow.appendChild(tag);
+  });
+
+  collabUnits.forEach(unit => {
+    const tag = document.createElement('button');
+    tag.type = 'button';
+
+    const isActive = selectedCollabTag === unit;
+    tag.className = isActive
+      ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs transition'
+      : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100 transition';
+
+    tag.textContent = unit;
+
+    tag.addEventListener('click', () => {
+      selectedCollabTag = (selectedCollabTag === unit) ? "" : unit;
+      applyFilters();
+    });
+
+    tagRow.appendChild(tag);
+  });
+}
+
+item.appendChild(topRow);
+item.appendChild(metaRow);
+if (roleTagRow) item.appendChild(roleTagRow);
+if (tagRow) item.appendChild(tagRow);
+
+videoList.appendChild(item);
+      });
+  
+  // スクロール実行
+  if (playingElement) {
+    playingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+    
+function loadVideo(video, item) {
+  const start = parseInt(video["start"] || '0', 10);
+  let videoId = video["videoId"];
+  let platform = (video["platform"] || "").toLowerCase();
+
+  if (!videoId) {
+    alert("videoId が指定されていません");
+    return;
+  }
+  if (!platform) {
+    alert("platform が未指定のため再生できません");
+    return;
+  }
+
+  if (platform.includes("youtube")) {
+  const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
+  if (match) videoId = match[1];
+
+  if (playerIframe) {
+    playerIframe.classList.add('hidden');
+    playerIframe.src = "";
+  }
+
+  // YouTube表示
+  const ytEl = document.getElementById('youtubePlayer');
+  if (ytEl) ytEl.classList.remove('hidden');
+
+  // TikTok非表示
+  if (tiktokPlayerEl) {
+    tiktokPlayerEl.classList.add('hidden');
+    tiktokPlayerEl.innerHTML = "";
+  }
+
+
+  fixedPlayerEl.style.display = 'block';
+
+  if (ytApiReady) {
+    tryInitYtPlayer();
+
+    if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+      ytPlayer.loadVideoById({ videoId, startSeconds: start });
+    }
+  }
+
+  } else if (platform === "tiktok") {
+  if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+    ytPlayer.stopVideo();
+  }
+
+    requestAnimationFrame(() => {
+  applyStoredPlayerHeight();
+});
+
+ const ytEl = document.getElementById('youtubePlayer');
+if (ytEl) ytEl.classList.add('hidden');
+
+  if (playerIframe) {
+    playerIframe.classList.add('hidden');
+    playerIframe.src = "";
+  }
+
+  if (tiktokPlayerEl) {
+    tiktokPlayerEl.classList.remove('hidden');
+    tiktokPlayerEl.innerHTML = "";
+  }
+
+  const tiktokId = getTikTokId(videoId);
+  loadTikTokEmbed(tiktokId);
+
+  fixedPlayerEl.style.display = 'block';
+
+    requestAnimationFrame(() => {
+  applyStoredPlayerHeight();
+});
+    
+
+  } else {
+    alert(`未対応の platform: ${platform}`);
+    return;
+  }
+
+  
+
+  // 再生中の曲名・ハイライト更新
+  const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+  nowPlayingTitle.textContent = `${video["title"]} - ${video["artist"]}`;
+  nowPlayingKey = `${video["videoId"]}__${start}`;
+  applyFilters(); // ハイライト＆スクロール反映
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener('click', () => {
+    document.body.style.paddingBottom =
+      `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
+
+    if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+      ytPlayer.stopVideo();
+    } else if (playerIframe?.src.includes("youtube.com")) {
+      playerIframe.contentWindow?.postMessage(JSON.stringify({
+        event: 'command',
+        func: 'pauseVideo',
+        args: []
+      }), '*');
+    } else {
+      playerIframe.src = "";
+    }
+    fixedPlayerEl.style.display = 'none';
+  });
+}
+
+
+
+
+  // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
+  document.querySelectorAll('.video-player-container').forEach(el => el.remove());
+
+  document.getElementById('prevVideoBtn').addEventListener('click', () => {
+  playAdjacentVideo(-1);
+  });
+
+  document.getElementById('nextVideoBtn').addEventListener('click', () => {
+  playAdjacentVideo(1);
+  });
+
+    document.getElementById('randomFromFilteredBtn').addEventListener('click', () => {
+  const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+  const randomVideo = list[Math.floor(Math.random() * list.length)];
+  loadVideo(randomVideo, null);
+});
+
+function playAdjacentVideo(direction) {
+  if (!currentFilteredVideos.length) return;
+
+  const currentIndex = currentFilteredVideos.findIndex(v =>
+    `${v.videoId}__${v.start || 0}` === nowPlayingKey
+    );
+
+  const newIndex = currentIndex + direction;
+  if (newIndex >= 0 && newIndex < currentFilteredVideos.length) {
+    loadVideo(currentFilteredVideos[newIndex], null);
+    }
+    }
