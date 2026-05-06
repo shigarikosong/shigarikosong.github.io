@@ -21,6 +21,7 @@
 
   let filtersBeforeApply = null;
   let sortButtonGroup = null;
+  let lockedScrollY = 0;
 
   function sortByPreferredOrder(values, preferredOrder) {
     return [...values].sort((a, b) => {
@@ -339,7 +340,34 @@
     renderMobileTagSections();
   }
 
+  function lockPageScroll() {
+    if (document.body.dataset.filterScrollLocked === "true") return;
+
+    lockedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.dataset.filterScrollLocked = "true";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${lockedScrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+  }
+
+  function unlockPageScroll() {
+    if (document.body.dataset.filterScrollLocked !== "true") return;
+
+    document.body.dataset.filterScrollLocked = "";
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    document.body.style.overflow = "";
+    window.scrollTo(0, lockedScrollY);
+  }
+
   document.getElementById("openFilterModal")?.addEventListener("click", () => {
+    lockPageScroll();
     configureSortButtons();
     configureCategoryButtons();
     configureDateButtons();
@@ -349,6 +377,8 @@
     observeCategoryTags();
     syncModalControls();
   });
+
+  document.getElementById("closeFilterModal")?.addEventListener("click", unlockPageScroll);
 
   applyButton.addEventListener("click", () => {
     filtersBeforeApply = {
@@ -390,5 +420,6 @@
     renderPlatformTags();
     renderMobileTagSections();
     applyFilters();
+    unlockPageScroll();
   });
 })();
