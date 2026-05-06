@@ -109,6 +109,31 @@ section {
   padding-bottom: 8px;
 }
 
+#desktopFilterPanel {
+  max-height: min(58vh, 620px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+body.player-visible #desktopFilterPanel {
+  max-height: min(36vh, 380px);
+}
+
+#desktopFilterPanel .modal-collab-scroll {
+  max-height: 96px;
+}
+
+@media (max-height: 820px) {
+  #desktopFilterPanel {
+    max-height: 48vh;
+  }
+
+  body.player-visible #desktopFilterPanel {
+    max-height: 32vh;
+  }
+}
+
     #activeTagChips {
   position: sticky;
   top: 0;
