@@ -1,3 +1,4 @@
+// ===== 要素の取得 =====
     const fixedPlayerEl = document.getElementById('fixedPlayer');
     const playerIframe = document.getElementById('playerIframe');
     const youtubePlayerEl = document.getElementById('youtubePlayer');
@@ -10,9 +11,11 @@
     const resetButton = document.getElementById('resetFilters');
     const videoList = document.getElementById('videoList');
     const activeTagChips = document.getElementById('activeTagChips');
-const activeTagChipsInner = document.getElementById('activeTagChipsInner');
+    const activeTagChipsInner = document.getElementById('activeTagChipsInner');
     const filterSection = document.getElementById('filterSection');
 
+
+// ===== ランダム連続再生の設定 =====
     const RANDOM_AUTO_PLAY_KEY = 'randomAutoPlayEnabled';
 
 function isRandomAutoPlayEnabled() {
@@ -53,15 +56,15 @@ function updateRandomAutoPlayButton() {
 document.getElementById('modalSortOrder').value = "";
     
 
-    // ===== スプレッドシートURL =====
+// ===== スプレッドシートURL =====
     const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
     const metaSheetUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/管理用';
-    
+
+
+// ===== タグ・絞り込み状態の管理 =====
     let allVideos = [];
     let currentFilteredVideos = [];
     let nowPlayingKey = null;
-    
-    // タグクリック用変数
     let selectedCategoryTag = "";
     let selectedDateTag = "";
     let selectedCollabTag = "";
@@ -75,6 +78,7 @@ document.getElementById('modalSortOrder').value = "";
     let selectedLiveTag = null;
     let selectedProjectTag = null;
 
+// ===== タグの表示・解除 =====
 function parseCommaTags(value) {
   return String(value || "")
     .split(",")
@@ -117,7 +121,6 @@ if (selectedUtaTag) activeTags.push({ label: '歌枠', type: selectedUtaTag });
 if (selectedLiveTag) activeTags.push({ label: 'ライブ', type: selectedLiveTag });
 if (selectedProjectTag) activeTags.push({ label: '企画', type: selectedProjectTag });
 
-  // 何もなければ領域ごと隠す
   if (activeTags.length === 0) {
   activeTagChips.classList.add('hidden');
   updateActiveTagChipsPosition();
@@ -177,8 +180,9 @@ case '企画':
     activeTagChipsInner.appendChild(chip);
   });
 }
-    
 
+
+// ===== 表示用の補助関数 =====
 function escapeHtml(str) {
   return String(str || "").replace(/[&<>"']/g, s => ({
     "&": "&amp;",
@@ -221,6 +225,7 @@ function getRoleTagClass(role, isActive = false) {
 }
 
 
+// ===== YouTubeプレイヤーの準備 =====
     let ytPlayer = null;
 let ytApiReady = false;
 
@@ -256,7 +261,8 @@ function tryInitYtPlayer() {
   });
 }
 
-    
+
+// ===== スプレッドシートからデータ取得 =====    
 fetch(sheetJsonUrl)
   .then(response => response.json())
   .then(data => {
@@ -279,6 +285,7 @@ fetch(metaSheetUrl)
     }
   });
 
+// ===== フィルターUIの操作 =====
     const randomAutoPlayBtn = document.getElementById('randomAutoPlayBtn');
 
 if (randomAutoPlayBtn) {
@@ -333,7 +340,7 @@ selectedProjectTag = null;
 });
 
 
-    // === 固定プレイヤーと NowPlaying の重なり対策 ===
+// ===== 固定プレイヤーの位置・サイズ調整 =====
 function adjustFixedPlayerBottom() {
   const nowPlayingWrapperEl = document.getElementById('nowPlayingWrapper');
   if (!fixedPlayerEl || !nowPlayingWrapperEl || !playerIframe) return; 
@@ -368,8 +375,7 @@ window.addEventListener('orientationchange', () => {
 window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 
 
-// === リサイズ（高さ可変）関連 ===
-
+// ===== プレイヤーの高さ変更 =====
 const PLAYER_HEIGHT_KEY = 'playerHeightPx';
 const MIN_PLAYER_H = 240;
 
@@ -394,24 +400,13 @@ function applyStoredPlayerHeight() {
   setPlayerHeight(h);
 }
 
-// 画面からはみ出さない最大高さを計算（ハンドルが見えるように上部に余白を確保）
 function getMaxPlayerHeight() {
   const vh = window.innerHeight;
-
-  // fixedPlayer の bottom は NowPlaying 高さ + 8px
   const nowH = document.getElementById('nowPlayingWrapper')?.offsetHeight || 0;
   const bottomOffset = nowH + 8;
-
-  // 内側の p-4（上下16pxずつ）＝合計32px（Tailwind）
   const fixedPlayerVerticalPadding = 16 * 2;
-
-  // ハンドル分の出っ張り + 余白（見やすさのために少し多め）
   const handleAndTopSafety = 24 + 16; // だいたい 40px
-
-  // 画面高さから下マージン・パディング・上の安全余白を引いた値が上限
   const maxH = vh - (bottomOffset + fixedPlayerVerticalPadding + handleAndTopSafety);
-
-  // 最低でも MIN_PLAYER_H 以上、かつ負にならないように
   return Math.max(MIN_PLAYER_H, Math.floor(maxH));
 }
 
@@ -617,6 +612,8 @@ document.addEventListener('visibilitychange', () => {
 
 })();
 
+
+// ===== 絞り込み項目の作成 =====
       function populateFilters(videos) {
 
   const roleOrder = [
@@ -708,6 +705,7 @@ selectedProjectTag = null;
 });
       }
 
+// ===== タグボタンの描画 =====
 function renderPlatformTags() {
   const containers = [
     document.getElementById('modalPlatformTags'),
@@ -822,6 +820,8 @@ function renderDateTags() {
         });
       }
 
+
+// ===== 検索・絞り込み処理 =====
       function applyFilters() {
         let filtered = allVideos.filter(video => {
   const collabLivers = (video["コラボライバー"] || "")
@@ -954,7 +954,8 @@ renderVideoList(filtered);
 renderActiveTagChips();
       }
 
-    // フィルタ後の動画リストを描画（タグ・タイトル・メタ情報を生成）
+
+// ===== 動画一覧の描画 =====
 function renderVideoList(videos) {
   videoList.innerHTML = '';
 
@@ -1040,7 +1041,6 @@ if (
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
-  // 🔽 ここに移動！！
   typeTags.forEach(type => {
     const tag = document.createElement('button');
     tag.type = 'button';
@@ -1262,7 +1262,8 @@ videoList.appendChild(item);
   }
 }
 
-    
+
+// ===== 動画の再生処理 =====
 function loadVideo(video, item) {
   const start = parseInt(video["start"] || '0', 10);
   let videoId = video["videoId"];
@@ -1353,6 +1354,7 @@ if (ytEl) ytEl.classList.add('hidden');
   applyFilters(); // ハイライト＆スクロール反映
 }
 
+// ===== プレイヤー操作ボタン =====
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
     document.body.style.paddingBottom =
