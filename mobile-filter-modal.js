@@ -7,6 +7,7 @@
   const dateSelect = document.getElementById("modalDateFilter");
   const typeSelect = document.getElementById("modalTypeFilter");
   const roleSelect = document.getElementById("modalRoleFilter");
+  const categoryTagsContainer = document.getElementById("modalCategoryTags");
   const formatTagsContainer = document.getElementById("modalFormatTags");
   const roleTagsContainer = document.getElementById("modalRoleTags");
   const collabLiverTagsContainer = document.getElementById("modalCollabLiverTags");
@@ -14,8 +15,31 @@
 
   if (!modal || !applyButton) return;
 
+  const categoryOrder = ["ソロ", "コラボ", "あやかき"];
+  const formatOrder = ["3D", "Shorts", "歌枠", "ライブ", "Full", "ハイライト", "アカペラ", "企画", "比較"];
+  const roleOrder = ["VOCAL", "DANCE", "CHORUS", "MOVIE", "ILLUSTRATION", "PIANO", "EUPHONIUM", "KALIMBA"];
+
   let filtersBeforeApply = null;
   let sortButtonGroup = null;
+
+  function sortByPreferredOrder(values, preferredOrder) {
+    return [...values].sort((a, b) => {
+      const indexA = preferredOrder.indexOf(a);
+      const indexB = preferredOrder.indexOf(b);
+
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return String(a).localeCompare(String(b), "ja");
+    });
+  }
+
+  function appendLineBreak(container) {
+    const lineBreak = document.createElement("div");
+    lineBreak.style.flexBasis = "100%";
+    lineBreak.style.height = "0";
+    container.appendChild(lineBreak);
+  }
 
   function updateSortButtons() {
     if (!sortButtonGroup || !sortSelect) return;
@@ -102,7 +126,7 @@
     if (allVideos.some(video => video["3D"] === "TRUE")) values.push("3D");
     if (allVideos.some(video => video["Shorts"] === "TRUE")) values.push("Shorts");
 
-    return [...new Set(values)];
+    return sortByPreferredOrder([...new Set(values)], formatOrder);
   }
 
   function getFormatButtonClass(isActive) {
@@ -145,6 +169,33 @@
       });
 
       formatTagsContainer.appendChild(button);
+
+      if (format === "ライブ") appendLineBreak(formatTagsContainer);
+    });
+  }
+
+  function reorderCategoryTags() {
+    if (!categoryTagsContainer) return;
+
+    [...categoryTagsContainer.querySelectorAll("button")].sort((a, b) => {
+      const indexA = categoryOrder.indexOf(a.textContent);
+      const indexB = categoryOrder.indexOf(b.textContent);
+
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return String(a.textContent).localeCompare(String(b.textContent), "ja");
+    }).forEach(button => {
+      categoryTagsContainer.appendChild(button);
+    });
+  }
+
+  function observeCategoryTags() {
+    if (!categoryTagsContainer || categoryTagsContainer.dataset.orderObserved) return;
+
+    categoryTagsContainer.dataset.orderObserved = "true";
+    new MutationObserver(reorderCategoryTags).observe(categoryTagsContainer, {
+      childList: true
     });
   }
 
@@ -153,7 +204,7 @@
 
     roleTagsContainer.innerHTML = "";
 
-    getSelectValues(roleSelect).forEach(role => {
+    sortByPreferredOrder(getSelectValues(roleSelect), roleOrder).forEach(role => {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = role;
@@ -171,6 +222,8 @@
       });
 
       roleTagsContainer.appendChild(button);
+
+      if (role === "ILLUSTRATION") appendLineBreak(roleTagsContainer);
     });
   }
 
@@ -214,6 +267,7 @@
   }
 
   function renderMobileTagSections() {
+    reorderCategoryTags();
     renderFormatTags();
     renderRoleTags();
     renderCollabTags();
@@ -286,6 +340,7 @@
     configureFormatButtons();
     configureRoleButtons();
     configureResetButton();
+    observeCategoryTags();
     syncModalControls();
   });
 
