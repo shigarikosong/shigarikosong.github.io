@@ -12,6 +12,8 @@
   const roleTagsContainer = document.getElementById("modalRoleTags");
   const collabLiverTagsContainer = document.getElementById("modalCollabLiverTags");
   const collabUnitTagsContainer = document.getElementById("modalCollabUnitTags");
+  const resultTotal = document.getElementById("modalResultTotal");
+  const resultVisible = document.getElementById("modalResultVisible");
 
   if (!modal || !applyButton) return;
 
@@ -51,6 +53,18 @@
         ? "bg-blue-600 text-white px-3 py-2 rounded-md text-sm"
         : "bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm";
     });
+  }
+
+  function updateModalResultCount() {
+    if (!resultTotal || !resultVisible) return;
+
+    resultTotal.textContent = String(allVideos.length || 0);
+    resultVisible.textContent = String(currentFilteredVideos.length || 0);
+  }
+
+  function applyFiltersAndUpdateCount() {
+    applyFilters();
+    updateModalResultCount();
   }
 
   function configureSortButtons() {
@@ -166,7 +180,7 @@
 
         if (typeSelect) typeSelect.value = "";
         renderFormatTags();
-        applyFilters();
+        applyFiltersAndUpdateCount();
       });
 
       formatTagsContainer.appendChild(button);
@@ -225,7 +239,7 @@
 
         if (roleSelect) roleSelect.value = "";
         renderRoleTags();
-        applyFilters();
+        applyFiltersAndUpdateCount();
       });
 
       roleTagsContainer.appendChild(button);
@@ -255,7 +269,7 @@
       button.addEventListener("click", () => {
         selectedCollabTag = selectedCollabTag === value ? "" : value;
         renderCollabTags();
-        applyFilters();
+        applyFiltersAndUpdateCount();
       });
 
       container.appendChild(button);
@@ -304,7 +318,7 @@
     renderPlatformTags();
     renderMobileTagSections();
     updateSortButtons();
-    applyFilters();
+    applyFiltersAndUpdateCount();
   }
 
   function configureResetButton() {
@@ -338,6 +352,7 @@
     if (typeSelect) typeSelect.value = "";
     updateSortButtons();
     renderMobileTagSections();
+    updateModalResultCount();
   }
 
   function lockPageScroll() {
@@ -419,7 +434,7 @@
     renderDateTags();
     renderPlatformTags();
     renderMobileTagSections();
-    applyFilters();
+    applyFiltersAndUpdateCount();
     unlockPageScroll();
   });
 })();
