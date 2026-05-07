@@ -82,6 +82,17 @@
   white-space: nowrap;
 }
 
+.video-meta > span:first-child {
+  flex: 0 0 auto;
+}
+
+.video-meta-waku {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 
 #videoList a:hover {
