@@ -1,39 +1,51 @@
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", sans-serif;
-    }
-    .fade-in {
-      animation: fadeIn 0.4s ease-out both;
-    }
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+/* ===== Base ===== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", sans-serif;
+}
 
-/* リスト項目のスタイル */
+/* ===== Animation ===== */
+.fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Video list ===== */
 #videoList div {
   border-radius: 8px;
 }
 
+#videoList a:hover {
+  text-decoration: underline;
+}
+
+#videoList .playing {
+  background-color: #fffbe6;
+  border-left: 4px solid #facc15;
+}
 
 .meta-row {
   display: flex;
-  flex-wrap: wrap; /* 念のため */
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 2px;
   line-height: 1.4;
-  white-space: nowrap; /* これで1行に揃えやすくなる */
+  white-space: nowrap;
 }
 
 .meta-label {
   font-weight: 600;
   margin-right: 2px;
-  color: #374151; /* ダークグレー */
+  color: #374151;
 }
 
 .meta-value {
@@ -47,7 +59,7 @@
   align-items: center;
   overflow-x: auto;
   white-space: nowrap;
-  min-width: 0
+  min-width: 0;
 }
 
 .video-title {
@@ -61,7 +73,6 @@
   color: #1e40af;
 }
 
-
 .video-artist {
   flex: 2;
   min-width: 0;
@@ -71,13 +82,12 @@
   color: #374151;
 }
 
-
 .video-meta {
   display: flex;
   flex-wrap: nowrap;
   gap: 1rem;
   font-size: 0.875rem;
-  color: #4b5563; /* text-gray-600 */
+  color: #4b5563;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -96,33 +106,22 @@
   color: #6b7280;
 }
 
-
-
-#videoList a:hover {
-  text-decoration: underline;  /* ホバー時に下線を追加 */
-}
-
-    #videoList .playing {
-  background-color: #fffbe6; /* 淡い黄色に変更 */
-  border-left: 4px solid #facc15; /* 黄色のライン追加 */
-}
-
-    /* ヘッダーを固定 */
+/* ===== Header and sticky filter area ===== */
 header {
-  position: static; /* ← 追加（デフォルト値に戻す） */
+  position: static;
   background-color: white;
 }
 
-/* フィルターボタンを固定 */
 section {
   position: sticky;
-  top: 0px; 
-  z-index: 20;  /* ヘッダーより下に配置 */
+  top: 0;
+  z-index: 20;
   background-color: white;
   padding-top: 8px;
   padding-bottom: 8px;
 }
 
+/* ===== Desktop filter panel ===== */
 #desktopFilterPanel {
   max-height: min(58vh, 620px);
   overflow-y: auto;
@@ -160,7 +159,8 @@ body.player-visible #desktopFilterPanel {
   }
 }
 
-    #activeTagChips {
+/* ===== Active filter chips ===== */
+#activeTagChips {
   position: sticky;
   top: 0;
   z-index: 18;
@@ -198,42 +198,36 @@ body.player-visible #desktopFilterPanel {
   }
 }
 
-      /* 固定プレイヤー用のCSS */
-  #fixedPlayer {
-    display: none; /* 最初は非表示 */
-    bottom: 0px;  /* プレイヤーの高さ + 余白分だけ上に配置 */
-  }
-
-    #fixedPlayer .controls-wrapper {
-  padding-bottom: 8px; /* ← 必要に応じて増やして調整 */
+/* ===== Fixed player ===== */
+#fixedPlayer {
+  display: none;
+  bottom: 0;
 }
 
+#fixedPlayer .controls-wrapper {
+  padding-bottom: 8px;
+}
 
 #nowPlayingWrapper {
   background-color: #e0f2fe;
   box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
-  height: auto; /* 高さを固定値から自動に */
+  height: auto;
   padding-top: 2px;
-  padding-bottom: 4px; /* ボタンに余裕を持たせる */
-}
-#videoList .playing {
-  background-color: #fffbe6; /* ハイライト色 */
-  border-left: 4px solid #facc15; /* アクセントライン */
+  padding-bottom: 4px;
 }
 
-    /* プレイヤー高さをドラッグで変更するハンドル */
 #playerResizeHandle {
   position: absolute;
-  top: -10px;          /* プレイヤーの上に少しはみ出す */
+  top: -10px;
   left: 0;
   width: 100%;
-  height: 12px;        /* つかみやすい幅 */
+  height: 12px;
   cursor: ns-resize;
   z-index: 5;
   background: transparent;
-  touch-action: none; 
+  touch-action: none;
 }
-    
+
 #playerResizeHandle::after {
   content: "";
   position: absolute;
@@ -243,9 +237,10 @@ body.player-visible #desktopFilterPanel {
   width: 56px;
   height: 4px;
   border-radius: 9999px;
-  background: rgba(0,0,0,0.25);  /* つまみの目印（好みで調整/削除OK） */
+  background: rgba(0, 0, 0, 0.25);
 }
 
+/* ===== Player controls ===== */
 .random-auto-play-btn {
   width: 32px;
   height: 32px;
@@ -284,6 +279,7 @@ body.player-visible #desktopFilterPanel {
   margin-bottom: 4px;
 }
 
+/* ===== Filter modal sections ===== */
 .modal-section-title {
   display: flex;
   align-items: center;
