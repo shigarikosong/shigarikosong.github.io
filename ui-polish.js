@@ -91,7 +91,7 @@
 
       const setMemberRowVisibility = (show) => {
         memberRow.classList.toggle("hidden", !show);
-        toggleButton.textContent = show ? "メンバーを閉じる" : `メンバー +${collabLivers.length}`;
+        toggleButton.textContent = show ? "閉じる" : `+${collabLivers.length}`;
       };
 
       setMemberRowVisibility(shouldShowMembers);
