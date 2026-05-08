@@ -106,6 +106,8 @@
   ];
 
   const platformLabels = new Set(['youtube', 'tiktok']);
+  let syncScheduled = false;
+  let delayedSyncTimer = null;
 
   function normalizeLabel(value) {
     return String(value || '').trim().toLowerCase();
@@ -138,7 +140,11 @@
   function setButtonClass(button, group, isActive) {
     const classes = classByGroup[group];
     if (!classes) return;
-    button.className = isActive ? classes.active : classes.inactive;
+
+    const nextClassName = isActive ? classes.active : classes.inactive;
+    if (button.className !== nextClassName) {
+      button.className = nextClassName;
+    }
   }
 
   function syncPanelButtons(activeLabels) {
@@ -158,9 +164,13 @@
       const label = normalizeLabel(button.textContent);
       if (!platformLabels.has(label)) return;
 
-      button.className = activeLabels.has(label)
+      const nextClassName = activeLabels.has(label)
         ? 'border border-purple-600 text-white bg-purple-600 px-2.5 py-1 rounded-full text-xs hover:bg-purple-600'
         : 'border border-purple-300 text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full text-xs hover:bg-purple-100';
+
+      if (button.className !== nextClassName) {
+        button.className = nextClassName;
+      }
     });
   }
 
@@ -171,23 +181,40 @@
   }
 
   function scheduleSync() {
-    requestAnimationFrame(syncActiveFilterTags);
-    setTimeout(syncActiveFilterTags, 0);
-    setTimeout(syncActiveFilterTags, 80);
+    if (syncScheduled) return;
+    syncScheduled = true;
+
+    requestAnimationFrame(() => {
+      syncScheduled = false;
+      syncActiveFilterTags();
+    });
   }
 
-  document.addEventListener('click', scheduleSync, true);
-  document.addEventListener('input', scheduleSync, true);
-  document.addEventListener('change', scheduleSync, true);
+  function scheduleDelayedSync() {
+    scheduleSync();
+    clearTimeout(delayedSyncTimer);
+    delayedSyncTimer = setTimeout(scheduleSync, 80);
+  }
+
+  document.addEventListener('click', scheduleDelayedSync, true);
+  document.addEventListener('input', scheduleDelayedSync, true);
+  document.addEventListener('change', scheduleDelayedSync, true);
 
   const observer = new MutationObserver(scheduleSync);
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    characterData: true,
-    attributes: true,
-    attributeFilter: ['class']
-  });
 
-  scheduleSync();
+  function startObserverWhenReady() {
+    const videoList = document.getElementById('videoList');
+    const activeTagChipsInner = document.getElementById('activeTagChipsInner');
+
+    if (!videoList || !activeTagChipsInner) {
+      requestAnimationFrame(startObserverWhenReady);
+      return;
+    }
+
+    observer.observe(videoList, { childList: true, subtree: true });
+    observer.observe(activeTagChipsInner, { childList: true, subtree: true, characterData: true });
+    scheduleSync();
+  }
+
+  startObserverWhenReady();
 })();
