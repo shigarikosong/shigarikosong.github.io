@@ -138,6 +138,18 @@ body.player-visible #desktopFilterPanel {
   max-height: 96px;
 }
 
+#desktopSortButtons button,
+#desktopFormatTags button,
+#desktopRoleTags button,
+#desktopCollabLiverTags button,
+#desktopCollabUnitTags button,
+#filterModal [data-sort] {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+}
+
 @media (max-height: 820px) {
   #desktopFilterPanel {
     max-height: 48vh;
