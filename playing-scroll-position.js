@@ -111,12 +111,28 @@
     return String(value || '').trim().toLowerCase();
   }
 
+  function isPlatformActiveButton(button) {
+    const label = normalizeLabel(button.textContent);
+    return platformLabels.has(label) &&
+      button.classList.contains('bg-purple-600');
+  }
+
   function getActiveLabels() {
-    return new Set(
+    const labels = new Set(
       [...document.querySelectorAll('#activeTagChipsInner button')]
         .map(button => normalizeLabel(button.textContent))
         .filter(Boolean)
     );
+
+    document
+      .querySelectorAll('#modalPlatformTags button, #desktopPlatformTags button')
+      .forEach(button => {
+        if (isPlatformActiveButton(button)) {
+          labels.add(normalizeLabel(button.textContent));
+        }
+      });
+
+    return labels;
   }
 
   function setButtonClass(button, group, isActive) {
@@ -156,6 +172,8 @@
 
   function scheduleSync() {
     requestAnimationFrame(syncActiveFilterTags);
+    setTimeout(syncActiveFilterTags, 0);
+    setTimeout(syncActiveFilterTags, 80);
   }
 
   document.addEventListener('click', scheduleSync, true);
@@ -166,7 +184,9 @@
   observer.observe(document.body, {
     childList: true,
     subtree: true,
-    characterData: true
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['class']
   });
 
   scheduleSync();
