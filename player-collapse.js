@@ -51,7 +51,7 @@
     #playerFrameWrapper {
       border-radius: 10px;
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.24);
-      transition: height 0.22s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+      transition: opacity 0.18s ease, box-shadow 0.18s ease;
     }
 
     .player-window-actions {
