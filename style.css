@@ -149,6 +149,11 @@ body.player-visible #desktopFilterPanel {
   padding: 0.25rem 0.75rem;
 }
 
+.tag-exclusion-active {
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+
 @media (max-height: 820px) {
   #desktopFilterPanel {
     max-height: 48vh;
