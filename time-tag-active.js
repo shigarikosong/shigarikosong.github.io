@@ -60,11 +60,6 @@
     chip.className = `${TIME_CHIP_CLASS} shrink-0 border border-green-300 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs hover:bg-green-100 transition`;
     chip.textContent = selectedTimeLabel;
     chip.setAttribute("aria-label", `${selectedTimeLabel}の絞り込みを解除`);
-    chip.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      clearSelectedTime();
-    });
 
     activeTagChipsInner.appendChild(chip);
     activeTagChips.classList.remove("hidden");
@@ -87,7 +82,7 @@
 
     if (button.classList.contains(TIME_CHIP_CLASS)) {
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       clearSelectedTime();
       return;
     }
