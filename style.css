@@ -187,6 +187,11 @@ body.player-visible #desktopFilterPanel {
   pointer-events: auto;
 }
 
+#activeTagChipsInner .tag-exclusion-chip {
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+
 #activeTagChipsInner::-webkit-scrollbar {
   display: none;
 }
