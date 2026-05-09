@@ -229,14 +229,19 @@
     updateButtonState();
   }
 
-  function loadTagExclusionFilter() {
-    if (document.querySelector('script[data-tag-exclusion-filter]')) return;
+  function loadScriptOnce(src, marker) {
+    if (document.querySelector(`script[data-loader-marker="${marker}"]`)) return;
 
     const script = document.createElement('script');
-    script.src = './tag-exclusion.js?v=4';
+    script.src = src;
     script.defer = true;
-    script.dataset.tagExclusionFilter = 'true';
+    script.dataset.loaderMarker = marker;
     document.body.appendChild(script);
+  }
+
+  function loadTagExclusionFilter() {
+    loadScriptOnce('./tag-exclusion.js?v=4', 'tag-exclusion-filter');
+    loadScriptOnce('./time-tag-active.js?v=1', 'time-tag-active');
   }
 
   const originalFetch = window.fetch.bind(window);
