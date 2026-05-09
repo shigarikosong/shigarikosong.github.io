@@ -241,7 +241,7 @@
 
   function loadTagExclusionFilter() {
     loadScriptOnce('./tag-exclusion.js?v=4', 'tag-exclusion-filter');
-    loadScriptOnce('./time-tag-active.js?v=3', 'time-tag-active');
+    loadScriptOnce('./time-tag-active.js?v=4', 'time-tag-active');
   }
 
   const originalFetch = window.fetch.bind(window);
