@@ -1,9 +1,18 @@
 (() => {
   const EXCLUDE_BUTTON_CLASS = "tag-exclusion-active";
   const EXCLUDE_CHIP_CLASS = "tag-exclusion-chip";
+  const dateLabelToValue = {
+    "最近": "recent",
+    "1年以内": "year",
+    "1年以上前": "old"
+  };
+  const dateValueToLabel = Object.fromEntries(
+    Object.entries(dateLabelToValue).map(([label, value]) => [value, label])
+  );
   const excludedTags = {
     category: new Set(),
     platform: new Set(),
+    date: new Set(),
     format: new Set(),
     role: new Set(),
     collab: new Set(),
@@ -12,6 +21,7 @@
   const knownTags = {
     category: new Set(["ソロ", "コラボ", "あやかき"]),
     platform: new Set(["youtube", "tiktok"]),
+    date: new Set(Object.values(dateLabelToValue)),
     format: new Set(),
     role: new Set(),
     collab: new Set(),
@@ -22,6 +32,8 @@
     desktopCategoryTags: "category",
     modalPlatformTags: "platform",
     desktopPlatformTags: "platform",
+    modalDateTags: "date",
+    desktopDateTags: "date",
     modalFormatTags: "format",
     desktopFormatTags: "format",
     modalRoleTags: "role",
@@ -54,7 +66,14 @@
 
   function normalizeLabel(kind, label) {
     const value = String(label || "").trim();
-    return kind === "platform" ? value.toLowerCase() : value;
+    if (kind === "platform") return value.toLowerCase();
+    if (kind === "date") return dateLabelToValue[value] || value;
+    return value;
+  }
+
+  function getDisplayLabel(kind, value) {
+    if (kind === "date") return dateValueToLabel[value] || value;
+    return value;
   }
 
   function splitTags(value) {
@@ -62,6 +81,23 @@
       .split(",")
       .map(tag => tag.trim())
       .filter(Boolean);
+  }
+
+  function parseYmdToTime(value) {
+    if (!value) return NaN;
+
+    const normalized = String(value).trim().replaceAll("/", "-");
+    const [year, month = "1", day = "1"] = normalized.split("-");
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+
+    return Number.isNaN(date.getTime()) ? NaN : date.getTime();
+  }
+
+  function getDiffMonths(video) {
+    const videoTime = parseYmdToTime(video?.["公開日"] || video?.["公開月"]);
+    if (Number.isNaN(videoTime)) return null;
+
+    return (Date.now() - videoTime) / (1000 * 60 * 60 * 24 * 30);
   }
 
   function hasExclusions() {
@@ -117,6 +153,7 @@
     if (knownTags.flag.has(label)) return { kind: "flag", label };
     if (knownTags.category.has(label)) return { kind: "category", label };
     if (knownTags.platform.has(label.toLowerCase())) return { kind: "platform", label: label.toLowerCase() };
+    if (knownTags.date.has(dateLabelToValue[label] || label)) return { kind: "date", label: dateLabelToValue[label] || label };
     if (knownTags.format.has(label)) return { kind: "format", label };
     if (knownTags.role.has(label)) return { kind: "role", label };
     if (knownTags.collab.has(label)) return { kind: "collab", label };
@@ -126,6 +163,19 @@
 
   function isIncludedButton(button) {
     return button.classList.contains("text-white") && !button.classList.contains(EXCLUDE_BUTTON_CLASS);
+  }
+
+  function isExcludedDate(video) {
+    if (excludedTags.date.size === 0) return false;
+
+    const diffMonths = getDiffMonths(video);
+    if (diffMonths === null) return false;
+
+    return (
+      (excludedTags.date.has("recent") && diffMonths <= 3) ||
+      (excludedTags.date.has("year") && diffMonths <= 12) ||
+      (excludedTags.date.has("old") && diffMonths > 12)
+    );
   }
 
   function passesExclusion(video) {
@@ -142,6 +192,7 @@
 
     if (category && excludedTags.category.has(category)) return false;
     if (platform && excludedTags.platform.has(platform)) return false;
+    if (isExcludedDate(video)) return false;
     if (formats.some(tag => excludedTags.format.has(tag))) return false;
     if (roles.some(tag => excludedTags.role.has(tag))) return false;
     if (collabs.some(tag => excludedTags.collab.has(tag))) return false;
@@ -169,6 +220,7 @@
     [
       ["category", excludedTags.category],
       ["platform", excludedTags.platform],
+      ["date", excludedTags.date],
       ["flag", excludedTags.flag],
       ["format", excludedTags.format],
       ["role", excludedTags.role],
@@ -179,10 +231,11 @@
 
     chips.forEach(({ kind, label }) => {
       const chip = document.createElement("button");
+      const displayLabel = getDisplayLabel(kind, label);
       chip.type = "button";
       chip.className = `${EXCLUDE_CHIP_CLASS} px-3 py-1 rounded-full text-sm whitespace-nowrap transition`;
-      chip.textContent = `- ${label}`;
-      chip.setAttribute("aria-label", `${label}を除外条件から外す`);
+      chip.textContent = `- ${displayLabel}`;
+      chip.setAttribute("aria-label", `${displayLabel}を除外条件から外す`);
       chip.addEventListener("click", () => {
         removeExclude(kind, label);
         applyFiltersWithExclusions();
@@ -206,7 +259,7 @@
       const active = info ? isExcluded(info.kind, info.label) : false;
       button.classList.toggle(EXCLUDE_BUTTON_CLASS, active);
       if (active) {
-        button.setAttribute("aria-label", `${info.label}を除外中`);
+        button.setAttribute("aria-label", `${getDisplayLabel(info.kind, info.label)}を除外中`);
       }
     });
 
