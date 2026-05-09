@@ -233,7 +233,7 @@
     if (document.querySelector('script[data-tag-exclusion-filter]')) return;
 
     const script = document.createElement('script');
-    script.src = './tag-exclusion.js?v=1';
+    script.src = './tag-exclusion.js?v=2';
     script.defer = true;
     script.dataset.tagExclusionFilter = 'true';
     document.body.appendChild(script);
