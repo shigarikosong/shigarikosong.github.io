@@ -66,30 +66,21 @@
 
     .player-window-button,
     .player-window-icon-button {
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(255, 255, 255, 0.82);
-      color: #374151;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
-      opacity: 0.72;
-      transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
-    }
-
-    .player-window-button {
+      display: grid;
+      place-items: center;
       width: 28px;
       height: 28px;
       padding: 0;
+      border: 1px solid rgba(148, 163, 184, 0.45);
       border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.82);
+      color: #374151;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
       font-size: 14px;
       font-weight: 700;
       line-height: 1;
-    }
-
-    .player-window-icon-button {
-      width: 28px;
-      height: 28px;
-      border-radius: 9999px;
-      font-size: 14px;
-      font-weight: 700;
+      opacity: 0.72;
+      transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
     }
 
     .player-window-button:hover,
