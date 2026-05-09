@@ -120,6 +120,7 @@
   function setupBackToTopButton() {
     const SHOW_SCROLL_Y = 420;
     const button = document.createElement('button');
+    let updateFrame = null;
 
     button.type = 'button';
     button.id = 'backToTopButton';
@@ -145,6 +146,7 @@
     }
 
     function updateButtonState() {
+      updateFrame = null;
       const playerOffset = getPlayerOffset();
       const shouldShow = window.scrollY > SHOW_SCROLL_Y;
 
@@ -153,24 +155,42 @@
       button.classList.toggle('is-player-visible', playerOffset > 0);
     }
 
+    function requestButtonUpdate() {
+      if (updateFrame !== null) return;
+      updateFrame = requestAnimationFrame(updateButtonState);
+    }
+
     button.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    window.addEventListener('scroll', updateButtonState, { passive: true });
-    window.addEventListener('resize', updateButtonState);
-    window.visualViewport?.addEventListener('resize', updateButtonState);
+    window.addEventListener('scroll', requestButtonUpdate, { passive: true });
+    window.addEventListener('resize', requestButtonUpdate);
+    window.visualViewport?.addEventListener('resize', requestButtonUpdate);
 
     const fixedPlayer = document.getElementById('fixedPlayer');
     if (fixedPlayer) {
-      const observer = new MutationObserver(updateButtonState);
+      const observer = new MutationObserver(requestButtonUpdate);
       observer.observe(fixedPlayer, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+
+    const playerFrameWrapper = document.getElementById('playerFrameWrapper');
+    if (playerFrameWrapper) {
+      const observer = new MutationObserver(requestButtonUpdate);
+      observer.observe(playerFrameWrapper, { attributes: true, attributeFilter: ['style', 'class'] });
     }
 
     const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
     if (nowPlayingWrapper) {
-      const observer = new MutationObserver(updateButtonState);
+      const observer = new MutationObserver(requestButtonUpdate);
       observer.observe(nowPlayingWrapper, { attributes: true, childList: true, subtree: true });
+    }
+
+    if (window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(requestButtonUpdate);
+      if (fixedPlayer) resizeObserver.observe(fixedPlayer);
+      if (playerFrameWrapper) resizeObserver.observe(playerFrameWrapper);
+      if (nowPlayingWrapper) resizeObserver.observe(nowPlayingWrapper);
     }
 
     updateButtonState();
