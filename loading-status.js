@@ -119,8 +119,12 @@
 
   function setupBackToTopButton() {
     const SHOW_SCROLL_Y = 420;
+    const HIDE_DELAY_MS = 1100;
     const button = document.createElement('button');
     let updateFrame = null;
+    let hideTimer = null;
+    let isScrolling = false;
+    let isPointerOver = false;
 
     button.type = 'button';
     button.id = 'backToTopButton';
@@ -148,7 +152,7 @@
     function updateButtonState() {
       updateFrame = null;
       const playerOffset = getPlayerOffset();
-      const shouldShow = window.scrollY > SHOW_SCROLL_Y;
+      const shouldShow = window.scrollY > SHOW_SCROLL_Y && (isScrolling || isPointerOver);
 
       button.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
       button.classList.toggle('is-visible', shouldShow);
@@ -160,11 +164,40 @@
       updateFrame = requestAnimationFrame(updateButtonState);
     }
 
+    function scheduleHide() {
+      window.clearTimeout(hideTimer);
+      if (isPointerOver) return;
+
+      hideTimer = window.setTimeout(() => {
+        isScrolling = false;
+        requestButtonUpdate();
+      }, HIDE_DELAY_MS);
+    }
+
+    function showWhileScrolling() {
+      isScrolling = true;
+      requestButtonUpdate();
+      scheduleHide();
+    }
+
     button.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      scheduleHide();
     });
 
-    window.addEventListener('scroll', requestButtonUpdate, { passive: true });
+    button.addEventListener('pointerenter', () => {
+      isPointerOver = true;
+      isScrolling = true;
+      window.clearTimeout(hideTimer);
+      requestButtonUpdate();
+    });
+
+    button.addEventListener('pointerleave', () => {
+      isPointerOver = false;
+      scheduleHide();
+    });
+
+    window.addEventListener('scroll', showWhileScrolling, { passive: true });
     window.addEventListener('resize', requestButtonUpdate);
     window.visualViewport?.addEventListener('resize', requestButtonUpdate);
 
