@@ -24,20 +24,34 @@
     return getVisibleFixedHeight(fixedPlayer) + getVisibleFixedHeight(nowPlaying) + 16;
   }
 
+  function getTopReservedHeight() {
+    const filterSection = document.getElementById('filterSection');
+    const activeTagChips = document.getElementById('activeTagChips');
+
+    return getVisibleFixedHeight(filterSection) + getVisibleFixedHeight(activeTagChips) + 12;
+  }
+
   function scrollPlayingCardIntoView(element, options) {
     const rect = element.getBoundingClientRect();
     const pageTop = window.scrollY + rect.top;
-    const bottomReserved = getBottomReservedHeight();
-    const topReserved = window.innerWidth < 640 ? 56 : 72;
-    const usableHeight = Math.max(240, window.innerHeight - bottomReserved - topReserved);
+    const isMobile = window.innerWidth < 640;
+    const topReserved = isMobile ? getTopReservedHeight() : 72;
 
     let targetY;
 
-    if (rect.height >= usableHeight) {
+    if (isMobile) {
       targetY = pageTop - topReserved;
     } else {
-      const visualOffset = usableHeight * 0.28;
-      targetY = pageTop - topReserved - visualOffset;
+      const bottomReserved = getBottomReservedHeight();
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const usableHeight = Math.max(240, viewportHeight - bottomReserved - topReserved);
+
+      if (rect.height >= usableHeight) {
+        targetY = pageTop - topReserved;
+      } else {
+        const visualOffset = usableHeight * 0.28;
+        targetY = pageTop - topReserved - visualOffset;
+      }
     }
 
     window.scrollTo({
@@ -48,7 +62,9 @@
 
   Element.prototype.scrollIntoView = function patchedScrollIntoView(options) {
     if (isPlayingCard(this)) {
-      scrollPlayingCardIntoView(this, options);
+      requestAnimationFrame(() => {
+        scrollPlayingCardIntoView(this, options);
+      });
       return;
     }
 
