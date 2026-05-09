@@ -51,17 +51,21 @@
     .player-window-button,
     .player-window-icon-button {
       border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.82);
       color: #374151;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
-      transition: background 0.2s ease, color 0.2s ease;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+      opacity: 0.72;
+      transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
     }
 
     .player-window-button {
-      padding: 4px 10px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
       border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
     }
 
     .player-window-icon-button {
@@ -76,6 +80,12 @@
     .player-window-icon-button:hover {
       background: #ffffff;
       color: #2563eb;
+      opacity: 1;
+    }
+
+    .player-window-button:active,
+    .player-window-icon-button:active {
+      transform: scale(0.96);
     }
 
     #nowPlayingWrapper {
@@ -110,7 +120,9 @@
   collapseButton.id = "collapsePlayerBtn";
   collapseButton.type = "button";
   collapseButton.className = "player-window-button";
-  collapseButton.textContent = "小さくする";
+  collapseButton.textContent = "▼";
+  collapseButton.title = "小さくする";
+  collapseButton.setAttribute("aria-label", "プレイヤーを小さくする");
 
   closeButton.className = "player-window-icon-button";
   closeButton.type = "button";
