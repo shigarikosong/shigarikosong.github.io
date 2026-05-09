@@ -24,6 +24,56 @@
       background: #fef2f2;
       color: #b91c1c;
     }
+
+    .back-to-top-button {
+      position: fixed;
+      right: 16px;
+      bottom: 24px;
+      z-index: 35;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(30, 64, 175, 0.18);
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.88);
+      color: #1e40af;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease, bottom 0.2s ease, background-color 0.2s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .back-to-top-button.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .back-to-top-button:hover {
+      background: #ffffff;
+    }
+
+    .back-to-top-button:active {
+      transform: translateY(0) scale(0.96);
+    }
+
+    .back-to-top-button.is-player-visible {
+      bottom: calc(var(--back-to-top-player-offset, 120px) + 16px);
+    }
+
+    @media (max-width: 639px) {
+      .back-to-top-button {
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+    }
   `;
   document.head.appendChild(style);
 
@@ -61,8 +111,68 @@
     }
   }
 
+  function setupBackToTopButton() {
+    const SHOW_SCROLL_Y = 420;
+    const button = document.createElement('button');
+
+    button.type = 'button';
+    button.id = 'backToTopButton';
+    button.className = 'back-to-top-button';
+    button.setAttribute('aria-label', 'ページトップへ戻る');
+    button.textContent = '↑';
+
+    document.body.appendChild(button);
+
+    function getPlayerOffset() {
+      const fixedPlayer = document.getElementById('fixedPlayer');
+      const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
+      const fixedPlayerVisible = fixedPlayer && getComputedStyle(fixedPlayer).display !== 'none';
+
+      if (!fixedPlayerVisible) return 0;
+
+      const playerHeight = fixedPlayer.getBoundingClientRect().height || 0;
+      const nowPlayingHeight = nowPlayingWrapper && !nowPlayingWrapper.classList.contains('hidden')
+        ? nowPlayingWrapper.getBoundingClientRect().height || 0
+        : 0;
+
+      return Math.ceil(playerHeight + nowPlayingHeight);
+    }
+
+    function updateButtonState() {
+      const playerOffset = getPlayerOffset();
+      const shouldShow = window.scrollY > SHOW_SCROLL_Y;
+
+      button.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
+      button.classList.toggle('is-visible', shouldShow);
+      button.classList.toggle('is-player-visible', playerOffset > 0);
+    }
+
+    button.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    window.addEventListener('scroll', updateButtonState, { passive: true });
+    window.addEventListener('resize', updateButtonState);
+    window.visualViewport?.addEventListener('resize', updateButtonState);
+
+    const fixedPlayer = document.getElementById('fixedPlayer');
+    if (fixedPlayer) {
+      const observer = new MutationObserver(updateButtonState);
+      observer.observe(fixedPlayer, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+
+    const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
+    if (nowPlayingWrapper) {
+      const observer = new MutationObserver(updateButtonState);
+      observer.observe(nowPlayingWrapper, { attributes: true, childList: true, subtree: true });
+    }
+
+    updateButtonState();
+  }
+
   const originalFetch = window.fetch.bind(window);
   setStatus('動画リストを読み込んでいます...', false, true);
+  setupBackToTopButton();
 
   window.fetch = (input, init) => {
     const shouldWatch = isVideoListRequest(input);
