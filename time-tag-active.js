@@ -30,10 +30,11 @@
 
   function clearSelectedTime() {
     const sourceButton = getTimeButtons().find(button => getRawLabel(button) === selectedTimeLabel);
-    if (sourceButton) {
-      sourceButton.click();
+    selectedTimeLabel = "";
+
+    if (sourceButton && typeof sourceButton.onclick === "function") {
+      sourceButton.onclick.call(sourceButton, new MouseEvent("click", { bubbles: false }));
     } else {
-      selectedTimeLabel = "";
       requestSync();
     }
   }
