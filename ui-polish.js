@@ -5,6 +5,16 @@
   const desktopResultVisible = document.getElementById("desktopResultVisible");
   const fixedPlayer = document.getElementById("fixedPlayer");
   const nowPlayingWrapper = document.getElementById("nowPlayingWrapper");
+  const COLLAB_TAGS_URL = "https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/collab_tags";
+  const COLLAB_TAG_CONTAINER_IDS = [
+    "modalCollabLiverTags",
+    "modalCollabUnitTags",
+    "desktopCollabLiverTags",
+    "desktopCollabUnitTags"
+  ];
+  const collabTagOrder = new Map();
+  const collabTagObservers = new Map();
+  let isSortingCollabTags = false;
 
   function syncDesktopResultCount() {
     if (!songCount || !desktopResultCount || !desktopResultTotal || !desktopResultVisible) return;
@@ -43,6 +53,103 @@
       .split(",")
       .map(v => v.trim())
       .filter(Boolean);
+  }
+
+  function getCollabButtonLabel(button) {
+    return String(button.textContent || "").trim();
+  }
+
+  function getCollabSortInfo(button) {
+    const label = getCollabButtonLabel(button);
+    const info = collabTagOrder.get(label);
+
+    return {
+      label,
+      sortOrder: info?.sortOrder ?? Number.MAX_SAFE_INTEGER,
+      kana: info?.kana || "",
+      originalIndex: Number(button.dataset.collabSortOriginalIndex || 0)
+    };
+  }
+
+  function sortCollabTagContainer(container) {
+    if (!container || isSortingCollabTags) return;
+
+    const buttons = [...container.children].filter(child => child.tagName === "BUTTON");
+    if (buttons.length <= 1) return;
+
+    buttons.forEach((button, index) => {
+      if (!button.dataset.collabSortOriginalIndex) {
+        button.dataset.collabSortOriginalIndex = String(index);
+      }
+    });
+
+    const sorted = [...buttons].sort((a, b) => {
+      const tagA = getCollabSortInfo(a);
+      const tagB = getCollabSortInfo(b);
+
+      if (tagA.sortOrder !== tagB.sortOrder) {
+        return tagA.sortOrder - tagB.sortOrder;
+      }
+
+      if (tagA.sortOrder === Number.MAX_SAFE_INTEGER) {
+        return tagA.originalIndex - tagB.originalIndex;
+      }
+
+      const kanaCompare = tagA.kana.localeCompare(tagB.kana, "ja");
+      if (kanaCompare !== 0) return kanaCompare;
+
+      return tagA.label.localeCompare(tagB.label, "ja");
+    });
+
+    const changed = sorted.some((button, index) => button !== buttons[index]);
+    if (!changed) return;
+
+    isSortingCollabTags = true;
+    sorted.forEach(button => container.appendChild(button));
+    isSortingCollabTags = false;
+  }
+
+  function sortAllCollabTagContainers() {
+    COLLAB_TAG_CONTAINER_IDS.forEach(id => {
+      sortCollabTagContainer(document.getElementById(id));
+    });
+  }
+
+  function observeCollabTagContainers() {
+    COLLAB_TAG_CONTAINER_IDS.forEach(id => {
+      const container = document.getElementById(id);
+      if (!container || collabTagObservers.has(container)) return;
+
+      const observer = new MutationObserver(() => {
+        if (!isSortingCollabTags) sortCollabTagContainer(container);
+      });
+      observer.observe(container, { childList: true });
+      collabTagObservers.set(container, observer);
+      sortCollabTagContainer(container);
+    });
+  }
+
+  function loadCollabTagOrder() {
+    fetch(COLLAB_TAGS_URL)
+      .then(response => response.ok ? response.json() : [])
+      .then(rows => {
+        rows.forEach(row => {
+          const tagName = String(row.tag_name || "").trim();
+          if (!tagName) return;
+
+          const sortOrder = Number(row.sort_order);
+          collabTagOrder.set(tagName, {
+            sortOrder: Number.isFinite(sortOrder) ? sortOrder : Number.MAX_SAFE_INTEGER,
+            kana: String(row.kana || "").trim(),
+            type: String(row.type || "").trim()
+          });
+        });
+
+        sortAllCollabTagContainers();
+      })
+      .catch(() => {
+        // collab_tags が読めない場合は、元の表示順のまま使う。
+      });
   }
 
   function compactCollabMembers(videos) {
@@ -117,6 +224,8 @@
 
   syncDesktopResultCount();
   syncPlayerControlsVisibility();
+  observeCollabTagContainers();
+  loadCollabTagOrder();
   wrapRenderVideoList();
 
   if (songCount) {
