@@ -23,7 +23,7 @@
     platform: new Set(["youtube", "tiktok"]),
     date: new Set(Object.values(dateLabelToValue)),
     format: new Set(),
-    role: new Set(),
+    role: new Set(["VOCAL", "DANCE", "CHORUS", "MOVIE", "ILLUSTRATION", "PIANO", "EUPHONIUM", "KALIMBA"]),
     collab: new Set(),
     flag: new Set(["3D", "Shorts"])
   };
@@ -136,6 +136,36 @@
     });
   }
 
+  function hasClassPart(button, part) {
+    return [...button.classList].some(className => className.includes(part));
+  }
+
+  function inferCardButtonInfo(button, label) {
+    const lowerLabel = label.toLowerCase();
+
+    if (knownTags.flag.has(label)) return { kind: "flag", label };
+    if (knownTags.category.has(label)) return { kind: "category", label };
+    if (knownTags.platform.has(lowerLabel)) return { kind: "platform", label: lowerLabel };
+    if (knownTags.date.has(dateLabelToValue[label] || label)) return { kind: "date", label: dateLabelToValue[label] || label };
+    if (knownTags.role.has(label)) return { kind: "role", label };
+    if (knownTags.format.has(label)) return { kind: "format", label };
+    if (knownTags.collab.has(label)) return { kind: "collab", label };
+
+    if (hasClassPart(button, "pink-")) return { kind: "format", label };
+    if (
+      hasClassPart(button, "rose-") ||
+      hasClassPart(button, "orange-") ||
+      hasClassPart(button, "amber-") ||
+      hasClassPart(button, "lime-") ||
+      hasClassPart(button, "cyan-") ||
+      hasClassPart(button, "sky-")
+    ) {
+      return { kind: "role", label };
+    }
+
+    return { kind: "collab", label };
+  }
+
   function findButtonInfo(button) {
     refreshKnownTags();
 
@@ -150,15 +180,7 @@
 
     if (!button.closest("#videoList")) return null;
 
-    if (knownTags.flag.has(label)) return { kind: "flag", label };
-    if (knownTags.category.has(label)) return { kind: "category", label };
-    if (knownTags.platform.has(label.toLowerCase())) return { kind: "platform", label: label.toLowerCase() };
-    if (knownTags.date.has(dateLabelToValue[label] || label)) return { kind: "date", label: dateLabelToValue[label] || label };
-    if (knownTags.format.has(label)) return { kind: "format", label };
-    if (knownTags.role.has(label)) return { kind: "role", label };
-    if (knownTags.collab.has(label)) return { kind: "collab", label };
-
-    return null;
+    return inferCardButtonInfo(button, label);
   }
 
   function isIncludedButton(button) {
