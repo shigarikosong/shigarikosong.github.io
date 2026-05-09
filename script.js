@@ -109,6 +109,20 @@ function toggleVideoTypeTag(type) {
   activeTagChipsInner.innerHTML = '';
 
   const activeTags = [];
+const dateTagLabels = {
+  recent: "最近",
+  year: "1年以内",
+  old: "1年以上前"
+};
+
+if (selectedDateTag) {
+  activeTags.push({
+    label: dateTagLabels[selectedDateTag] || selectedDateTag,
+    type: "include",
+    source: "date",
+    value: selectedDateTag
+  });
+}
 
 // アクティブ状態のタグを収集
 if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
@@ -142,6 +156,14 @@ activeTags.forEach(tagData => {
     
     chip.addEventListener('click', () => {
       // 解除処理
+
+        if (tagData.source === "date") {
+  selectedDateTag = "";
+  renderDateTags();
+  applyFilters();
+  return;
+}
+    
         if (tagData.source === 'videoType') {
         selectedVideoTypeTags.delete(tagData.label);
         applyFilters();
