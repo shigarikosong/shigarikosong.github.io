@@ -229,9 +229,25 @@
     updateButtonState();
   }
 
+  function loadTagExclusionFilter() {
+    if (document.querySelector('script[data-tag-exclusion-filter]')) return;
+
+    const script = document.createElement('script');
+    script.src = './tag-exclusion.js?v=1';
+    script.defer = true;
+    script.dataset.tagExclusionFilter = 'true';
+    document.body.appendChild(script);
+  }
+
   const originalFetch = window.fetch.bind(window);
   setStatus('動画リストを読み込んでいます...', false, true);
   setupBackToTopButton();
+
+  if (document.readyState === 'complete') {
+    loadTagExclusionFilter();
+  } else {
+    window.addEventListener('load', loadTagExclusionFilter, { once: true });
+  }
 
   window.fetch = (input, init) => {
     const shouldWatch = isVideoListRequest(input);
