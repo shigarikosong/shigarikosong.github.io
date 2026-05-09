@@ -15,27 +15,43 @@
       background: transparent !important;
       border-top: 0 !important;
       box-shadow: none !important;
-      transition: transform 0.22s ease;
       pointer-events: none;
     }
 
     #fixedPlayer > div {
       padding: 8px 12px 10px !important;
       pointer-events: auto;
+      transition: padding 0.22s ease;
     }
 
     #fixedPlayer.is-collapsed {
-      transform: translateY(calc(100% + 32px));
       pointer-events: none;
     }
 
     #fixedPlayer.is-collapsed > div {
+      padding: 0 12px !important;
       pointer-events: none;
+    }
+
+    #fixedPlayer.is-collapsed #playerFrameWrapper {
+      height: 0 !important;
+      min-height: 0 !important;
+      opacity: 0;
+      visibility: hidden;
+      overflow: hidden;
+      pointer-events: none;
+      box-shadow: none;
+    }
+
+    #fixedPlayer.is-collapsed .player-window-actions {
+      top: -36px;
+      pointer-events: auto;
     }
 
     #playerFrameWrapper {
       border-radius: 10px;
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.24);
+      transition: height 0.22s ease, opacity 0.18s ease, box-shadow 0.18s ease;
     }
 
     .player-window-actions {
@@ -120,9 +136,6 @@
   collapseButton.id = "collapsePlayerBtn";
   collapseButton.type = "button";
   collapseButton.className = "player-window-button";
-  collapseButton.textContent = "▼";
-  collapseButton.title = "小さくする";
-  collapseButton.setAttribute("aria-label", "プレイヤーを小さくする");
 
   closeButton.className = "player-window-icon-button";
   closeButton.type = "button";
@@ -131,21 +144,6 @@
   actions.appendChild(collapseButton);
   actions.appendChild(closeButton);
   fixedPlayerInner.prepend(actions);
-
-  const restoreButton = document.createElement("button");
-  restoreButton.id = "restorePlayerBtn";
-  restoreButton.type = "button";
-  restoreButton.className = "bg-blue-500 text-white px-3 py-1 rounded text-sm hidden";
-  restoreButton.textContent = "開く";
-  playerControls.prepend(restoreButton);
-
-  const stopButton = document.createElement("button");
-  stopButton.id = "stopPlayerBtn";
-  stopButton.type = "button";
-  stopButton.className = "bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm";
-  stopButton.textContent = "閉じる";
-  const randomAutoPlayButton = document.getElementById("randomAutoPlayBtn");
-  playerControls.insertBefore(stopButton, randomAutoPlayButton || null);
 
   if (playerFrameWrapper) {
     playerFrameWrapper.classList.remove("shadow-lg");
@@ -161,8 +159,12 @@
 
   function syncButtons() {
     const collapsed = isCollapsed();
-    restoreButton.classList.toggle("hidden", !collapsed);
-    collapseButton.classList.toggle("hidden", collapsed);
+    collapseButton.textContent = collapsed ? "▲" : "▼";
+    collapseButton.title = collapsed ? "開く" : "小さくする";
+    collapseButton.setAttribute(
+      "aria-label",
+      collapsed ? "プレイヤーを開く" : "プレイヤーを小さくする"
+    );
   }
 
   function setMiniBarPadding() {
@@ -207,6 +209,14 @@
     readjustExpandedPlayer();
   }
 
+  function togglePlayerSize() {
+    if (isCollapsed()) {
+      restorePlayer();
+    } else {
+      collapsePlayer();
+    }
+  }
+
   function hideMiniBar() {
     fixedPlayer.classList.remove("is-collapsed");
     nowPlayingWrapper.classList.add("hidden");
@@ -214,14 +224,7 @@
     syncButtons();
   }
 
-  function stopPlayer() {
-    closeButton.click();
-    hideMiniBar();
-  }
-
-  collapseButton.addEventListener("click", collapsePlayer);
-  restoreButton.addEventListener("click", restorePlayer);
-  stopButton.addEventListener("click", stopPlayer);
+  collapseButton.addEventListener("click", togglePlayerSize);
   closeButton.addEventListener("click", hideMiniBar);
 
   const observer = new MutationObserver(showMiniBarIfPlaying);
