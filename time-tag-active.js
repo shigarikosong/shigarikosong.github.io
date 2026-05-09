@@ -28,6 +28,16 @@
     button.classList.toggle("text-green-700", !active);
   }
 
+  function clearSelectedTime() {
+    const sourceButton = getTimeButtons().find(button => getRawLabel(button) === selectedTimeLabel);
+    if (sourceButton) {
+      sourceButton.click();
+    } else {
+      selectedTimeLabel = "";
+      requestSync();
+    }
+  }
+
   function syncTimeButtons() {
     getTimeButtons().forEach(button => {
       setIncludedStyle(button, getRawLabel(button) === selectedTimeLabel);
@@ -50,14 +60,10 @@
     chip.className = `${TIME_CHIP_CLASS} shrink-0 border border-green-300 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs hover:bg-green-100 transition`;
     chip.textContent = selectedTimeLabel;
     chip.setAttribute("aria-label", `${selectedTimeLabel}の絞り込みを解除`);
-    chip.addEventListener("click", () => {
-      const sourceButton = getTimeButtons().find(button => getRawLabel(button) === selectedTimeLabel);
-      if (sourceButton) {
-        sourceButton.click();
-      } else {
-        selectedTimeLabel = "";
-        requestSync();
-      }
+    chip.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      clearSelectedTime();
     });
 
     activeTagChipsInner.appendChild(chip);
@@ -78,6 +84,13 @@
   document.addEventListener("click", event => {
     const button = event.target.closest("button");
     if (!button) return;
+
+    if (button.classList.contains(TIME_CHIP_CLASS)) {
+      event.preventDefault();
+      event.stopPropagation();
+      clearSelectedTime();
+      return;
+    }
 
     if (button.closest("#resetFilters, #modalResetBtn")) {
       selectedTimeLabel = "";
