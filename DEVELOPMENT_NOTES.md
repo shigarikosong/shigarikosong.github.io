@@ -197,3 +197,28 @@ PCブラウザではTikTok埋め込み自体が不安定なことがある。
 - `waku_name`
 
 列名を変えるとコードが動かなくなる可能性がある。
+
+## テスト環境
+
+本番URL:
+
+- https://shigarikosong.github.io/
+
+検証用URL:
+
+- https://shigarikosong-github-io.pages.dev/
+
+今後は main にマージする前に、Cloudflare Pages の Preview Deployment で動作確認する。
+
+確認項目:
+
+- 動画一覧が読み込まれる
+- 検索できる
+- 各タグで絞り込みできる
+- タグの含める / 除外が想定通り動く
+- リセットが効く
+- ランダム再生できる
+- YouTube の開始秒 `start` が反映される
+- TikTok 埋め込みが表示される
+- スマホ表示でモーダルが動く
+- プレイヤーの開閉・高さ変更が壊れていない
