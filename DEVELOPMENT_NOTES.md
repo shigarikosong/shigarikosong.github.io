@@ -1,12 +1,70 @@
-# 開発メモ
+# DEVELOPMENT_NOTES
 
-## 重要ルール
+このサイトは、司賀りこさんの歌・踊り・歌枠などをまとめる非公式ファンサイトです。
 
-- フィルター状態は `filterState` のみを正とする
-- DOMのclass名やtextContentから状態を推測しない
-- タグボタンには必ず `data-filter-group` と `data-filter-value` を付ける
-- 絞り込み判定は `videoMatchesFilters(video, filterState)` に集約する
-- PC/モバイル/カード上タグは同じ状態を描画するだけ
-- `applyFilters()` を別ファイルから上書きしない
-- `renderVideoList()` を別ファイルから上書きしない
-- 新機能はまず小さい関数に分け、既存挙動を変えないPRにする
+## 開発方針
+
+- 既存の表示・再生挙動を壊さないことを最優先にする
+- 大きな変更は一度にしない
+- タグ・フィルター周りの変更は、必ず状態管理とUI表示の両方を確認する
+- DOMの見た目やclass名だけを頼りに挙動を判断しない
+- `textContent` や CSS class からタグ種別を推測する実装はなるべく増やさない
+- 補助スクリプトで関数を後から上書きする実装はなるべく増やさない
+
+## 今後の理想
+
+タグ・フィルター状態は、将来的に1か所で管理したい。
+
+例：
+
+- 検索語
+- ソート順
+- 含めるタグ
+- 除外するタグ
+- カテゴリ
+- Platform
+- Time
+- Format
+- Riko Part
+- Collab
+
+をまとめて管理する。
+
+## 触るときの注意
+
+以下の関数・変数はタグや表示に深く関係しているため、変更時は要注意。
+
+- `applyFilters`
+- `renderVideoList`
+- `renderActiveTagChips`
+- `loadVideo`
+- `selectedCategoryTag`
+- `selectedDateTag`
+- `selectedCollabTag`
+- `selectedRoleTag`
+- `selectedPlatformTag`
+- `selected3DTag`
+- `selectedShortsTag`
+- `selectedVideoTypeTags`
+
+## 補助スクリプトについて
+
+現在、以下の補助スクリプトがタグ・フィルター周りに関係している。
+
+- `mobile-filter-modal.js`
+- `desktop-filter-panel.js`
+- `tag-exclusion.js`
+- `time-tag-active.js`
+- `playing-scroll-position.js`
+- `filter-scroll-position.js`
+
+特に `tag-exclusion.js` と `time-tag-active.js` は、タグ状態や見た目を後から補正しているため、今後は本体のフィルター処理に統合したい。
+
+## 今後Codex/ChatGPTに依頼するときのルール
+
+- まずこの `DEVELOPMENT_NOTES.md` を読ませる
+- いきなり全体整理を頼まない
+- 「タグ周りだけ」「再生周りだけ」のように範囲を限定する
+- 変更前に、どのファイルを触る予定か説明してもらう
+- `applyFilters` や `renderVideoList` を上書きする新しい補助JSを追加しない方針で進める
+- 挙動変更とリファクタリングを同時にしない
