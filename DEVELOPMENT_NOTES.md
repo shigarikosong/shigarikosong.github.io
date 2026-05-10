@@ -68,3 +68,51 @@
 - 変更前に、どのファイルを触る予定か説明してもらう
 - `applyFilters` や `renderVideoList` を上書きする新しい補助JSを追加しない方針で進める
 - 挙動変更とリファクタリングを同時にしない
+
+
+## 現在のタグ仕様メモ
+
+### Style
+
+- ソロ
+- コラボ
+- あやかき
+
+### Platform
+
+- youtube
+- tiktok
+
+### Time
+
+- 最近
+- 1年以内
+- 1年以上前
+
+### Format
+
+- 3D
+- Shorts
+- 歌枠
+- ライブ
+- Full
+- ハイライト
+- アカペラ
+- 企画
+- 比較
+
+### Riko Part
+
+- VOCAL
+- DANCE
+- CHORUS
+- MOVIE
+- ILLUSTRATION
+- PIANO
+- EUPHONIUM
+- KALIMBA
+
+### Collab
+
+コラボライバーとコラボユニットがある。
+スプレッドシートではカンマ区切りで複数指定する。
