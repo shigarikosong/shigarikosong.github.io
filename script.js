@@ -707,7 +707,9 @@ function renderPlatformTags() {
         ? 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs'
         : 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs';
 
-      btn.textContent = p;
+        btn.textContent = p;
+        btn.dataset.filterGroup = "platform";
+        btn.dataset.filterValue = p;
 
       btn.onclick = () => {
         selectedPlatformTag = selectedPlatformTag === p ? "" : p;
@@ -737,7 +739,9 @@ function renderPlatformTags() {
         ? 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs'
         : 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs';
 
-      btn.textContent = category;
+        btn.textContent = category;
+        btn.dataset.filterGroup = "category";
+        btn.dataset.filterValue = category;
 
       btn.onclick = () => {
         selectedCategoryTag = selectedCategoryTag === category ? "" : category;
@@ -777,7 +781,9 @@ function renderDateTags() {
         ? 'bg-green-600 text-white px-3 py-1 rounded-full text-xs'
         : 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs';
 
-      btn.textContent = opt.label;
+        btn.textContent = opt.label;
+        btn.dataset.filterGroup = "time";
+        btn.dataset.filterValue = opt.value;
 
       btn.onclick = () => {
         selectedDateTag = selectedDateTag === opt.value ? "" : opt.value;
