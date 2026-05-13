@@ -91,7 +91,7 @@
       inactive: 'bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs'
     },
     role: {
-      active: 'bg-yellow-400 text-yellow-950 px-3 py-1 rounded-full text-xs',
+      active: 'bg-yellow-400 text-white px-3 py-1 rounded-full text-xs',
       inactive: 'bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs'
     },
     collabLiver: {
