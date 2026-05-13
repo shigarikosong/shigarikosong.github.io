@@ -141,23 +141,38 @@
     formatTags.innerHTML = "";
     values.forEach((value, index) => {
       if (value === "3D") {
-        formatTags.appendChild(createButton(value, selected3DTag === "include", "pink", () => {
+        const button = createButton(value, selected3DTag === "include", "pink", () => {
           selected3DTag = toggleTagState(selected3DTag);
           applyFilters();
           renderFormatTags();
-        }));
+        });
+
+        button.dataset.filterGroup = "format";
+        button.dataset.filterValue = value;
+
+        formatTags.appendChild(button);
       } else if (value === "Shorts") {
-        formatTags.appendChild(createButton(value, selectedShortsTag === "include", "pink", () => {
+        const button = createButton(value, selectedShortsTag === "include", "pink", () => {
           selectedShortsTag = toggleTagState(selectedShortsTag);
           applyFilters();
           renderFormatTags();
-        }));
+        });
+
+        button.dataset.filterGroup = "format";
+        button.dataset.filterValue = value;
+
+        formatTags.appendChild(button);
       } else {
-        formatTags.appendChild(createButton(value, selectedVideoTypeTags.has(value), "pink", () => {
+        const button = createButton(value, selectedVideoTypeTags.has(value), "pink", () => {
           toggleVideoTypeTag(value);
           applyFilters();
           renderFormatTags();
-        }));
+        });
+
+        button.dataset.filterGroup = "format";
+        button.dataset.filterValue = value;
+
+        formatTags.appendChild(button);
       }
 
       appendWrap(formatTags, index, 3);
@@ -171,11 +186,16 @@
     roleTags.innerHTML = "";
 
     values.forEach((value, index) => {
-      roleTags.appendChild(createButton(value, selectedRoleTag === value, "yellow", () => {
+      const button = createButton(value, selectedRoleTag === value, "yellow", () => {
         selectedRoleTag = selectedRoleTag === value ? "" : value;
         applyFilters();
         renderRoleTags();
-      }));
+      });
+
+      button.dataset.filterGroup = "role";
+      button.dataset.filterValue = value;
+
+      roleTags.appendChild(button);
 
       appendWrap(roleTags, index, 4);
     });
@@ -186,11 +206,16 @@
 
     container.innerHTML = "";
     values.sort((a, b) => String(a).localeCompare(String(b), "ja")).forEach(value => {
-      container.appendChild(createButton(value, selectedCollabTag === value, color, () => {
+      const button = createButton(value, selectedCollabTag === value, color, () => {
         selectedCollabTag = selectedCollabTag === value ? "" : value;
         applyFilters();
         renderCollabTags();
-      }));
+      });
+
+      button.dataset.filterGroup = "collab";
+      button.dataset.filterValue = value;
+
+      container.appendChild(button);
     });
   }
 

@@ -180,6 +180,8 @@
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = format;
+      button.dataset.filterGroup = "format";
+      button.dataset.filterValue = format;
 
       const is3D = format === "3D";
       const isShorts = format === "Shorts";
@@ -250,6 +252,8 @@
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = role;
+      button.dataset.filterGroup = "role";
+      button.dataset.filterValue = role;
 
       const isActive = selectedRoleTag === role;
       button.className = isActive
@@ -284,6 +288,8 @@
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = value;
+      button.dataset.filterGroup = "collab";
+      button.dataset.filterValue = value;
 
       const isActive = selectedCollabTag === value;
       button.className = getCollabButtonClass(isActive);

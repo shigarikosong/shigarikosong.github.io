@@ -1,6 +1,11 @@
 (() => {
   const TIME_CHIP_CLASS = "time-active-chip";
   const dateLabels = ["最近", "1年以内", "1年以上前"];
+  const dateValueToLabel = {
+    recent: "最近",
+    year: "1年以内",
+    old: "1年以上前"
+  };
   let selectedTimeLabel = "";
   let syncFrame = null;
 
@@ -10,7 +15,20 @@
       .trim();
   }
 
+  function getTimeValue(button) {
+    if (button?.dataset?.filterGroup === "time" && button.dataset.filterValue) {
+      return button.dataset.filterValue;
+    }
+
+    return getRawLabel(button);
+  }
+
+  function getDisplayLabel(value) {
+    return dateValueToLabel[value] || value;
+  }
+
   function isTimeButton(button) {
+    if (button?.dataset?.filterGroup === "time") return true;
     return button?.closest?.("#modalDateTags, #desktopDateTags") && dateLabels.includes(getRawLabel(button));
   }
 
@@ -29,7 +47,7 @@
   }
 
   function clearSelectedTime() {
-    const sourceButton = getTimeButtons().find(button => getRawLabel(button) === selectedTimeLabel);
+    const sourceButton = getTimeButtons().find(button => getTimeValue(button) === selectedTimeLabel);
     selectedTimeLabel = "";
 
     if (sourceButton && typeof sourceButton.onclick === "function") {
@@ -41,7 +59,7 @@
 
   function syncTimeButtons() {
     getTimeButtons().forEach(button => {
-      setIncludedStyle(button, getRawLabel(button) === selectedTimeLabel);
+      setIncludedStyle(button, getTimeValue(button) === selectedTimeLabel);
     });
   }
 
@@ -56,11 +74,12 @@
 
     if (!selectedTimeLabel) return;
 
+    const displayLabel = getDisplayLabel(selectedTimeLabel);
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = `${TIME_CHIP_CLASS} shrink-0 border border-green-300 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs hover:bg-green-100 transition`;
-    chip.textContent = selectedTimeLabel;
-    chip.setAttribute("aria-label", `${selectedTimeLabel}の絞り込みを解除`);
+    chip.textContent = displayLabel;
+    chip.setAttribute("aria-label", `${displayLabel}の絞り込みを解除`);
 
     activeTagChipsInner.appendChild(chip);
     activeTagChips.classList.remove("hidden");
@@ -88,7 +107,7 @@
       return;
     }
 
-    if (button.closest("#resetFilters, #modalResetBtn")) {
+    if (button.closest("#resetFilters, #modalResetBtn, #resetModalFilters")) {
       selectedTimeLabel = "";
       setTimeout(requestSync, 0);
       return;
@@ -96,7 +115,7 @@
 
     if (!isTimeButton(button)) return;
 
-    const label = getRawLabel(button);
+    const label = getTimeValue(button);
     if (button.classList.contains("tag-exclusion-active")) {
       selectedTimeLabel = "";
     } else {
