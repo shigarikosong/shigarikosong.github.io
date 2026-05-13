@@ -279,8 +279,8 @@
     if (formats.some(tag => excludedTags.format.has(tag))) return false;
     if (roles.some(tag => excludedTags.role.has(tag))) return false;
     if (collabs.some(tag => excludedTags.collab.has(tag))) return false;
-    if (video?.["3D"] === "TRUE" && excludedTags.flag.has("3D")) return false;
-    if (video?.Shorts === "TRUE" && excludedTags.flag.has("Shorts")) return false;
+    if (video?.["3D"] === "TRUE" && (excludedTags.flag.has("3D") || excludedTags.format.has("3D"))) return false;
+    if (video?.Shorts === "TRUE" && (excludedTags.flag.has("Shorts") || excludedTags.format.has("Shorts"))) return false;
 
     return true;
   }
