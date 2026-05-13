@@ -140,18 +140,18 @@
 
     formatTags.innerHTML = "";
     values.forEach((value, index) => {
-      if (value === "3D") {
-        
-  const button = createButton(value, selected3DTag === "include", "pink", () => {
-    selected3DTag = toggleTagState(selected3DTag);
-    applyFilters();
-  renderFormatTags();
-});
 
-button.dataset.filterGroup = "format";
-button.dataset.filterValue = value;
+  if (value === "3D") {  
+    const button = createButton(value, selected3DTag === "include", "pink", () => {
+      selected3DTag = toggleTagState(selected3DTag);
+      applyFilters();
+      renderFormatTags();
+    });
 
-formatTags.appendChild(button);
+    button.dataset.filterGroup = "format";
+    button.dataset.filterValue = value;
+
+    formatTags.appendChild(button);
         
       } else if (value === "Shorts") {
         
