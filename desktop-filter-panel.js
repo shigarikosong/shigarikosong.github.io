@@ -140,43 +140,39 @@
 
     formatTags.innerHTML = "";
     values.forEach((value, index) => {
+      if (value === "3D") {
+        const button = createButton(value, selected3DTag === "include", "pink", () => {
+          selected3DTag = toggleTagState(selected3DTag);
+          applyFilters();
+          renderFormatTags();
+        });
 
-  if (value === "3D") {  
-    const button = createButton(value, selected3DTag === "include", "pink", () => {
-      selected3DTag = toggleTagState(selected3DTag);
-      applyFilters();
-      renderFormatTags();
-    });
+        button.dataset.filterGroup = "format";
+        button.dataset.filterValue = value;
 
-    button.dataset.filterGroup = "format";
-    button.dataset.filterValue = value;
-
-    formatTags.appendChild(button);
-        
+        formatTags.appendChild(button);
       } else if (value === "Shorts") {
-        
-const button = createButton(value, selectedShortsTag === "include", "pink", () => {
-  selectedShortsTag = toggleTagState(selectedShortsTag);
-  applyFilters();
-  renderFormatTags();
-});
+        const button = createButton(value, selectedShortsTag === "include", "pink", () => {
+          selectedShortsTag = toggleTagState(selectedShortsTag);
+          applyFilters();
+          renderFormatTags();
+        });
 
-button.dataset.filterGroup = "format";
-button.dataset.filterValue = value;
+        button.dataset.filterGroup = "format";
+        button.dataset.filterValue = value;
 
-formatTags.appendChild(button);
-        
+        formatTags.appendChild(button);
       } else {
         const button = createButton(value, selectedVideoTypeTags.has(value), "pink", () => {
-  toggleVideoTypeTag(value);
-  applyFilters();
-  renderFormatTags();
-});
+          toggleVideoTypeTag(value);
+          applyFilters();
+          renderFormatTags();
+        });
 
-button.dataset.filterGroup = "format";
-button.dataset.filterValue = value;
+        button.dataset.filterGroup = "format";
+        button.dataset.filterValue = value;
 
-formatTags.appendChild(button);
+        formatTags.appendChild(button);
       }
 
       appendWrap(formatTags, index, 3);
@@ -190,17 +186,16 @@ formatTags.appendChild(button);
     roleTags.innerHTML = "";
 
     values.forEach((value, index) => {
-   const button = createButton(value, selectedRoleTag === value, "yellow", () => {
-     
-  selectedRoleTag = selectedRoleTag === value ? "" : value;
-  applyFilters();
-  renderRoleTags();
-});
+      const button = createButton(value, selectedRoleTag === value, "yellow", () => {
+        selectedRoleTag = selectedRoleTag === value ? "" : value;
+        applyFilters();
+        renderRoleTags();
+      });
 
-button.dataset.filterGroup = "role";
-button.dataset.filterValue = value;
+      button.dataset.filterGroup = "role";
+      button.dataset.filterValue = value;
 
-roleTags.appendChild(button);
+      roleTags.appendChild(button);
 
       appendWrap(roleTags, index, 4);
     });
@@ -212,15 +207,15 @@ roleTags.appendChild(button);
     container.innerHTML = "";
     values.sort((a, b) => String(a).localeCompare(String(b), "ja")).forEach(value => {
       const button = createButton(value, selectedCollabTag === value, color, () => {
-  selectedCollabTag = selectedCollabTag === value ? "" : value;
-  applyFilters();
-  renderCollabTags();
-});
+        selectedCollabTag = selectedCollabTag === value ? "" : value;
+        applyFilters();
+        renderCollabTags();
+      });
 
-button.dataset.filterGroup = "collab";
-button.dataset.filterValue = value;
+      button.dataset.filterGroup = "collab";
+      button.dataset.filterValue = value;
 
-container.appendChild(button);
+      container.appendChild(button);
     });
   }
 
