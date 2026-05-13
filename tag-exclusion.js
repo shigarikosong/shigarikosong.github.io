@@ -121,6 +121,10 @@
     return value;
   }
 
+  function normalizeFilterGroup(group) {
+    return group === "time" ? "date" : group;
+  }
+
   function getRawButtonLabel(button) {
     return String(button.dataset.tagExclusionLabel || button.textContent || "")
       .replace(/^[-−]\s*/, "")
@@ -222,6 +226,12 @@
 
     const label = getRawButtonLabel(button);
     if (!label || button.closest("#activeTagChips, #mobileModalActiveChips")) return null;
+
+    const dataKind = normalizeFilterGroup(button.dataset.filterGroup);
+    const dataValue = button.dataset.filterValue;
+    if (dataKind && dataValue && excludedTags[dataKind]) {
+      return { kind: dataKind, label: normalizeLabel(dataKind, dataValue) };
+    }
 
     const container = button.closest(Object.keys(containerKindMap).map(id => `#${id}`).join(","));
     if (container) {
@@ -517,7 +527,7 @@
   }
 
   function handleResetClick(event) {
-    const button = event.target.closest("#resetFilters, #modalResetBtn");
+    const button = event.target.closest("#resetFilters, #modalResetBtn, #resetModalFilters");
     if (!button) return;
 
     window.setTimeout(() => {
