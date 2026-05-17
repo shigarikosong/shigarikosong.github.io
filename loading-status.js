@@ -2,7 +2,7 @@
   const videoList = document.getElementById('videoList');
   if (!videoList || !window.fetch) return;
 
-  const errorMessage = '動画リストを読み込めませんでした。\n時間をおいて再読み込みしてください。';
+  const errorMessage = 'データの読み込みに失敗しました。\n時間をおいて再読み込みしてください。';
 
   const style = document.createElement('style');
   style.textContent = `
@@ -107,14 +107,35 @@
     return url.includes('シート1') || url.includes('%E3%82%B7%E3%83%BC%E3%83%881');
   }
 
-  function validateVideoListData(data) {
-    if (!Array.isArray(data) || data.length === 0) {
-      throw new Error('動画リストのデータが空です');
+  function getRequestUrl(input) {
+    return String(input?.url || input || '');
+  }
+
+  function isOpenSheetRequest(input) {
+    return getRequestUrl(input).includes('opensheet.elk.sh');
+  }
+
+  function createEmptyArrayResponse() {
+    return new Response('[]', {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  function normalizeOpenSheetData(data, url, shouldWatch) {
+    if (!Array.isArray(data)) {
+      console.error('opensheet response was not an array', { url, data });
+      if (shouldWatch) setStatus(errorMessage, true, true);
+      return [];
     }
 
     if (data.some(video => !video || !video.title || !video.videoId)) {
-      throw new Error('動画リストに必要な項目が見つかりません');
+      console.error('opensheet video list is missing required fields', { url });
+      if (shouldWatch) setStatus(errorMessage, true, true);
+      return [];
     }
+
+    return data;
   }
 
   function setupBackToTopButton() {
@@ -244,6 +265,50 @@
     loadScriptOnce('./time-tag-active.js?v=4', 'time-tag-active');
   }
 
+  function installArrayGuards(retries = 20) {
+    let installed = false;
+
+    if (typeof window.populateFilters === 'function' && !window.populateFilters.isArrayGuarded) {
+      const originalPopulateFilters = window.populateFilters;
+      window.populateFilters = function guardedPopulateFilters(videos) {
+        if (!Array.isArray(videos)) {
+          console.error('populateFilters expected an array', { videos });
+          videos = [];
+        }
+        return originalPopulateFilters(videos);
+      };
+      window.populateFilters.isArrayGuarded = true;
+      installed = true;
+    }
+
+    if (typeof window.renderVideoList === 'function' && !window.renderVideoList.isArrayGuarded) {
+      const originalRenderVideoList = window.renderVideoList;
+      window.renderVideoList = function guardedRenderVideoList(videos) {
+        if (!Array.isArray(videos)) {
+          console.error('renderVideoList expected an array', { videos });
+          videos = [];
+        }
+        return originalRenderVideoList(videos);
+      };
+      window.renderVideoList.isArrayGuarded = true;
+      installed = true;
+    }
+
+    if (typeof window.loadVideo === 'function' && !window.loadVideo.isEmptyGuarded) {
+      const originalLoadVideo = window.loadVideo;
+      window.loadVideo = function guardedLoadVideo(video, item) {
+        if (!video) return;
+        return originalLoadVideo(video, item);
+      };
+      window.loadVideo.isEmptyGuarded = true;
+      installed = true;
+    }
+
+    if (!installed && retries > 0) {
+      window.setTimeout(() => installArrayGuards(retries - 1), 50);
+    }
+  }
+
   const originalFetch = window.fetch.bind(window);
   setStatus('動画リストを読み込んでいます...', false, true);
   setupBackToTopButton();
@@ -256,6 +321,8 @@
 
   window.fetch = (input, init) => {
     const shouldWatch = isVideoListRequest(input);
+    const shouldGuard = isOpenSheetRequest(input);
+    const url = getRequestUrl(input);
 
     if (shouldWatch) {
       setStatus('動画リストを読み込んでいます...', false, true);
@@ -263,11 +330,12 @@
 
     return originalFetch(input, init)
       .then(response => {
-        if (!shouldWatch) return response;
+        if (!shouldGuard) return response;
 
         if (!response.ok) {
-          setStatus(errorMessage, true, true);
-          return response;
+          console.error('opensheet fetch failed', { url, status: response.status });
+          if (shouldWatch) setStatus(errorMessage, true, true);
+          return createEmptyArrayResponse();
         }
 
         return new Proxy(response, {
@@ -275,19 +343,22 @@
             if (prop === 'json') {
               return () => target.json()
                 .then(data => {
-                  validateVideoListData(data);
-                  setStatus(`${data.length}件の動画を準備しています...`);
+                  const rows = normalizeOpenSheetData(data, url, shouldWatch);
 
-                  requestAnimationFrame(() => {
-                    setStatus('リストを表示しています...');
-                  });
+                  if (shouldWatch && rows.length) {
+                    setStatus(`${rows.length}件の動画を準備しています...`);
 
-                  return data;
+                    requestAnimationFrame(() => {
+                      setStatus('リストを表示しています...');
+                    });
+                  }
+
+                  return rows;
                 })
                 .catch(error => {
-                  console.error(error);
-                  setStatus(errorMessage, true, true);
-                  throw error;
+                  console.error('opensheet JSON parse failed', { url, error });
+                  if (shouldWatch) setStatus(errorMessage, true, true);
+                  return [];
                 });
             }
 
@@ -297,11 +368,18 @@
         });
       })
       .catch(error => {
-        if (shouldWatch) {
-          console.error(error);
-          setStatus(errorMessage, true, true);
+        if (shouldGuard) {
+          console.error('opensheet fetch failed', { url, error });
         }
+
+        if (shouldWatch) {
+          setStatus(errorMessage, true, true);
+          return createEmptyArrayResponse();
+        }
+
         throw error;
       });
   };
+
+  installArrayGuards();
 })();
