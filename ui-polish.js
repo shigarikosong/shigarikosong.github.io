@@ -15,6 +15,7 @@
   const collabTagOrder = new Map();
   const collabTagObservers = new Map();
   let isSortingCollabTags = false;
+  const pendingCollabSortContainers = new Set();
 
   function syncDesktopResultCount() {
     if (!songCount || !desktopResultCount || !desktopResultTotal || !desktopResultVisible) return;
@@ -55,8 +56,31 @@
       .filter(Boolean);
   }
 
+  function normalizeCollabTag(value) {
+    return String(value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function getRowValue(row, keys) {
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(row, key)) return row[key];
+
+      const matchedKey = Object.keys(row).find(rowKey => normalizeCollabTag(rowKey) === key);
+      if (matchedKey) return row[matchedKey];
+    }
+
+    return "";
+  }
+
+  function parseSortOrder(value) {
+    const rawValue = String(value ?? "").trim();
+    if (!rawValue) return Number.MAX_SAFE_INTEGER;
+
+    const sortOrder = Number(rawValue);
+    return Number.isFinite(sortOrder) ? sortOrder : Number.MAX_SAFE_INTEGER;
+  }
+
   function getCollabButtonLabel(button) {
-    return String(button.textContent || "").trim();
+    return normalizeCollabTag(button.dataset.filterValue || button.textContent);
   }
 
   function getCollabSortInfo(button) {
@@ -66,8 +90,7 @@
     return {
       label,
       sortOrder: info?.sortOrder ?? Number.MAX_SAFE_INTEGER,
-      kana: info?.kana || "",
-      originalIndex: Number(button.dataset.collabSortOriginalIndex || 0)
+      kana: info?.kana || ""
     };
   }
 
@@ -77,22 +100,12 @@
     const buttons = [...container.children].filter(child => child.tagName === "BUTTON");
     if (buttons.length <= 1) return;
 
-    buttons.forEach((button, index) => {
-      if (!button.dataset.collabSortOriginalIndex) {
-        button.dataset.collabSortOriginalIndex = String(index);
-      }
-    });
-
     const sorted = [...buttons].sort((a, b) => {
       const tagA = getCollabSortInfo(a);
       const tagB = getCollabSortInfo(b);
 
       if (tagA.sortOrder !== tagB.sortOrder) {
         return tagA.sortOrder - tagB.sortOrder;
-      }
-
-      if (tagA.sortOrder === Number.MAX_SAFE_INTEGER) {
-        return tagA.originalIndex - tagB.originalIndex;
       }
 
       const kanaCompare = tagA.kana.localeCompare(tagB.kana, "ja");
@@ -109,6 +122,16 @@
     isSortingCollabTags = false;
   }
 
+  function scheduleSortCollabTagContainer(container) {
+    if (!container || pendingCollabSortContainers.has(container)) return;
+
+    pendingCollabSortContainers.add(container);
+    requestAnimationFrame(() => {
+      pendingCollabSortContainers.delete(container);
+      sortCollabTagContainer(container);
+    });
+  }
+
   function sortAllCollabTagContainers() {
     COLLAB_TAG_CONTAINER_IDS.forEach(id => {
       sortCollabTagContainer(document.getElementById(id));
@@ -121,7 +144,7 @@
       if (!container || collabTagObservers.has(container)) return;
 
       const observer = new MutationObserver(() => {
-        if (!isSortingCollabTags) sortCollabTagContainer(container);
+        if (!isSortingCollabTags) scheduleSortCollabTagContainer(container);
       });
       observer.observe(container, { childList: true });
       collabTagObservers.set(container, observer);
@@ -133,15 +156,16 @@
     fetch(COLLAB_TAGS_URL)
       .then(response => response.ok ? response.json() : [])
       .then(rows => {
+        if (!Array.isArray(rows)) return;
+
         rows.forEach(row => {
-          const tagName = String(row.tag_name || "").trim();
+          const tagName = normalizeCollabTag(getRowValue(row, ["tag_name", "タグ名", "tag", "name"]));
           if (!tagName) return;
 
-          const sortOrder = Number(row.sort_order);
           collabTagOrder.set(tagName, {
-            sortOrder: Number.isFinite(sortOrder) ? sortOrder : Number.MAX_SAFE_INTEGER,
-            kana: String(row.kana || "").trim(),
-            type: String(row.type || "").trim()
+            sortOrder: parseSortOrder(getRowValue(row, ["sort_order", "sort order", "表示順", "並び順", "order"])),
+            kana: normalizeCollabTag(getRowValue(row, ["kana", "かな", "ふりがな", "読み"])),
+            type: normalizeCollabTag(getRowValue(row, ["type", "種別", "区分"]))
           });
         });
 
