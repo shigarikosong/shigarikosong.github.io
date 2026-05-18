@@ -87,11 +87,17 @@
   }
 
   function sortCollabValues(values) {
-    if (typeof window.sortCollabTagValues === "function") {
+    if (window.isCollabTagOrderReady && typeof window.sortCollabTagValues === "function") {
       return window.sortCollabTagValues(values);
     }
 
     return [...values].sort((a, b) => String(a).localeCompare(String(b), "ja"));
+  }
+
+  function sortRenderedCollabTags() {
+    if (window.isCollabTagOrderReady && typeof window.sortRenderedCollabTagContainers === "function") {
+      window.sortRenderedCollabTagContainers();
+    }
   }
 
   function renderSortButtons() {
@@ -217,6 +223,7 @@
   function renderCollabTags() {
     renderCollabGroup(collabLiverTags, getColumnValues("コラボライバー"), "collabLiver");
     renderCollabGroup(collabUnitTags, getColumnValues("コラボユニット"), "collabUnit");
+    sortRenderedCollabTags();
   }
 
   function renderDesktopPanel() {
@@ -255,6 +262,6 @@
   }
 
   window.addEventListener("collabTagOrderReady", () => {
-    if (!panel.classList.contains("hidden")) renderCollabTags();
+    renderCollabTags();
   });
 })();
