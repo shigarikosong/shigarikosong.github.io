@@ -129,9 +129,9 @@
       return [];
     }
 
-    if (data.some(video => !video || !video.title || !video.videoId)) {
+    if (shouldWatch && data.some(video => !video || !video.title || !video.videoId)) {
       console.error('opensheet video list is missing required fields', { url });
-      if (shouldWatch) setStatus(errorMessage, true, true);
+      setStatus(errorMessage, true, true);
       return [];
     }
 

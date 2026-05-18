@@ -16,6 +16,7 @@
   const collabTagObservers = new Map();
   let isSortingCollabTags = false;
   const pendingCollabSortContainers = new Set();
+  let isCollabTagOrderReady = false;
 
   function syncDesktopResultCount() {
     if (!songCount || !desktopResultCount || !desktopResultTotal || !desktopResultVisible) return;
@@ -83,15 +84,65 @@
     return normalizeCollabTag(button.dataset.filterValue || button.textContent);
   }
 
-  function getCollabSortInfo(button) {
-    const label = getCollabButtonLabel(button);
-    const info = collabTagOrder.get(label);
+  function getCollabSortInfoByLabel(label) {
+    const normalizedLabel = normalizeCollabTag(label);
+    const info = collabTagOrder.get(normalizedLabel);
 
     return {
-      label,
+      label: normalizedLabel,
       sortOrder: info?.sortOrder ?? Number.MAX_SAFE_INTEGER,
-      kana: info?.kana || ""
+      kana: info?.kana || "",
+      matched: Boolean(info)
     };
+  }
+
+  function compareCollabLabels(a, b) {
+    const tagA = getCollabSortInfoByLabel(a);
+    const tagB = getCollabSortInfoByLabel(b);
+
+    if (tagA.sortOrder !== tagB.sortOrder) {
+      return tagA.sortOrder - tagB.sortOrder;
+    }
+
+    const kanaCompare = tagA.kana.localeCompare(tagB.kana, "ja");
+    if (kanaCompare !== 0) return kanaCompare;
+
+    return tagA.label.localeCompare(tagB.label, "ja");
+  }
+
+  function sortCollabTagValues(values) {
+    return [...values].sort(compareCollabLabels);
+  }
+
+  function debugCollabTagOrder(values) {
+    const rows = sortCollabTagValues(values).map(value => {
+      const info = getCollabSortInfoByLabel(value);
+      return {
+        tag_name: info.label,
+        sort_order: info.sortOrder === Number.MAX_SAFE_INTEGER ? "" : info.sortOrder,
+        kana: info.kana,
+        matched: info.matched
+      };
+    });
+
+    console.table(rows);
+    return rows;
+  }
+
+  function exposeCollabTagOrder() {
+    window.isCollabTagOrderReady = isCollabTagOrderReady;
+    window.getCollabTagSortInfo = getCollabSortInfoByLabel;
+    window.sortCollabTagValues = sortCollabTagValues;
+    window.debugCollabTagOrder = debugCollabTagOrder;
+  }
+
+  function notifyCollabTagOrderReady() {
+    exposeCollabTagOrder();
+    window.dispatchEvent(new CustomEvent("collabTagOrderReady"));
+  }
+
+  function getCollabSortInfo(button) {
+    return getCollabSortInfoByLabel(getCollabButtonLabel(button));
   }
 
   function sortCollabTagContainer(container) {
@@ -100,19 +151,7 @@
     const buttons = [...container.children].filter(child => child.tagName === "BUTTON");
     if (buttons.length <= 1) return;
 
-    const sorted = [...buttons].sort((a, b) => {
-      const tagA = getCollabSortInfo(a);
-      const tagB = getCollabSortInfo(b);
-
-      if (tagA.sortOrder !== tagB.sortOrder) {
-        return tagA.sortOrder - tagB.sortOrder;
-      }
-
-      const kanaCompare = tagA.kana.localeCompare(tagB.kana, "ja");
-      if (kanaCompare !== 0) return kanaCompare;
-
-      return tagA.label.localeCompare(tagB.label, "ja");
-    });
+    const sorted = [...buttons].sort((a, b) => compareCollabLabels(getCollabButtonLabel(a), getCollabButtonLabel(b)));
 
     const changed = sorted.some((button, index) => button !== buttons[index]);
     if (!changed) return;
@@ -169,6 +208,8 @@
           });
         });
 
+        isCollabTagOrderReady = true;
+        notifyCollabTagOrderReady();
         sortAllCollabTagContainers();
       })
       .catch(() => {
@@ -248,6 +289,7 @@
 
   syncDesktopResultCount();
   syncPlayerControlsVisibility();
+  exposeCollabTagOrder();
   observeCollabTagContainers();
   loadCollabTagOrder();
   wrapRenderVideoList();

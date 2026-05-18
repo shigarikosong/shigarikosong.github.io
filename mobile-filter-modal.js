@@ -153,7 +153,15 @@
         .forEach(value => values.add(value));
     });
 
-    return [...values].sort((a, b) => a.localeCompare(b, "ja"));
+    return sortCollabValues([...values]);
+  }
+
+  function sortCollabValues(values) {
+    if (typeof window.sortCollabTagValues === "function") {
+      return window.sortCollabTagValues(values);
+    }
+
+    return [...values].sort((a, b) => String(a).localeCompare(String(b), "ja"));
   }
 
   function getFormatValues() {
@@ -464,5 +472,9 @@
     renderMobileTagSections();
     applyFiltersAndUpdateCount();
     unlockPageScroll();
+  });
+
+  window.addEventListener("collabTagOrderReady", () => {
+    if (!modal.classList.contains("hidden")) renderCollabTags();
   });
 })();

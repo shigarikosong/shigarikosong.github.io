@@ -99,6 +99,14 @@
     return [...values];
   }
 
+  function sortCollabValues(values) {
+    if (typeof window.sortCollabTagValues === "function") {
+      return window.sortCollabTagValues(values);
+    }
+
+    return [...values].sort((a, b) => String(a).localeCompare(String(b), "ja"));
+  }
+
   function renderSortButtons() {
     if (!sortSelect || !sortButtons) return;
 
@@ -205,7 +213,7 @@
     if (!container) return;
 
     container.innerHTML = "";
-    values.sort((a, b) => String(a).localeCompare(String(b), "ja")).forEach(value => {
+    sortCollabValues(values).forEach(value => {
       const button = createButton(value, selectedCollabTag === value, color, () => {
         selectedCollabTag = selectedCollabTag === value ? "" : value;
         applyFilters();
@@ -258,4 +266,8 @@
     });
     observer.observe(songCount, { childList: true, characterData: true, subtree: true });
   }
+
+  window.addEventListener("collabTagOrderReady", () => {
+    if (!panel.classList.contains("hidden")) renderCollabTags();
+  });
 })();
