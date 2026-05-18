@@ -135,8 +135,7 @@ activeTags.forEach(tagData => {
     const chip = document.createElement('button');
     chip.type = 'button';
 
-    chip.className =
-  'shrink-0 border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+    chip.className = 'tag-button tag-xs tag-active-chip';
 
     chip.textContent = tagData.label;
     
@@ -185,35 +184,39 @@ function escapeHtml(str) {
   }[s]));
 }
 
-function getRoleTagClass(role, isActive = false) {
-  const base = 'px-2.5 py-1 rounded-full text-xs border transition';
+function getTagButtonClass(kind, isActive = false, options = {}) {
+  const classes = ["tag-button", options.size || "tag-xs", kind];
+
+  if (options.valueClass) classes.push(options.valueClass);
+  if (isActive) classes.push(`${kind}-active`);
+
+  return classes.join(" ");
+}
+
+function getStyleTagValueClass(category) {
   const map = {
-    VOCAL: isActive
-      ? 'bg-gray-700 text-white border-gray-700'
-      : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
-    DANCE: isActive
-      ? 'bg-rose-500 text-white border-rose-500'
-      : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100',
-    PIANO: isActive
-      ? 'bg-orange-400 text-white border-orange-400'
-      : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
-    EUPHONIUM: isActive
-      ? 'bg-amber-400 text-white border-amber-400'
-      : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
-    MOVIE: isActive
-      ? 'bg-lime-500 text-white border-lime-500'
-      : 'bg-lime-50 text-lime-700 border-lime-200 hover:bg-lime-100',
-    CHORUS: isActive
-      ? 'bg-sky-500 text-white border-sky-500'
-      : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100',
-    ILLUSTRATION: isActive
-      ? 'bg-cyan-500 text-white border-cyan-500'
-      : 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100',
+    "ソロ": "tag-style-solo",
+    "コラボ": "tag-style-collab",
+    "あやかき": "tag-style-ayakaki"
   };
 
-  return `${base} ${map[role] || (isActive
-    ? 'bg-blue-600 text-white border-blue-600'
-    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100')}`;
+  return map[category] || "tag-style-default";
+}
+
+function getRoleTagClass(role, isActive = false) {
+  const map = {
+    VOCAL: "tag-role-vocal",
+    DANCE: "tag-role-dance",
+    PIANO: "tag-role-piano",
+    EUPHONIUM: "tag-role-euphonium",
+    MOVIE: "tag-role-movie",
+    CHORUS: "tag-role-chorus",
+    ILLUSTRATION: "tag-role-illustration",
+  };
+
+  return getTagButtonClass("tag-role", isActive, {
+    valueClass: map[role] || "tag-role-default"
+  });
 }
 
 
@@ -703,9 +706,7 @@ function renderPlatformTags() {
       const btn = document.createElement('button');
       const isActive = selectedPlatformTag === p;
 
-      btn.className = isActive
-        ? 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs'
-        : 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs';
+      btn.className = getTagButtonClass("tag-platform", isActive, { size: "tag-sm" });
 
         btn.textContent = p;
         btn.dataset.filterGroup = "platform";
@@ -735,9 +736,7 @@ function renderPlatformTags() {
       const btn = document.createElement('button');
       const isActive = selectedCategoryTag === category;
 
-      btn.className = isActive
-        ? 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs'
-        : 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs';
+      btn.className = getTagButtonClass("tag-style", isActive, { size: "tag-sm" });
 
         btn.textContent = category;
         btn.dataset.filterGroup = "category";
@@ -777,9 +776,7 @@ function renderDateTags() {
       const btn = document.createElement('button');
       const isActive = selectedDateTag === opt.value;
 
-      btn.className = isActive
-        ? 'bg-green-600 text-white px-3 py-1 rounded-full text-xs'
-        : 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs';
+      btn.className = getTagButtonClass("tag-time", isActive, { size: "tag-sm" });
 
         btn.textContent = opt.label;
         btn.dataset.filterGroup = "time";
@@ -874,7 +871,7 @@ function parseYmdToTime(raw) {
   const s = String(raw ?? '').trim();
   if (!s) return 0;
 
-  // YYYY[/-.\u5e74]MM[/-.\u6708]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
+  // YYYY[/-. 年]MM[/-. 月]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
   let m = s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);
   if (m) {
     const y = +m[1], mo = +m[2], d = +m[3];
@@ -1014,9 +1011,7 @@ if (
 
       const isTypeActive = selectedVideoTypeTags.has(type);
 
-    tag.className = isTypeActive
-      ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
-      : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+    tag.className = getTagButtonClass("tag-format", isTypeActive);
 
     tag.textContent = type;
 
@@ -1036,22 +1031,9 @@ if (category) {
 
   const isCategoryActive = selectedCategoryTag === category;
 
-  const categoryClassMap = {
-    "ソロ": isCategoryActive
-      ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs'
-      : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100',
-    "コラボ": isCategoryActive
-      ? 'border border-teal-600 text-white bg-teal-600 px-2.5 py-1 rounded-full text-xs'
-      : 'border border-teal-300 text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full text-xs hover:bg-teal-100',
-    "あやかき": isCategoryActive
-      ? 'border border-green-600 text-white bg-green-600 px-2.5 py-1 rounded-full text-xs'
-      : 'border border-green-300 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs hover:bg-green-100'
-  };
-
-  categoryTag.className = categoryClassMap[category] ||
-    (isCategoryActive
-      ? 'border border-gray-600 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs'
-      : 'border border-gray-300 text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100');
+  categoryTag.className = getTagButtonClass("tag-style", isCategoryActive, {
+    valueClass: getStyleTagValueClass(category)
+  });
 
   categoryTag.textContent = category;
 
@@ -1074,9 +1056,7 @@ if (category) {
 
     const isPlatformActive = selectedPlatformTag === platform;
 
-    platformTag.className = isPlatformActive
-      ? 'border border-purple-600 text-white bg-purple-600 px-2.5 py-1 rounded-full text-xs'
-      : 'border border-purple-300 text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full text-xs hover:bg-purple-100';
+    platformTag.className = getTagButtonClass("tag-platform", isPlatformActive);
 
     platformTag.textContent = platform;
 
@@ -1096,9 +1076,7 @@ if (video["3D"] === "TRUE") {
 
   const isInclude = selected3DTag === "include";
 
-  tag3D.className = isInclude
-    ? 'border border-sky-600 text-white bg-sky-600 px-2.5 py-1 rounded-full text-xs'
-    : 'border border-sky-300 text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full text-xs hover:bg-sky-100';
+  tag3D.className = getTagButtonClass("tag-format-3d", isInclude);
 
   tag3D.textContent = '3D';
 
@@ -1117,9 +1095,7 @@ if (video["Shorts"] === "TRUE") {
 
   const isInclude = selectedShortsTag === "include";
 
-  shortsTag.className = isInclude
-    ? 'border border-pink-600 text-white bg-pink-600 px-2.5 py-1 rounded-full text-xs'
-    : 'border border-pink-300 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-full text-xs hover:bg-pink-100';
+  shortsTag.className = getTagButtonClass("tag-format", isInclude);
 
   shortsTag.textContent = 'Shorts';
 
@@ -1176,9 +1152,7 @@ if (collabLivers.length || collabUnits.length) {
     tag.type = 'button';
 
     const isActive = selectedCollabTag === name;
-    tag.className = isActive
-      ? 'border border-gray-500 text-white bg-gray-600 px-2.5 py-1 rounded-full text-xs transition'
-      : 'border border-gray-300 text-gray-700 bg-white px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition';
+    tag.className = getTagButtonClass("tag-collab-liver", isActive);
 
     tag.textContent = name;
 
@@ -1195,9 +1169,7 @@ if (collabLivers.length || collabUnits.length) {
     tag.type = 'button';
 
     const isActive = selectedCollabTag === unit;
-    tag.className = isActive
-      ? 'border border-blue-600 text-white bg-blue-600 px-2.5 py-1 rounded-full text-xs transition'
-      : 'border border-blue-300 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-xs hover:bg-blue-100 transition';
+    tag.className = getTagButtonClass("tag-collab-unit", isActive);
 
     tag.textContent = unit;
 
