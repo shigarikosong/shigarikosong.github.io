@@ -133,12 +133,17 @@
     window.isCollabTagOrderReady = isCollabTagOrderReady;
     window.getCollabTagSortInfo = getCollabSortInfoByLabel;
     window.sortCollabTagValues = sortCollabTagValues;
+    window.sortRenderedCollabTagContainers = sortAllCollabTagContainers;
     window.debugCollabTagOrder = debugCollabTagOrder;
   }
 
   function notifyCollabTagOrderReady() {
     exposeCollabTagOrder();
-    window.dispatchEvent(new CustomEvent("collabTagOrderReady"));
+    sortAllCollabTagContainers();
+    window.dispatchEvent(new CustomEvent("collabTagOrderReady", {
+      detail: { ready: isCollabTagOrderReady }
+    }));
+    requestAnimationFrame(sortAllCollabTagContainers);
   }
 
   function getCollabSortInfo(button) {
@@ -146,7 +151,7 @@
   }
 
   function sortCollabTagContainer(container) {
-    if (!container || isSortingCollabTags) return;
+    if (!container || isSortingCollabTags || !isCollabTagOrderReady) return;
 
     const buttons = [...container.children].filter(child => child.tagName === "BUTTON");
     if (buttons.length <= 1) return;
@@ -172,6 +177,8 @@
   }
 
   function sortAllCollabTagContainers() {
+    if (!isCollabTagOrderReady) return;
+
     COLLAB_TAG_CONTAINER_IDS.forEach(id => {
       sortCollabTagContainer(document.getElementById(id));
     });
@@ -210,9 +217,9 @@
 
         isCollabTagOrderReady = true;
         notifyCollabTagOrderReady();
-        sortAllCollabTagContainers();
       })
       .catch(() => {
+        exposeCollabTagOrder();
         // collab_tags が読めない場合は、元の表示順のまま使う。
       });
   }
