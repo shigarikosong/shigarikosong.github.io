@@ -871,7 +871,7 @@ function parseYmdToTime(raw) {
   const s = String(raw ?? '').trim();
   if (!s) return 0;
 
-  // YYYY[/-. 年]MM[/-. 月]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
+  // YYYY[/-.年]MM[/-.月]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
   let m = s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);
   if (m) {
     const y = +m[1], mo = +m[2], d = +m[3];
