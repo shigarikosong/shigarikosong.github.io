@@ -155,11 +155,17 @@
   }
 
   function sortCollabValues(values) {
-    if (typeof window.sortCollabTagValues === "function") {
+    if (window.isCollabTagOrderReady && typeof window.sortCollabTagValues === "function") {
       return window.sortCollabTagValues(values);
     }
 
     return [...values].sort((a, b) => String(a).localeCompare(String(b), "ja"));
+  }
+
+  function sortRenderedCollabTags() {
+    if (window.isCollabTagOrderReady && typeof window.sortRenderedCollabTagContainers === "function") {
+      window.sortRenderedCollabTagContainers();
+    }
   }
 
   function getFormatValues() {
@@ -312,6 +318,7 @@
       collabUnitTagsContainer,
       getCsvTagValues("コラボユニット")
     );
+    sortRenderedCollabTags();
   }
 
   function renderMobileTagSections() {
@@ -467,6 +474,6 @@
   });
 
   window.addEventListener("collabTagOrderReady", () => {
-    if (!modal.classList.contains("hidden")) renderCollabTags();
+    renderCollabTags();
   });
 })();
