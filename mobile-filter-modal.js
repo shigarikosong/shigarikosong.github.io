@@ -51,9 +51,7 @@
 
     sortButtonGroup.querySelectorAll("button[data-sort]").forEach(button => {
       const isActive = button.dataset.sort === (sortSelect.value || "desc");
-      button.className = isActive
-        ? "bg-blue-600 text-white px-3 py-2 rounded-md text-sm"
-        : "bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm";
+      button.className = getTagButtonClass("tag-sort", isActive, { size: "tag-modal-sort" });
     });
   }
 
@@ -174,9 +172,7 @@
   }
 
   function getFormatButtonClass(isActive) {
-    return isActive
-      ? "bg-pink-600 text-white px-3 py-1 rounded-full text-xs"
-      : "bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs";
+    return getTagButtonClass("tag-format", isActive, { size: "tag-sm" });
   }
 
   function renderFormatTags() {
@@ -264,9 +260,7 @@
       button.dataset.filterValue = role;
 
       const isActive = selectedRoleTag === role;
-      button.className = isActive
-        ? "bg-amber-600 text-white px-3 py-1 rounded-full text-xs"
-        : "bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs";
+      button.className = getTagButtonClass("tag-role-filter", isActive, { size: "tag-sm" });
       button.addEventListener("click", () => {
         selectedRoleTag = selectedRoleTag === role ? "" : role;
 
@@ -282,9 +276,7 @@
   }
 
   function getCollabButtonClass(isActive) {
-    return isActive
-      ? "bg-gray-700 text-white px-3 py-1 rounded-full text-xs"
-      : "bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs";
+    return getTagButtonClass("tag-collab-liver", isActive, { size: "tag-sm" });
   }
 
   function renderCollabTagGroup(container, values) {
