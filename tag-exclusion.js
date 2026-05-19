@@ -49,66 +49,6 @@
   let isPatchingRender = false;
   let mobileChipsObserver = null;
 
-  const style = document.createElement("style");
-  style.textContent = `
-    .${EXCLUDE_BUTTON_CLASS} {
-      border-color: #fda4af !important;
-      background: #fff1f2 !important;
-      color: #be123c !important;
-      box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.08) !important;
-    }
-
-    .${EXCLUDE_CHIP_CLASS} {
-      border: 1px solid #fda4af !important;
-      background: #fff1f2 !important;
-      color: #be123c !important;
-    }
-
-    @media (min-width: 640px) {
-      body.desktop-filter-open #activeTagChips:not(.hidden) {
-        display: block !important;
-        position: static;
-        top: auto !important;
-        margin-top: -4px;
-      }
-    }
-
-    .filter-modal-title-hidden {
-      display: none !important;
-    }
-
-    .mobile-modal-active-chips {
-      margin-bottom: 12px;
-    }
-
-    .mobile-modal-active-chips.is-empty {
-      display: none;
-    }
-
-    .mobile-modal-active-chips-inner {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 0.375rem;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      border: 1px solid rgba(226, 232, 240, 0.9);
-      background: rgba(248, 250, 252, 0.92);
-      border-radius: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-    }
-
-    .mobile-modal-active-chips-inner::-webkit-scrollbar {
-      display: none;
-    }
-
-    .mobile-modal-active-chips-inner button {
-      flex: 0 0 auto;
-    }
-  `;
-  document.head.appendChild(style);
-
   function normalizeLabel(kind, label) {
     const value = String(label || "").trim();
     if (kind === "platform") return value.toLowerCase();
