@@ -612,8 +612,8 @@ body.player-visible #desktopFilterPanel {
   background-color: #e0f2fe;
   box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
   height: auto;
-  padding-top: 2px;
-  padding-bottom: 4px;
+  padding-top: 1px;
+  padding-bottom: 2px;
 }
 
 #playerResizeHandle {
@@ -645,23 +645,23 @@ body.player-visible #desktopFilterPanel {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 3px 10px;
 }
 
 .player-control-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 46px;
-  min-height: 42px;
-  padding: 8px 12px;
-  border: 1px solid rgba(107, 114, 128, 0.28);
-  border-radius: 8px;
+  min-width: 38px;
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid rgba(107, 114, 128, 0.24);
+  border-radius: 7px;
   background: rgba(255, 255, 255, 0.82);
   color: #374151;
   line-height: 1;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.07);
   transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
 }
 
@@ -696,14 +696,14 @@ body.player-visible #desktopFilterPanel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
 }
 
 .player-control-icon img {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 
@@ -726,15 +726,16 @@ body.player-visible #desktopFilterPanel {
 @media (max-width: 480px) {
   .player-controls {
     display: grid;
-    grid-template-columns: repeat(4, minmax(42px, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(4, minmax(38px, 1fr));
+    gap: 4px;
+    padding: 3px 8px;
   }
 
   .player-control-button {
     min-width: 0;
     width: 100%;
-    min-height: 44px;
-    padding-inline: 8px;
+    min-height: 38px;
+    padding-inline: 6px;
   }
 }
 

@@ -96,14 +96,15 @@
     }
 
     #nowPlayingWrapper {
-      padding-top: 2px;
-      padding-bottom: 4px;
+      padding-top: 1px;
+      padding-bottom: 2px;
       box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
     }
 
     #nowPlaying {
-      padding: 4px 12px !important;
-      font-size: 14px;
+      padding: 2px 12px !important;
+      font-size: 13px;
+      line-height: 1.25;
     }
 
     #nowPlayingTitle {
@@ -115,7 +116,7 @@
 
     #playerControls {
       flex-wrap: wrap;
-      padding: 4px 12px !important;
+      padding: 3px 10px !important;
     }
   `;
   document.head.appendChild(style);
