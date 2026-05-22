@@ -96,8 +96,12 @@
     }
 
     #nowPlayingWrapper {
-      padding: 2px 12px;
+      padding: 3px 12px;
       box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    #nowPlayingWrapper.hidden {
+      display: none;
     }
 
     #nowPlaying {
@@ -130,6 +134,7 @@
         min-width: 0;
         max-width: min(56vw, 680px);
         padding: 0 !important;
+        font-weight: 700;
         text-align: right;
       }
 
@@ -143,8 +148,8 @@
     @media (max-width: 768px) {
       #nowPlayingWrapper {
         display: block;
-        padding-top: 1px;
-        padding-bottom: 2px;
+        padding-top: 3px;
+        padding-bottom: 4px;
       }
     }
   `;

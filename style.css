@@ -612,7 +612,11 @@ body.player-visible #desktopFilterPanel {
   background-color: #e0f2fe;
   box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
   height: auto;
-  padding: 2px 12px;
+  padding: 3px 12px;
+}
+
+#nowPlayingWrapper.hidden {
+  display: none;
 }
 
 #playerResizeHandle {
@@ -660,6 +664,7 @@ body.player-visible #desktopFilterPanel {
     min-width: 0;
     max-width: min(56vw, 680px);
     padding: 0 !important;
+    font-weight: 700;
     line-height: 1.25;
     text-align: right;
   }
@@ -683,8 +688,8 @@ body.player-visible #desktopFilterPanel {
   align-items: center;
   justify-content: center;
   min-width: 38px;
-  min-height: 34px;
-  padding: 5px 9px;
+  min-height: 36px;
+  padding: 7px 9px;
   border: 1px solid rgba(107, 114, 128, 0.24);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.82);
@@ -754,8 +759,8 @@ body.player-visible #desktopFilterPanel {
 
 @media (max-width: 768px) {
   #nowPlayingWrapper {
-    padding-top: 1px;
-    padding-bottom: 2px;
+    padding-top: 3px;
+    padding-bottom: 4px;
   }
 }
 
@@ -770,8 +775,8 @@ body.player-visible #desktopFilterPanel {
   .player-control-button {
     min-width: 0;
     width: 100%;
-    min-height: 38px;
-    padding-inline: 6px;
+    min-height: 40px;
+    padding: 7px 6px;
   }
 }
 
