@@ -102,6 +102,21 @@ function handleVideoEnded() {
   }
 }
 
+function setPlayerControlIcon(button, src) {
+  const icon = button?.querySelector('.player-control-icon');
+  if (!icon) return;
+
+  let img = icon.querySelector('img');
+  if (!img) {
+    img = document.createElement('img');
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    icon.replaceChildren(img);
+  }
+
+  img.src = src;
+}
+
 function updateRepeatModeButton() {
   const btn = document.getElementById('repeatModeBtn');
   if (!btn) return;
@@ -113,15 +128,15 @@ function updateRepeatModeButton() {
     [REPEAT_MODE_OFF]: 'リピートOFF'
   };
   const icons = {
-    [REPEAT_MODE_ALL]: '全',
-    [REPEAT_MODE_ONE]: '1',
-    [REPEAT_MODE_OFF]: '切'
+    [REPEAT_MODE_ALL]: './assets/icon/icon-repeat.png',
+    [REPEAT_MODE_ONE]: './assets/icon/icon-repeat-one.png',
+    [REPEAT_MODE_OFF]: './assets/icon/icon-repeat.png'
   };
   const label = labels[mode];
 
   btn.dataset.state = mode;
   btn.setAttribute('aria-label', label);
-  btn.querySelector('.player-control-icon').textContent = icons[mode];
+  setPlayerControlIcon(btn, icons[mode]);
   btn.querySelector('.player-control-label').textContent = label;
 }
 
@@ -134,7 +149,7 @@ function updateRandomModeButton() {
 
   btn.dataset.state = on ? 'on' : 'off';
   btn.setAttribute('aria-label', label);
-  btn.querySelector('.player-control-icon').textContent = '乱';
+  setPlayerControlIcon(btn, './assets/icon/icon-shuffle.png');
   btn.querySelector('.player-control-label').textContent = label;
 }
 

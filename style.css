@@ -612,8 +612,11 @@ body.player-visible #desktopFilterPanel {
   background-color: #e0f2fe;
   box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
   height: auto;
-  padding-top: 2px;
-  padding-bottom: 4px;
+  padding: 3px 12px;
+}
+
+#nowPlayingWrapper.hidden {
+  display: none;
 }
 
 #playerResizeHandle {
@@ -645,34 +648,60 @@ body.player-visible #desktopFilterPanel {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 3px 10px;
+}
+
+@media (min-width: 769px) {
+  #nowPlayingWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  #nowPlaying {
+    min-width: 0;
+    max-width: min(56vw, 680px);
+    padding: 0 !important;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: right;
+  }
+
+  #nowPlayingTitle {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .player-controls {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    padding: 0;
+  }
 }
 
 .player-control-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 104px;
-  min-height: 34px;
-  padding: 6px 12px;
-  border: 1px solid rgba(107, 114, 128, 0.28);
-  border-radius: 8px;
+  min-width: 38px;
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid rgba(107, 114, 128, 0.24);
+  border-radius: 7px;
   background: rgba(255, 255, 255, 0.82);
   color: #374151;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.07);
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
 }
 
 .player-control-button:hover {
   background: #ffffff;
   border-color: rgba(37, 99, 235, 0.35);
-  color: #1d4ed8;
 }
 
 .player-control-button:active {
@@ -680,7 +709,7 @@ body.player-visible #desktopFilterPanel {
 }
 
 .player-control-button[data-state="off"] {
-  opacity: 0.52;
+  opacity: 0.48;
   background: rgba(255, 255, 255, 0.58);
 }
 
@@ -690,53 +719,64 @@ body.player-visible #desktopFilterPanel {
   opacity: 1;
   border-color: rgba(22, 163, 74, 0.42);
   background: #dcfce7;
-  color: #166534;
 }
 
 .player-control-button[data-state="one"] {
   border-color: rgba(37, 99, 235, 0.42);
   background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.player-control-icon,
-.player-control-label {
-  display: inline-flex;
-  align-items: center;
 }
 
 .player-control-icon {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
   width: 18px;
   height: 18px;
-  border-radius: 9999px;
-  background: rgba(107, 114, 128, 0.12);
-  font-size: 12px;
-  line-height: 1;
 }
 
-.player-control-button[data-state="all"] .player-control-icon,
-.player-control-button[data-state="one"] .player-control-icon,
-.player-control-button[data-state="on"] .player-control-icon {
-  background: rgba(255, 255, 255, 0.7);
+.player-control-icon img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.player-control-button[data-state="off"] .player-control-icon img {
+  opacity: 0.54;
 }
 
 .player-control-label {
-  font-size: 13px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  #nowPlayingWrapper {
+    padding-top: 3px;
+    padding-bottom: 4px;
+  }
 }
 
 @media (max-width: 480px) {
   .player-controls {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(4, minmax(38px, 1fr));
+    gap: 4px;
+    padding: 3px 8px;
   }
 
   .player-control-button {
     min-width: 0;
     width: 100%;
-    padding-inline: 8px;
-    white-space: normal;
+    min-height: 40px;
+    padding: 7px 6px;
   }
 }
 

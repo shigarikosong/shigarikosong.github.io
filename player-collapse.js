@@ -96,14 +96,18 @@
     }
 
     #nowPlayingWrapper {
-      padding-top: 2px;
-      padding-bottom: 4px;
+      padding: 3px 12px;
       box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
     }
 
+    #nowPlayingWrapper.hidden {
+      display: none;
+    }
+
     #nowPlaying {
-      padding: 4px 12px !important;
-      font-size: 14px;
+      padding: 2px 12px !important;
+      font-size: 13px;
+      line-height: 1.25;
     }
 
     #nowPlayingTitle {
@@ -115,7 +119,38 @@
 
     #playerControls {
       flex-wrap: wrap;
-      padding: 4px 12px !important;
+      padding: 3px 10px !important;
+    }
+
+    @media (min-width: 769px) {
+      #nowPlayingWrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      #nowPlaying {
+        min-width: 0;
+        max-width: min(56vw, 680px);
+        padding: 0 !important;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      #playerControls {
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
+        padding: 0 !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #nowPlayingWrapper {
+        display: block;
+        padding-top: 3px;
+        padding-bottom: 4px;
+      }
     }
   `;
   document.head.appendChild(style);
