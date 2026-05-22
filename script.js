@@ -63,8 +63,15 @@ function getCurrentVideo() {
   return baseList.find(video => getVideoKey(video) === nowPlayingKey) || null;
 }
 
-function playRandomNextVideo() {
-  const list = getAutoPlayableVideos();
+function playRandomNextVideo(options = {}) {
+  const baseList = options.autoPlayableOnly
+    ? getAutoPlayableVideos()
+    : (currentFilteredVideos?.length ? currentFilteredVideos : allVideos);
+  const list = baseList.filter(video => getVideoKey(video) !== nowPlayingKey);
+  if (!list.length && baseList.length === 1) {
+    loadVideo(baseList[0], null);
+    return;
+  }
   if (!list.length) return;
 
   const randomVideo = list[Math.floor(Math.random() * list.length)];
@@ -89,7 +96,7 @@ function handleVideoEnded() {
   }
 
   if (isRandomModeEnabled()) {
-    playRandomNextVideo();
+    playRandomNextVideo({ autoPlayableOnly: true });
   } else {
     playAdjacentVideo(1);
   }
@@ -1411,7 +1418,11 @@ if (closeBtn) {
   });
 
   document.getElementById('nextVideoBtn').addEventListener('click', () => {
-  playAdjacentVideo(1);
+  if (isRandomModeEnabled()) {
+    playRandomNextVideo();
+  } else {
+    playAdjacentVideo(1);
+  }
   });
 
 function playAdjacentVideo(direction) {
