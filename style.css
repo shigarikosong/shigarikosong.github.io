@@ -641,34 +641,103 @@ body.player-visible #desktopFilterPanel {
 }
 
 /* ===== Player controls ===== */
-.random-auto-play-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  transition: opacity 0.2s ease, transform 0.1s ease;
+.player-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
 }
 
-.random-auto-play-btn img {
-  width: 24px;
-  height: 24px;
+.player-control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 104px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid rgba(107, 114, 128, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #374151;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
 }
 
-.random-auto-play-btn.is-off {
-  opacity: 0.35;
+.player-control-button:hover {
+  background: #ffffff;
+  border-color: rgba(37, 99, 235, 0.35);
+  color: #1d4ed8;
 }
 
-.random-auto-play-btn.is-on {
+.player-control-button:active {
+  transform: scale(0.98);
+}
+
+.player-control-button[data-state="off"] {
+  opacity: 0.52;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.player-control-button[data-state="all"],
+.player-control-button[data-state="one"],
+.player-control-button[data-state="on"] {
   opacity: 1;
-  background: transparent;
+  border-color: rgba(22, 163, 74, 0.42);
+  background: #dcfce7;
+  color: #166534;
 }
 
-.random-auto-play-btn:active {
-  transform: scale(0.96);
+.player-control-button[data-state="one"] {
+  border-color: rgba(37, 99, 235, 0.42);
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.player-control-icon,
+.player-control-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.player-control-icon {
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: rgba(107, 114, 128, 0.12);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.player-control-button[data-state="all"] .player-control-icon,
+.player-control-button[data-state="one"] .player-control-icon,
+.player-control-button[data-state="on"] .player-control-icon {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.player-control-label {
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .player-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .player-control-button {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 8px;
+    white-space: normal;
+  }
 }
 
 .auto-play-notice {
