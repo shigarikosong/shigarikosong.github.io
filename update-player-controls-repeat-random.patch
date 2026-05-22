@@ -1,0 +1,418 @@
+diff --git a/index.html b/index.html
+index dbbdfae..55f37ab 100644
+--- a/index.html
++++ b/index.html
+@@ -37,7 +37,7 @@
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+-  <link rel="stylesheet" href="./style.css?v=33">
++  <link rel="stylesheet" href="./style.css?v=34">
+   <script src="https://www.youtube.com/iframe_api"></script>
+ </head>
+ <body style="background-color: #FFE36C;" class="text-gray-800">
+@@ -284,13 +284,23 @@ YouTube / TikTok の動画を掲載しています。
+     <span id="nowPlayingTitle">再生中</span>
+   </div>
+   
+-  <div id="playerControls" class="flex justify-center gap-2 py-1">
+-    <button id="prevVideoBtn" class="bg-gray-300 px-3 py-1 rounded text-sm">◀ 戻る</button>
+-    <button id="nextVideoBtn" class="bg-gray-300 px-3 py-1 rounded text-sm">▶ 次へ</button>
+-    <button id="randomFromFilteredBtn" class="bg-gray-300 px-3 py-1 rounded text-sm">🎲 ランダム</button>
+-    <button id="randomAutoPlayBtn" class="random-auto-play-btn is-off" type="button" aria-label="ランダム連続再生 OFF">
+-  <img src="./shuffle_play.svg" alt="" aria-hidden="true">
+-</button>
++  <div id="playerControls" class="player-controls" aria-label="プレイヤー操作">
++    <button id="prevVideoBtn" class="player-control-button" type="button" aria-label="前の動画を再生">
++      <span class="player-control-icon" aria-hidden="true">前</span>
++      <span class="player-control-label">前へ</span>
++    </button>
++    <button id="nextVideoBtn" class="player-control-button" type="button" aria-label="次の動画を再生">
++      <span class="player-control-icon" aria-hidden="true">次</span>
++      <span class="player-control-label">次へ</span>
++    </button>
++    <button id="repeatModeBtn" class="player-control-button" type="button" data-state="off" aria-label="リピートOFF">
++      <span class="player-control-icon" aria-hidden="true">切</span>
++      <span class="player-control-label">リピートOFF</span>
++    </button>
++    <button id="randomModeBtn" class="player-control-button" type="button" data-state="off" aria-label="ランダムOFF">
++      <span class="player-control-icon" aria-hidden="true">乱</span>
++      <span class="player-control-label">ランダムOFF</span>
++    </button>
+   </div>
+ </div>
+ 
+@@ -317,7 +327,7 @@ YouTube / TikTok の動画を掲載しています。
+ 
+   <script src="./loading-status.js?v=2"></script>
+   <script src="./playing-scroll-position.js?v=2"></script>
+-  <script src="./script.js?v=23"></script>
++  <script src="./script.js?v=24"></script>
+   <script src="./waku-name-display.js?v=27"></script>
+   <script src="./mobile-filter-modal.js?v=25"></script>
+   <script src="./desktop-filter-panel.js?v=26"></script>
+diff --git a/script.js b/script.js
+index 87702c2..f993251 100644
+--- a/script.js
++++ b/script.js
+@@ -15,41 +15,120 @@
+     const filterSection = document.getElementById('filterSection');
+ 
+ 
+-// ===== ランダム連続再生の設定 =====
+-    const RANDOM_AUTO_PLAY_KEY = 'randomAutoPlayEnabled';
++// ===== プレイヤー操作モードの設定 =====
++    const REPEAT_MODE_KEY = 'playerRepeatMode';
++    const RANDOM_MODE_KEY = 'playerRandomModeEnabled';
++    const LEGACY_RANDOM_AUTO_PLAY_KEY = 'randomAutoPlayEnabled';
++    const REPEAT_MODE_ALL = 'all';
++    const REPEAT_MODE_ONE = 'one';
++    const REPEAT_MODE_OFF = 'off';
++    const REPEAT_MODE_SEQUENCE = [REPEAT_MODE_ALL, REPEAT_MODE_ONE, REPEAT_MODE_OFF];
++
++function getRepeatMode() {
++  const mode = localStorage.getItem(REPEAT_MODE_KEY);
++  return REPEAT_MODE_SEQUENCE.includes(mode) ? mode : REPEAT_MODE_OFF;
++}
++
++function setRepeatMode(mode) {
++  const nextMode = REPEAT_MODE_SEQUENCE.includes(mode) ? mode : REPEAT_MODE_OFF;
++  localStorage.setItem(REPEAT_MODE_KEY, nextMode);
++}
+ 
+-function isRandomAutoPlayEnabled() {
+-  return localStorage.getItem(RANDOM_AUTO_PLAY_KEY) === '1';
++function isRandomModeEnabled() {
++  const stored = localStorage.getItem(RANDOM_MODE_KEY);
++  if (stored !== null) return stored === '1';
++
++  return localStorage.getItem(LEGACY_RANDOM_AUTO_PLAY_KEY) === '1';
+ }
+ 
+-function setRandomAutoPlayEnabled(on) {
+-  localStorage.setItem(RANDOM_AUTO_PLAY_KEY, on ? '1' : '0');
++function setRandomModeEnabled(on) {
++  localStorage.setItem(RANDOM_MODE_KEY, on ? '1' : '0');
+ }
+ 
+ function isTikTokVideo(video) {
+   return String(video?.["platform"] || "").toLowerCase() === "tiktok";
+ }
+ 
+-function getRandomAutoPlayableVideos() {
++function getAutoPlayableVideos() {
+   const baseList = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+   return baseList.filter(video => !isTikTokVideo(video));
+ }
+ 
+-function playRandomAutoNextVideo() {
+-  const list = getRandomAutoPlayableVideos();
++function getVideoKey(video) {
++  return `${video?.["videoId"]}__${parseInt(video?.["start"] || 0, 10)}`;
++}
++
++function getCurrentVideo() {
++  const baseList = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
++  return baseList.find(video => getVideoKey(video) === nowPlayingKey) || null;
++}
++
++function playRandomNextVideo() {
++  const list = getAutoPlayableVideos();
+   if (!list.length) return;
+ 
+   const randomVideo = list[Math.floor(Math.random() * list.length)];
+   loadVideo(randomVideo, null);
+ }
+ 
+-function updateRandomAutoPlayButton() {
+-  const btn = document.getElementById('randomAutoPlayBtn');
++function playCurrentVideoAgain() {
++  const currentVideo = getCurrentVideo();
++  if (!currentVideo) return;
++
++  loadVideo(currentVideo, null);
++}
++
++function handleVideoEnded() {
++  const repeatMode = getRepeatMode();
++
++  if (repeatMode === REPEAT_MODE_OFF) return;
++
++  if (repeatMode === REPEAT_MODE_ONE) {
++    playCurrentVideoAgain();
++    return;
++  }
++
++  if (isRandomModeEnabled()) {
++    playRandomNextVideo();
++  } else {
++    playAdjacentVideo(1);
++  }
++}
++
++function updateRepeatModeButton() {
++  const btn = document.getElementById('repeatModeBtn');
+   if (!btn) return;
+ 
+-  const on = isRandomAutoPlayEnabled();
+-  btn.classList.toggle('is-on', on);
+-  btn.classList.toggle('is-off', !on);
++  const mode = getRepeatMode();
++  const labels = {
++    [REPEAT_MODE_ALL]: '全曲リピート',
++    [REPEAT_MODE_ONE]: '1曲リピート',
++    [REPEAT_MODE_OFF]: 'リピートOFF'
++  };
++  const icons = {
++    [REPEAT_MODE_ALL]: '全',
++    [REPEAT_MODE_ONE]: '1',
++    [REPEAT_MODE_OFF]: '切'
++  };
++  const label = labels[mode];
++
++  btn.dataset.state = mode;
++  btn.setAttribute('aria-label', label);
++  btn.querySelector('.player-control-icon').textContent = icons[mode];
++  btn.querySelector('.player-control-label').textContent = label;
++}
++
++function updateRandomModeButton() {
++  const btn = document.getElementById('randomModeBtn');
++  if (!btn) return;
++
++  const on = isRandomModeEnabled();
++  const label = on ? 'ランダムON' : 'ランダムOFF';
++
++  btn.dataset.state = on ? 'on' : 'off';
++  btn.setAttribute('aria-label', label);
++  btn.querySelector('.player-control-icon').textContent = '乱';
++  btn.querySelector('.player-control-label').textContent = label;
+ }
+ 
+     sortOrder.value = "";
+@@ -245,11 +324,10 @@ function tryInitYtPlayer() {
+     },
+     events: {
+       onStateChange: (e) => {
+-        console.log('YouTube state:', e.data, 'randomAutoPlay:', isRandomAutoPlayEnabled());
++        console.log('YouTube state:', e.data, 'repeatMode:', getRepeatMode(), 'randomMode:', isRandomModeEnabled());
+ 
+-        if (e.data === YT.PlayerState.ENDED && isRandomAutoPlayEnabled()) {
+-          console.log('ランダム連続再生します');
+-          playRandomAutoNextVideo();
++        if (e.data === YT.PlayerState.ENDED) {
++          handleVideoEnded();
+         }
+       }
+     }
+@@ -281,14 +359,27 @@ fetch(metaSheetUrl)
+   });
+ 
+ // ===== フィルターUIの操作 =====
+-    const randomAutoPlayBtn = document.getElementById('randomAutoPlayBtn');
++    const repeatModeBtn = document.getElementById('repeatModeBtn');
++    const randomModeBtn = document.getElementById('randomModeBtn');
+ 
+-if (randomAutoPlayBtn) {
+-  updateRandomAutoPlayButton();
++if (repeatModeBtn) {
++  updateRepeatModeButton();
+ 
+-  randomAutoPlayBtn.addEventListener('click', () => {
+-    setRandomAutoPlayEnabled(!isRandomAutoPlayEnabled());
+-    updateRandomAutoPlayButton();
++  repeatModeBtn.addEventListener('click', () => {
++    const currentIndex = REPEAT_MODE_SEQUENCE.indexOf(getRepeatMode());
++    const nextMode = REPEAT_MODE_SEQUENCE[(currentIndex + 1) % REPEAT_MODE_SEQUENCE.length];
++    setRepeatMode(nextMode);
++    updateRepeatModeButton();
++    applyFilters();
++  });
++}
++
++if (randomModeBtn) {
++  updateRandomModeButton();
++
++  randomModeBtn.addEventListener('click', () => {
++    setRandomModeEnabled(!isRandomModeEnabled());
++    updateRandomModeButton();
+     applyFilters();
+   });
+ }
+@@ -932,11 +1023,11 @@ if (oldNotice) oldNotice.remove();
+ 
+ const playableCount = videos.filter(video => !isTikTokVideo(video)).length;
+ 
+-if (isRandomAutoPlayEnabled() && videos.length > 0 && playableCount === 0) {
++if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.length > 0 && playableCount === 0) {
+   const notice = document.createElement('div');
+   notice.id = 'autoPlayNotice';
+   notice.className = 'auto-play-notice';
+-  notice.textContent = 'この条件では連続再生できる動画がありません（TikTokは対象外です）';
++  notice.textContent = 'この条件ではランダム連続再生できる動画がありません（TikTokは対象外です）';
+   countElement.insertAdjacentElement('afterend', notice);
+ }
+ 
+@@ -1284,7 +1375,7 @@ if (ytEl) ytEl.classList.add('hidden');
+   // 再生中の曲名・ハイライト更新
+   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+   nowPlayingTitle.textContent = `${video["title"]} - ${video["artist"]}`;
+-  nowPlayingKey = `${video["videoId"]}__${start}`;
++  nowPlayingKey = getVideoKey(video);
+   applyFilters(); // ハイライト＆スクロール反映
+ }
+ 
+@@ -1323,21 +1414,11 @@ if (closeBtn) {
+   playAdjacentVideo(1);
+   });
+ 
+-    document.getElementById('randomFromFilteredBtn').addEventListener('click', () => {
+-  const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+-  const randomVideo = list[Math.floor(Math.random() * list.length)];
+-  loadVideo(randomVideo, null);
+-});
+-
+ function playAdjacentVideo(direction) {
+   if (!currentFilteredVideos.length) return;
+ 
+-  const currentIndex = currentFilteredVideos.findIndex(v =>
+-    `${v.videoId}__${v.start || 0}` === nowPlayingKey
+-    );
+-
+-  const newIndex = currentIndex + direction;
+-  if (newIndex >= 0 && newIndex < currentFilteredVideos.length) {
+-    loadVideo(currentFilteredVideos[newIndex], null);
+-    }
+-    }
++  const currentIndex = currentFilteredVideos.findIndex(v => getVideoKey(v) === nowPlayingKey);
++  const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
++  const newIndex = (safeCurrentIndex + direction + currentFilteredVideos.length) % currentFilteredVideos.length;
++  loadVideo(currentFilteredVideos[newIndex], null);
++}
+diff --git a/style.css b/style.css
+index 67e3491..b3c96d6 100644
+--- a/style.css
++++ b/style.css
+@@ -641,34 +641,103 @@ body.player-visible #desktopFilterPanel {
+ }
+ 
+ /* ===== Player controls ===== */
+-.random-auto-play-btn {
+-  width: 32px;
+-  height: 32px;
+-  border-radius: 10px;
+-  display: grid;
+-  place-items: center;
+-  background: transparent;
+-  border: none;
+-  padding: 0;
+-  transition: opacity 0.2s ease, transform 0.1s ease;
++.player-controls {
++  display: flex;
++  flex-wrap: wrap;
++  justify-content: center;
++  gap: 8px;
++  padding: 6px 12px;
++}
++
++.player-control-button {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  gap: 6px;
++  min-width: 104px;
++  min-height: 34px;
++  padding: 6px 12px;
++  border: 1px solid rgba(107, 114, 128, 0.28);
++  border-radius: 8px;
++  background: rgba(255, 255, 255, 0.82);
++  color: #374151;
++  font-size: 13px;
++  font-weight: 700;
++  line-height: 1.2;
++  white-space: nowrap;
++  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
++  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
++}
++
++.player-control-button:hover {
++  background: #ffffff;
++  border-color: rgba(37, 99, 235, 0.35);
++  color: #1d4ed8;
+ }
+ 
+-.random-auto-play-btn img {
+-  width: 24px;
+-  height: 24px;
++.player-control-button:active {
++  transform: scale(0.98);
+ }
+ 
+-.random-auto-play-btn.is-off {
+-  opacity: 0.35;
++.player-control-button[data-state="off"] {
++  opacity: 0.52;
++  background: rgba(255, 255, 255, 0.58);
+ }
+ 
+-.random-auto-play-btn.is-on {
++.player-control-button[data-state="all"],
++.player-control-button[data-state="one"],
++.player-control-button[data-state="on"] {
+   opacity: 1;
+-  background: transparent;
++  border-color: rgba(22, 163, 74, 0.42);
++  background: #dcfce7;
++  color: #166534;
+ }
+ 
+-.random-auto-play-btn:active {
+-  transform: scale(0.96);
++.player-control-button[data-state="one"] {
++  border-color: rgba(37, 99, 235, 0.42);
++  background: #dbeafe;
++  color: #1d4ed8;
++}
++
++.player-control-icon,
++.player-control-label {
++  display: inline-flex;
++  align-items: center;
++}
++
++.player-control-icon {
++  justify-content: center;
++  width: 18px;
++  height: 18px;
++  border-radius: 9999px;
++  background: rgba(107, 114, 128, 0.12);
++  font-size: 12px;
++  line-height: 1;
++}
++
++.player-control-button[data-state="all"] .player-control-icon,
++.player-control-button[data-state="one"] .player-control-icon,
++.player-control-button[data-state="on"] .player-control-icon {
++  background: rgba(255, 255, 255, 0.7);
++}
++
++.player-control-label {
++  font-size: 13px;
++}
++
++@media (max-width: 480px) {
++  .player-controls {
++    display: grid;
++    grid-template-columns: repeat(2, minmax(0, 1fr));
++    gap: 6px;
++  }
++
++  .player-control-button {
++    min-width: 0;
++    width: 100%;
++    padding-inline: 8px;
++    white-space: normal;
++  }
+ }
+ 
+ .auto-play-notice {
