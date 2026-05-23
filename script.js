@@ -1317,7 +1317,7 @@ videoList.appendChild(item);
     notice.className = 'auto-play-notice';
     notice.textContent = '再生中の曲は今の絞り込み条件では表示されていません';
     countElement.insertAdjacentElement('afterend', notice);
-    countElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
 
