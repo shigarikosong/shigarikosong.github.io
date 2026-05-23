@@ -58,31 +58,16 @@
   }
 
   function syncTimeButtons() {
-    getTimeButtons().forEach(button => {
-      setIncludedStyle(button, getTimeValue(button) === selectedTimeLabel);
-    });
+    // Time button active state is handled by renderDateTags() in script.js.
   }
 
   function renderTimeChip() {
-    const activeTagChips = document.getElementById("activeTagChips");
     const activeTagChipsInner = document.getElementById("activeTagChipsInner");
-    if (!activeTagChips || !activeTagChipsInner) return;
+    if (!activeTagChipsInner) return;
 
     activeTagChipsInner
       .querySelectorAll(`.${TIME_CHIP_CLASS}`)
       .forEach(chip => chip.remove());
-
-    if (!selectedTimeLabel) return;
-
-    const displayLabel = getDisplayLabel(selectedTimeLabel);
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = `${TIME_CHIP_CLASS} shrink-0 border border-green-300 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs hover:bg-green-100 transition`;
-    chip.textContent = displayLabel;
-    chip.setAttribute("aria-label", `${displayLabel}の絞り込みを解除`);
-
-    activeTagChipsInner.appendChild(chip);
-    activeTagChips.classList.remove("hidden");
   }
 
   function sync() {
