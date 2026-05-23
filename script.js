@@ -15,7 +15,7 @@
     const filterSection = document.getElementById('filterSection');
 
 
-// ===== プレイヤー操作モードの設定 =====
+// ===== プレイヤー状態・localStorage =====
     const REPEAT_MODE_KEY = 'playerRepeatMode';
     const RANDOM_MODE_KEY = 'playerRandomModeEnabled';
     const LEGACY_RANDOM_AUTO_PLAY_KEY = 'randomAutoPlayEnabled';
@@ -45,26 +45,40 @@ function setRandomModeEnabled(on) {
   localStorage.setItem(RANDOM_MODE_KEY, on ? '1' : '0');
 }
 
-let randomPlayQueue = [];
-let randomPlayQueueSignature = "";
+function getVideoKey(video) {
+  return `${video?.["videoId"]}__${parseInt(video?.["start"] || 0, 10)}`;
+}
+
+// ===== 再生対象リスト =====
+function getCurrentPlaybackList() {
+  return currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+}
+
+function getAdjacentPlaybackList() {
+  return currentFilteredVideos;
+}
 
 function isTikTokVideo(video) {
   return (video?._platform || String(video?.["platform"] || "").toLowerCase()) === "tiktok";
 }
 
 function getAutoPlayableVideos() {
-  const baseList = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
-  return baseList.filter(video => !isTikTokVideo(video));
-}
-
-function getVideoKey(video) {
-  return `${video?.["videoId"]}__${parseInt(video?.["start"] || 0, 10)}`;
+  return getCurrentPlaybackList().filter(video => !isTikTokVideo(video));
 }
 
 function getCurrentVideo() {
-  const baseList = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
-  return baseList.find(video => getVideoKey(video) === nowPlayingKey) || null;
+  return getCurrentPlaybackList().find(video => getVideoKey(video) === nowPlayingKey) || null;
 }
+
+function playRandomVideoFromCurrentList() {
+  const list = getCurrentPlaybackList();
+  const randomVideo = list[Math.floor(Math.random() * list.length)];
+  loadVideo(randomVideo, null);
+}
+
+// ===== ランダムキュー =====
+let randomPlayQueue = [];
+let randomPlayQueueSignature = "";
 
 function resetRandomPlayQueue() {
   randomPlayQueue = [];
@@ -85,7 +99,7 @@ function shuffleVideos(videos) {
 function getRandomQueueBaseList(options = {}) {
   return options.autoPlayableOnly
     ? getAutoPlayableVideos()
-    : (currentFilteredVideos?.length ? currentFilteredVideos : allVideos);
+    : getCurrentPlaybackList();
 }
 
 function getRandomQueueSignature(baseList, options = {}) {
@@ -118,6 +132,7 @@ function playRandomNextVideo(options = {}) {
   if (nextVideo) loadVideo(nextVideo, null);
 }
 
+// ===== リピート終了時処理 =====
 function playCurrentVideoAgain() {
   const currentVideo = getCurrentVideo();
   if (!currentVideo) return;
@@ -142,6 +157,7 @@ function handleVideoEnded() {
   }
 }
 
+// ===== プレイヤーボタンUI =====
 function setPlayerControlIcon(button, src) {
   const icon = button?.querySelector('.player-control-icon');
   if (!icon) return;
@@ -583,9 +599,7 @@ selectedVideoTypeTags.clear();
 
   const randomPlayButton = document.getElementById('randomPlayButton');
     randomPlayButton.addEventListener('click', () => {
-  const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
-  const randomVideo = list[Math.floor(Math.random() * list.length)];
-    loadVideo(randomVideo, null);
+  playRandomVideoFromCurrentList();
 });
 
 
@@ -911,9 +925,7 @@ addOptions(
 const mobileRandomPlayButton = document.getElementById('mobileRandomPlayButton');
 if (mobileRandomPlayButton) {
   mobileRandomPlayButton.addEventListener('click', () => {
-    const list = currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
-    const randomVideo = list[Math.floor(Math.random() * list.length)];
-    loadVideo(randomVideo, null);
+    playRandomVideoFromCurrentList();
   });
 }
 
@@ -1443,6 +1455,14 @@ function updateNowPlayingHighlight() {
   }
 }
 
+function updateNowPlaying(video) {
+  const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+  const label = `${video["title"]} - ${video["artist"]}`;
+  nowPlayingTitle.textContent = label;
+  nowPlayingTitle.title = label;
+  nowPlayingKey = getVideoKey(video);
+  updateNowPlayingHighlight();
+}
 
 // ===== 動画の再生処理 =====
 function loadVideo(video, item) {
@@ -1528,16 +1548,10 @@ if (ytEl) ytEl.classList.add('hidden');
 
   
 
-  // 再生中の曲名・ハイライト更新
-  const nowPlayingTitle = document.getElementById('nowPlayingTitle');
-  const label = `${video["title"]} - ${video["artist"]}`;
-  nowPlayingTitle.textContent = label;
-  nowPlayingTitle.title = label;
-  nowPlayingKey = getVideoKey(video);
-  updateNowPlayingHighlight();
+  updateNowPlaying(video);
 }
 
-// ===== プレイヤー操作ボタン =====
+// ===== プレイヤーを閉じる =====
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
     document.body.style.paddingBottom =
@@ -1564,8 +1578,27 @@ if (closeBtn) {
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
 
+// ===== 前へ/次へ =====
 const prevVideoBtn = document.getElementById('prevVideoBtn');
 const nextVideoBtn = document.getElementById('nextVideoBtn');
+
+function playAdjacentVideo(direction) {
+  const list = getAdjacentPlaybackList();
+  if (!list.length) return;
+
+  const currentIndex = list.findIndex(v => getVideoKey(v) === nowPlayingKey);
+  const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
+  const newIndex = (safeCurrentIndex + direction + list.length) % list.length;
+  loadVideo(list[newIndex], null);
+}
+
+function playNextVideo() {
+  if (isRandomModeEnabled()) {
+    playRandomNextVideo();
+  } else {
+    playAdjacentVideo(1);
+  }
+}
 
 if (prevVideoBtn) {
   prevVideoBtn.setAttribute('aria-label', '前の曲（Shift + A）');
@@ -1581,14 +1614,11 @@ if (nextVideoBtn) {
   nextVideoBtn.title = '次の曲（Shift + D）';
 
   nextVideoBtn.addEventListener('click', () => {
-    if (isRandomModeEnabled()) {
-      playRandomNextVideo();
-    } else {
-      playAdjacentVideo(1);
-    }
+    playNextVideo();
   });
 }
 
+// ===== キーボードショートカット =====
 function isTypingTarget(target) {
   if (!(target instanceof Element)) return false;
 
@@ -1623,12 +1653,3 @@ document.addEventListener('keydown', event => {
     nextVideoBtn.click();
   }
 });
-
-function playAdjacentVideo(direction) {
-  if (!currentFilteredVideos.length) return;
-
-  const currentIndex = currentFilteredVideos.findIndex(v => getVideoKey(v) === nowPlayingKey);
-  const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
-  const newIndex = (safeCurrentIndex + direction + currentFilteredVideos.length) % currentFilteredVideos.length;
-  loadVideo(currentFilteredVideos[newIndex], null);
-}
