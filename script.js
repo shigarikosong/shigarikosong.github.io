@@ -254,6 +254,26 @@ function toggleVideoTypeTag(type) {
   }
 }
 
+function getDateTagLabel(value) {
+  const labels = {
+    recent: '最近',
+    year: '1年以内',
+    old: '1年以上前'
+  };
+
+  return labels[value] || value;
+}
+
+function clearDateTag() {
+  selectedDateTag = "";
+
+  const modalDateFilter = document.getElementById('modalDateFilter');
+  if (modalDateFilter) modalDateFilter.value = "";
+
+  renderDateTags();
+  applyFilters();
+}
+
     function updateActiveTagChipsPosition() {
   if (!filterSection || !activeTagChips) return;
 
@@ -274,6 +294,7 @@ if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'in
 if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
 if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
 if (selectedPlatformTag) activeTags.push({ label: selectedPlatformTag, type: 'include' });
+if (selectedDateTag) activeTags.push({ label: getDateTagLabel(selectedDateTag), type: 'include', source: 'date' });
 if (selected3DTag) activeTags.push({ label: '3D', type: selected3DTag });
 if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: selectedShortsTag });
 
@@ -297,6 +318,7 @@ activeTags.forEach(tagData => {
     chip.className = 'tag-button tag-xs tag-active-chip';
 
     chip.textContent = tagData.label;
+    if (tagData.source) chip.dataset.activeChipSource = tagData.source;
     
     chip.addEventListener('click', () => {
       // 解除処理
@@ -305,6 +327,11 @@ activeTags.forEach(tagData => {
         if (tagData.source === 'videoType') {
         selectedVideoTypeTags.delete(tagData.label);
         applyFilters();
+        return;
+      }
+
+      if (tagData.source === 'date') {
+        clearDateTag();
         return;
       }
         
@@ -317,10 +344,16 @@ case 'Shorts':
   break;
     
         default:
-          if (selectedCategoryTag === tagData.label) selectedCategoryTag = "";
+          if (selectedCategoryTag === tagData.label) {
+            selectedCategoryTag = "";
+            renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
+          }
           if (selectedCollabTag === tagData.label) selectedCollabTag = "";
           if (selectedRoleTag === tagData.label) selectedRoleTag = "";
-          if (selectedPlatformTag === tagData.label) selectedPlatformTag = "";
+          if (selectedPlatformTag === tagData.label) {
+            selectedPlatformTag = "";
+            renderPlatformTags();
+          }
           break;
       }
 
@@ -329,6 +362,17 @@ case 'Shorts':
 
     activeTagChipsInner.appendChild(chip);
   });
+}
+
+if (activeTagChipsInner) {
+  activeTagChipsInner.addEventListener('click', event => {
+    const chip = event.target.closest('[data-active-chip-source="date"]');
+    if (!chip) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    clearDateTag();
+  }, true);
 }
 
 
