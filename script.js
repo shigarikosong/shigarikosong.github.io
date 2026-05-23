@@ -1043,6 +1043,9 @@ function renderVideoList(videos) {
   const oldNotice = document.getElementById('autoPlayNotice');
 if (oldNotice) oldNotice.remove();
 
+  const oldNowPlayingNotice = document.getElementById('nowPlayingFilteredOutNotice');
+if (oldNowPlayingNotice) oldNowPlayingNotice.remove();
+
 const playableCount = videos.filter(video => !isTikTokVideo(video)).length;
 
 if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.length > 0 && playableCount === 0) {
@@ -1308,6 +1311,13 @@ videoList.appendChild(item);
   // スクロール実行
   if (playingElement) {
     playingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (nowPlayingKey && videos.length > 0) {
+    const notice = document.createElement('div');
+    notice.id = 'nowPlayingFilteredOutNotice';
+    notice.className = 'auto-play-notice';
+    notice.textContent = '再生中の曲は今の絞り込み条件では表示されていません';
+    countElement.insertAdjacentElement('afterend', notice);
+    countElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
 
