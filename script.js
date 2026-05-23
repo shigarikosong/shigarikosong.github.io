@@ -1512,7 +1512,9 @@ if (ytEl) ytEl.classList.add('hidden');
 
   // 再生中の曲名・ハイライト更新
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
-  nowPlayingTitle.textContent = `${video["title"]} - ${video["artist"]}`;
+  const label = `${video["title"]} - ${video["artist"]}`;
+  nowPlayingTitle.textContent = label;
+  nowPlayingTitle.title = label;
   nowPlayingKey = getVideoKey(video);
   updateNowPlayingHighlight();
 }

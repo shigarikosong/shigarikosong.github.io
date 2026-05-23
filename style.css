@@ -656,21 +656,25 @@ body.player-visible #desktopFilterPanel {
   #nowPlayingWrapper {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 44px;
+    padding: 4px 14px;
   }
 
   #nowPlaying {
+    flex: 1 1 auto;
     min-width: 0;
-    max-width: min(56vw, 680px);
+    max-width: none;
     padding: 0 !important;
     font-weight: 700;
     line-height: 1.25;
-    text-align: right;
+    text-align: left;
   }
 
   #nowPlayingTitle {
     display: block;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -678,8 +682,22 @@ body.player-visible #desktopFilterPanel {
 
   .player-controls {
     flex: 0 0 auto;
+    display: flex;
+    align-items: center;
     flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 5px;
     padding: 0;
+  }
+
+  .player-control-button {
+    min-height: 34px;
+    padding: 7px 9px;
+    white-space: nowrap;
+  }
+
+  .player-control-label {
+    white-space: nowrap;
   }
 }
 
