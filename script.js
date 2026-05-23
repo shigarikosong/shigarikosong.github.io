@@ -46,7 +46,7 @@ function setRandomModeEnabled(on) {
 }
 
 function isTikTokVideo(video) {
-  return String(video?.["platform"] || "").toLowerCase() === "tiktok";
+  return (video?._platform || String(video?.["platform"] || "").toLowerCase()) === "tiktok";
 }
 
 function getAutoPlayableVideos() {
@@ -181,6 +181,64 @@ function parseCommaTags(value) {
     .split(",")
     .map(v => v.trim())
     .filter(Boolean);
+}
+
+function parseYmdToTime(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return 0;
+
+  // YYYY[/-.年]MM[/-.月]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
+  let m = s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);
+  if (m) {
+    const y = +m[1], mo = +m[2], d = +m[3];
+    if (y && mo && d) return new Date(y, mo - 1, d).getTime();
+  }
+
+  // 年月だけ（公開月対策） 例: 2024/06, 2024-6, 2024年6月
+  m = s.match(/(\d{4})[\/\-.年](\d{1,2})/);
+  if (m) {
+    const y = +m[1], mo = +m[2];
+    if (y && mo) return new Date(y, mo - 1, 1).getTime(); // 日が無ければ1日で補完
+  }
+
+  // 最後の保険：Date.parse に賭ける（失敗なら 0）
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? t : 0;
+}
+
+function normalizeVideos(data) {
+  return data.map(video => {
+    const roles = parseCommaTags(video["担当区分"]);
+    const types = parseCommaTags(video["動画種別"]);
+    const collabLivers = parseCommaTags(video["コラボライバー"]);
+    const collabUnits = parseCommaTags(video["コラボユニット"]);
+    const platform = String(video["platform"] || "").toLowerCase();
+
+    video._roles = roles;
+    video._types = types;
+    video._collabLivers = collabLivers;
+    video._collabUnits = collabUnits;
+    video._collabTags = [...collabLivers, ...collabUnits];
+    video._platform = platform;
+    video._is3D = video["3D"] === "TRUE";
+    video._isShorts = video["Shorts"] === "TRUE";
+    video._time = parseYmdToTime(video["公開日"] || video["公開月"]);
+    video._searchText = [
+      video["title"],
+      video["title_kana"],
+      video["artist"],
+      video["artist_kana"],
+      video["waku_name"],
+      video["担当区分"],
+      video["コラボライバー"],
+      video["コラボユニット"],
+      roles.join(" "),
+      collabLivers.join(" "),
+      collabUnits.join(" ")
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    return video;
+  });
 }
 
     function toggleTagState(state) {
@@ -361,8 +419,8 @@ function tryInitYtPlayer() {
 fetch(sheetJsonUrl)
   .then(response => response.json())
   .then(data => {
-    allVideos = data;
-    populateFilters(data);
+    allVideos = normalizeVideos(data);
+    populateFilters(allVideos);
     applyFilters();
     requestAnimationFrame(() => {
       adjustFixedPlayerBottom();
@@ -738,8 +796,8 @@ document.addEventListener('visibilitychange', () => {
 
         videos.forEach(v => {
           sets.category.add(v["カテゴリ"]);
-          parseCommaTags(v["動画種別"]).forEach(type => sets.type.add(type));
-          parseCommaTags(v["担当区分"]).forEach(role => sets.role.add(role));
+          v._types.forEach(type => sets.type.add(type));
+          v._roles.forEach(role => sets.role.add(role));
 
             // 公開月（例: 2023/07）だけ抽出して追加
 const rawDate = v["公開月"];
@@ -923,42 +981,18 @@ function renderDateTags() {
 
 // ===== 検索・絞り込み処理 =====
       function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const now = new Date();
         let filtered = allVideos.filter(video => {
-  const collabLivers = (video["コラボライバー"] || "")
-    .split(",")
-    .map(v => v.trim())
-    .filter(Boolean);
+  const diffMonths = (now - video._time) / (1000 * 60 * 60 * 24 * 30);
 
-  const collabUnits = (video["コラボユニット"] || "")
-    .split(",")
-    .map(v => v.trim())
-    .filter(Boolean);
-
-          
-
-          // タグ・検索用の前処理（動画1件ごとに配列化して扱いやすくする）
-  const collabTags = [...collabLivers, ...collabUnits];
-  const roles = parseCommaTags(video["担当区分"]);
-  const typeTags = parseCommaTags(video["動画種別"]); 
-  const searchTerm = searchInput.value.toLowerCase();
-
-  const now = new Date();
-  const videoTime = parseYmdToTime(video["公開日"] || video["公開月"]);
-  const diffMonths = (now - videoTime) / (1000 * 60 * 60 * 24 * 30);
-
-  return (!searchTerm ||
-  String(video["title"] || "").toLowerCase().includes(searchTerm) ||
-  String(video["artist"] || "").toLowerCase().includes(searchTerm) ||
-  roles.some(role => role.toLowerCase().includes(searchTerm)) ||
-  collabLivers.some(name => name.toLowerCase().includes(searchTerm)) ||
-  collabUnits.some(unit => unit.toLowerCase().includes(searchTerm))
-) &&
+  return (!searchTerm || video._searchText.includes(searchTerm)) &&
     
 // フィルタ条件
     (!selectedCategoryTag || video["カテゴリ"] === selectedCategoryTag) &&
-    (!selectedCollabTag || collabTags.includes(selectedCollabTag)) &&
-    (!selectedRoleTag || roles.includes(selectedRoleTag)) &&
-    (!selectedPlatformTag || String(video["platform"] || "").toLowerCase() === selectedPlatformTag) &&
+    (!selectedCollabTag || video._collabTags.includes(selectedCollabTag)) &&
+    (!selectedRoleTag || video._roles.includes(selectedRoleTag)) &&
+    (!selectedPlatformTag || video._platform === selectedPlatformTag) &&
 (!selectedDateTag ||
   (selectedDateTag === "recent" && diffMonths <= 3) ||
   (selectedDateTag === "year" && diffMonths <= 12) ||
@@ -966,46 +1000,22 @@ function renderDateTags() {
 ) &&
   (
 selected3DTag === null ||
-  (selected3DTag === "include" && video["3D"] === "TRUE")
+  (selected3DTag === "include" && video._is3D)
 ) &&
 (
 selectedShortsTag === null ||   
-(selectedShortsTag === "include" && video["Shorts"] === "TRUE")
+(selectedShortsTag === "include" && video._isShorts)
 ) &&
 (
  selectedVideoTypeTags.size === 0 ||
-  [...selectedVideoTypeTags].every(tag => typeTags.includes(tag))
+  [...selectedVideoTypeTags].every(tag => video._types.includes(tag))
  )
 });
 
 const coll = new Intl.Collator('ja');
 
-function parseYmdToTime(raw) {
-  const s = String(raw ?? '').trim();
-  if (!s) return 0;
-
-  // YYYY[/-.年]MM[/-.月]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
-  let m = s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);
-  if (m) {
-    const y = +m[1], mo = +m[2], d = +m[3];
-    if (y && mo && d) return new Date(y, mo - 1, d).getTime();
-  }
-
-  // 年月だけ（公開月対策） 例: 2024/06, 2024-6, 2024年6月
-  m = s.match(/(\d{4})[\/\-.年](\d{1,2})/);
-  if (m) {
-    const y = +m[1], mo = +m[2];
-    if (y && mo) return new Date(y, mo - 1, 1).getTime(); // 日が無ければ1日で補完
-  }
-
-  // 最後の保険：Date.parse に賭ける（失敗なら 0）
-  const t = Date.parse(s);
-  return Number.isFinite(t) ? t : 0;
-}
-
 function videoTime(v) {
-  // 公開日があれば最優先、無ければ公開月
-  return parseYmdToTime(v["公開日"] || v["公開月"]);
+  return v._time;
 }
 
 const order = sortOrder.value;
@@ -1103,10 +1113,11 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
   metaRow.appendChild(span);
 });
 
-const roles = parseCommaTags(video["担当区分"]);
-const typeTags = parseCommaTags(video["動画種別"]);
+const roles = video._roles;
+const typeTags = video._types;
     const category = video["カテゴリ"];
 const platform = video["platform"];
+const normalizedPlatform = video._platform;
 let roleTagRow = null;
 
 if (
@@ -1114,8 +1125,8 @@ if (
   platform ||
   roles.length ||
   typeTags.length ||
-  video["3D"] === "TRUE" ||
-  video["Shorts"] === "TRUE"
+  video._is3D ||
+  video._isShorts
 ) {
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
@@ -1169,14 +1180,13 @@ if (category) {
     const platformTag = document.createElement('button');
     platformTag.type = 'button';
 
-    const isPlatformActive = selectedPlatformTag === platform;
+    const isPlatformActive = selectedPlatformTag === normalizedPlatform;
 
     platformTag.className = getTagButtonClass("tag-platform", isPlatformActive);
 
     platformTag.textContent = platform;
 
     platformTag.addEventListener('click', () => {
-     const normalizedPlatform = String(platform || "").toLowerCase();
 selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normalizedPlatform;
       applyFilters();
     });
@@ -1185,7 +1195,7 @@ selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normaliz
   }
 
   // 3Dタグ
-if (video["3D"] === "TRUE") {
+if (video._is3D) {
   const tag3D = document.createElement('button');
   tag3D.type = 'button';
 
@@ -1204,7 +1214,7 @@ if (video["3D"] === "TRUE") {
 }
 
   // Shortsタグ
-if (video["Shorts"] === "TRUE") {
+if (video._isShorts) {
   const shortsTag = document.createElement('button');
   shortsTag.type = 'button';
 
@@ -1246,15 +1256,8 @@ if (video["Shorts"] === "TRUE") {
     }
 
 // 3行目：コラボタグ
-const collabLivers = (video["コラボライバー"] || "")
-  .split(",")
-  .map(v => v.trim())
-  .filter(Boolean);
-
-const collabUnits = (video["コラボユニット"] || "")
-  .split(",")
-  .map(v => v.trim())
-  .filter(Boolean);
+const collabLivers = video._collabLivers;
+const collabUnits = video._collabUnits;
 
 let tagRow = null;
 
