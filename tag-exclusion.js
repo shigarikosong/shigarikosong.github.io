@@ -67,8 +67,9 @@
     @media (min-width: 640px) {
       body.desktop-filter-open #activeTagChips:not(.hidden) {
         display: block !important;
-        position: static;
+        position: relative;
         top: auto !important;
+        z-index: 30;
         margin-top: -4px;
       }
     }
@@ -163,9 +164,106 @@
     return excludedTags[kind]?.has(normalizeLabel(kind, label));
   }
 
+  function isFlagFormat(kind, label) {
+    return kind === "format" && (label === "3D" || label === "Shorts");
+  }
+
+  function clearInclude(kind, label) {
+    const value = normalizeLabel(kind, label);
+
+    if (kind === "category" && selectedCategoryTag === value) {
+      selectedCategoryTag = "";
+    } else if (kind === "platform" && selectedPlatformTag === value) {
+      selectedPlatformTag = "";
+    } else if (kind === "date" && selectedDateTag === value) {
+      selectedDateTag = "";
+    } else if (kind === "role" && selectedRoleTag === value) {
+      selectedRoleTag = "";
+    } else if (kind === "collab" && selectedCollabTag === value) {
+      selectedCollabTag = "";
+    } else if (isFlagFormat(kind, value) || kind === "flag") {
+      if (value === "3D") selected3DTag = null;
+      if (value === "Shorts") selectedShortsTag = null;
+    } else if (kind === "format") {
+      selectedVideoTypeTags.delete(value);
+    }
+  }
+
+  function setInclude(kind, label) {
+    const value = normalizeLabel(kind, label);
+    if (!value) return;
+
+    removeExclude(kind, value);
+
+    if (kind === "category") {
+      selectedCategoryTag = value;
+    } else if (kind === "platform") {
+      selectedPlatformTag = value;
+    } else if (kind === "date") {
+      selectedDateTag = value;
+    } else if (kind === "role") {
+      selectedRoleTag = value;
+    } else if (kind === "collab") {
+      selectedCollabTag = value;
+    } else if (isFlagFormat(kind, value) || kind === "flag") {
+      if (value === "3D") selected3DTag = "include";
+      if (value === "Shorts") selectedShortsTag = "include";
+    } else if (kind === "format") {
+      selectedVideoTypeTags.add(value);
+    }
+  }
+
+  function getTagState(kind, label) {
+    const value = normalizeLabel(kind, label);
+
+    if (isExcluded(kind, value)) return "exclude";
+    if (kind === "category" && selectedCategoryTag === value) return "include";
+    if (kind === "platform" && selectedPlatformTag === value) return "include";
+    if (kind === "date" && selectedDateTag === value) return "include";
+    if (kind === "role" && selectedRoleTag === value) return "include";
+    if (kind === "collab" && selectedCollabTag === value) return "include";
+    if ((isFlagFormat(kind, value) || kind === "flag") && value === "3D" && selected3DTag === "include") return "include";
+    if ((isFlagFormat(kind, value) || kind === "flag") && value === "Shorts" && selectedShortsTag === "include") return "include";
+    if (kind === "format" && selectedVideoTypeTags.has(value)) return "include";
+
+    return "none";
+  }
+
+  function syncFilterControls() {
+    if (typeof renderCategoryTags === "function" && Array.isArray(allVideos)) {
+      renderCategoryTags([...new Set(allVideos.map(video => video["カテゴリ"]).filter(Boolean))].sort());
+    }
+    if (typeof renderPlatformTags === "function") renderPlatformTags();
+    if (typeof renderDateTags === "function") renderDateTags();
+    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+  }
+
+  function clearExclude(kind, label) {
+    removeExclude(kind, label);
+  }
+
+  function cycleTagState(kind, label) {
+    const value = normalizeLabel(kind, label);
+    const state = getTagState(kind, value);
+
+    if (state === "none") {
+      setInclude(kind, value);
+    } else if (state === "include") {
+      clearInclude(kind, value);
+      addExclude(kind, value);
+    } else {
+      clearInclude(kind, value);
+      clearExclude(kind, value);
+    }
+
+    syncFilterControls();
+    applyFiltersWithExclusions();
+  }
+
   function addExclude(kind, label) {
     const value = normalizeLabel(kind, label);
     if (!value || !excludedTags[kind]) return;
+    clearInclude(kind, value);
     excludedTags[kind].add(value);
   }
 
@@ -180,6 +278,19 @@
   }
 
   function refreshKnownTags() {
+    if (Array.isArray(allVideos)) {
+      allVideos.forEach(video => {
+        if (video?.["カテゴリ"]) knownTags.category.add(String(video["カテゴリ"]).trim());
+        if (video?._platform) knownTags.platform.add(String(video._platform).trim());
+        (video?._types || splitTags(video?.["動画種別"])).forEach(tag => knownTags.format.add(tag));
+        (video?._roles || splitTags(video?.["担当区分"])).forEach(tag => knownTags.role.add(tag));
+        [
+          ...(video?._collabLivers || splitTags(video?.["コラボライバー"])),
+          ...(video?._collabUnits || splitTags(video?.["コラボユニット"]))
+        ].forEach(tag => knownTags.collab.add(tag));
+      });
+    }
+
     Object.entries(containerKindMap).forEach(([id, kind]) => {
       const container = document.getElementById(id);
       if (!container) return;
@@ -226,6 +337,7 @@
 
     const label = getRawButtonLabel(button);
     if (!label || button.closest("#activeTagChips, #mobileModalActiveChips")) return null;
+    if (button.classList.contains("collab-member-toggle")) return null;
 
     const dataKind = normalizeFilterGroup(button.dataset.filterGroup);
     const dataValue = button.dataset.filterValue;
@@ -242,10 +354,6 @@
     if (!button.closest("#videoList")) return null;
 
     return inferCardButtonInfo(button, label);
-  }
-
-  function isIncludedButton(button) {
-    return button.classList.contains("text-white") && !button.classList.contains(EXCLUDE_BUTTON_CLASS);
   }
 
   function isExcludedDate(video) {
@@ -367,6 +475,7 @@
       chip.setAttribute("aria-label", `${displayLabel}を除外条件から外す`);
       chip.addEventListener("click", () => {
         removeExclude(kind, label);
+        syncFilterControls();
         applyFiltersWithExclusions();
       });
       activeTagChipsInner.appendChild(chip);
@@ -440,6 +549,7 @@
     window.renderVideoList = function renderVideoListWithExclusion(videos) {
       const filtered = filterExcludedVideos(videos);
       lastRenderedVideos = filtered;
+      currentFilteredVideos = filtered;
       isPatchingRender = true;
       originalRenderVideoList(filtered);
       isPatchingRender = false;
@@ -470,20 +580,9 @@
     const info = findButtonInfo(button);
     if (!info) return;
 
-    if (isExcluded(info.kind, info.label)) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      removeExclude(info.kind, info.label);
-      applyFiltersWithExclusions();
-      return;
-    }
-
-    if (isIncludedButton(button)) {
-      window.setTimeout(() => {
-        addExclude(info.kind, info.label);
-        applyFiltersWithExclusions();
-      }, 0);
-    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    cycleTagState(info.kind, info.label);
   }
 
   function getVisiblePlayingIndex() {

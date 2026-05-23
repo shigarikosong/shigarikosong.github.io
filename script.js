@@ -1231,6 +1231,8 @@ if (
     tag.className = getTagButtonClass("tag-format", isTypeActive);
 
     tag.textContent = type;
+    tag.dataset.filterGroup = "format";
+    tag.dataset.filterValue = type;
 
     tag.addEventListener('click', () => {
 
@@ -1253,6 +1255,8 @@ if (category) {
   });
 
   categoryTag.textContent = category;
+  categoryTag.dataset.filterGroup = "category";
+  categoryTag.dataset.filterValue = category;
 
   categoryTag.addEventListener('click', () => {
     selectedCategoryTag = selectedCategoryTag === category ? "" : category;
@@ -1276,6 +1280,8 @@ if (category) {
     platformTag.className = getTagButtonClass("tag-platform", isPlatformActive);
 
     platformTag.textContent = platform;
+    platformTag.dataset.filterGroup = "platform";
+    platformTag.dataset.filterValue = normalizedPlatform;
 
     platformTag.addEventListener('click', () => {
 selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normalizedPlatform;
@@ -1295,6 +1301,8 @@ if (video._is3D) {
   tag3D.className = getTagButtonClass("tag-format-3d", isInclude);
 
   tag3D.textContent = '3D';
+  tag3D.dataset.filterGroup = "format";
+  tag3D.dataset.filterValue = "3D";
 
   tag3D.addEventListener('click', () => {
     selected3DTag = toggleTagState(selected3DTag);
@@ -1314,6 +1322,8 @@ if (video._isShorts) {
   shortsTag.className = getTagButtonClass("tag-format", isInclude);
 
   shortsTag.textContent = 'Shorts';
+  shortsTag.dataset.filterGroup = "format";
+  shortsTag.dataset.filterValue = "Shorts";
 
   shortsTag.addEventListener('click', () => {
     selectedShortsTag = toggleTagState(selectedShortsTag);
@@ -1332,6 +1342,8 @@ if (video._isShorts) {
     const isActive = selectedRoleTag === role;
     tag.className = getRoleTagClass(role, isActive);
     tag.textContent = role;
+    tag.dataset.filterGroup = "role";
+    tag.dataset.filterValue = role;
 
     tag.addEventListener('click', () => {
       selectedRoleTag = (selectedRoleTag === role) ? "" : role;
@@ -1364,6 +1376,8 @@ if (collabLivers.length || collabUnits.length) {
     tag.className = getTagButtonClass("tag-collab-liver", isActive);
 
     tag.textContent = name;
+    tag.dataset.filterGroup = "collab";
+    tag.dataset.filterValue = name;
 
     tag.addEventListener('click', () => {
       selectedCollabTag = (selectedCollabTag === name) ? "" : name;
@@ -1381,6 +1395,8 @@ if (collabLivers.length || collabUnits.length) {
     tag.className = getTagButtonClass("tag-collab-unit", isActive);
 
     tag.textContent = unit;
+    tag.dataset.filterGroup = "collab";
+    tag.dataset.filterValue = unit;
 
     tag.addEventListener('click', () => {
       selectedCollabTag = (selectedCollabTag === unit) ? "" : unit;

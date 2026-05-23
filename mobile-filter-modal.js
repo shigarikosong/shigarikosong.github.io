@@ -476,4 +476,8 @@
   window.addEventListener("collabTagOrderReady", () => {
     renderCollabTags();
   });
+  window.addEventListener("tagFilterStateChanged", () => {
+    renderMobileTagSections();
+    updateModalResultCount();
+  });
 })();

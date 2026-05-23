@@ -264,4 +264,5 @@
   window.addEventListener("collabTagOrderReady", () => {
     renderCollabTags();
   });
+  window.addEventListener("tagFilterStateChanged", renderDesktopPanel);
 })();
