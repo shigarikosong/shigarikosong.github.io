@@ -1556,7 +1556,7 @@ if (prevVideoBtn) {
   prevVideoBtn.title = '前の曲（Shift + A）';
 
   prevVideoBtn.addEventListener('click', () => {
-  playAdjacentVideo(-1);
+    playAdjacentVideo(-1);
   });
 }
 
@@ -1565,11 +1565,11 @@ if (nextVideoBtn) {
   nextVideoBtn.title = '次の曲（Shift + D）';
 
   nextVideoBtn.addEventListener('click', () => {
-  if (isRandomModeEnabled()) {
-    playRandomNextVideo();
-  } else {
-    playAdjacentVideo(1);
-  }
+    if (isRandomModeEnabled()) {
+      playRandomNextVideo();
+    } else {
+      playAdjacentVideo(1);
+    }
   });
 }
 
@@ -1597,10 +1597,12 @@ document.addEventListener('keydown', event => {
   if (!event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
 
   const key = event.key.toLowerCase();
-  if (key === 'a' && prevVideoBtn) {
+  const code = event.code;
+
+  if ((key === 'a' || code === 'KeyA') && prevVideoBtn) {
     event.preventDefault();
     prevVideoBtn.click();
-  } else if (key === 'd' && nextVideoBtn) {
+  } else if ((key === 'd' || code === 'KeyD') && nextVideoBtn) {
     event.preventDefault();
     nextVideoBtn.click();
   }
