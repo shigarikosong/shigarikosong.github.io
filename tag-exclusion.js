@@ -64,16 +64,6 @@
       color: #be123c !important;
     }
 
-    @media (min-width: 640px) {
-      body.desktop-filter-open #activeTagChips:not(.hidden) {
-        display: block !important;
-        position: relative;
-        top: auto !important;
-        z-index: 30;
-        margin-top: -4px;
-      }
-    }
-
     .filter-modal-title-hidden {
       display: none !important;
     }
@@ -629,10 +619,8 @@
     const button = event.target.closest("#resetFilters, #modalResetBtn, #resetModalFilters");
     if (!button) return;
 
-    window.setTimeout(() => {
-      clearExclusions();
-      applyFiltersWithExclusions();
-    }, 0);
+    clearExclusions();
+    requestSync();
   }
 
   function setupMobileChipsObserver() {
