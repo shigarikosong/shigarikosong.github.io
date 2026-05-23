@@ -45,6 +45,9 @@ function setRandomModeEnabled(on) {
   localStorage.setItem(RANDOM_MODE_KEY, on ? '1' : '0');
 }
 
+let randomPlayQueue = [];
+let randomPlayQueueSignature = "";
+
 function isTikTokVideo(video) {
   return (video?._platform || String(video?.["platform"] || "").toLowerCase()) === "tiktok";
 }
@@ -63,19 +66,56 @@ function getCurrentVideo() {
   return baseList.find(video => getVideoKey(video) === nowPlayingKey) || null;
 }
 
-function playRandomNextVideo(options = {}) {
-  const baseList = options.autoPlayableOnly
+function resetRandomPlayQueue() {
+  randomPlayQueue = [];
+  randomPlayQueueSignature = "";
+}
+
+function shuffleVideos(videos) {
+  const shuffled = [...videos];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
+function getRandomQueueBaseList(options = {}) {
+  return options.autoPlayableOnly
     ? getAutoPlayableVideos()
     : (currentFilteredVideos?.length ? currentFilteredVideos : allVideos);
-  const list = baseList.filter(video => getVideoKey(video) !== nowPlayingKey);
-  if (!list.length && baseList.length === 1) {
-    loadVideo(baseList[0], null);
-    return;
-  }
-  if (!list.length) return;
+}
 
-  const randomVideo = list[Math.floor(Math.random() * list.length)];
-  loadVideo(randomVideo, null);
+function getRandomQueueSignature(baseList, options = {}) {
+  return [
+    options.autoPlayableOnly ? "auto" : "manual",
+    baseList.map(getVideoKey).join("|")
+  ].join(":");
+}
+
+function buildRandomPlayQueue(baseList, options = {}) {
+  const currentKey = nowPlayingKey;
+  const queueBase = baseList.length > 1
+    ? baseList.filter(video => getVideoKey(video) !== currentKey)
+    : baseList;
+
+  randomPlayQueue = shuffleVideos(queueBase);
+  randomPlayQueueSignature = getRandomQueueSignature(baseList, options);
+}
+
+function playRandomNextVideo(options = {}) {
+  const baseList = getRandomQueueBaseList(options);
+  if (!baseList.length) return;
+
+  const signature = getRandomQueueSignature(baseList, options);
+  if (!randomPlayQueue.length || randomPlayQueueSignature !== signature) {
+    buildRandomPlayQueue(baseList, options);
+  }
+
+  const nextVideo = randomPlayQueue.shift();
+  if (nextVideo) loadVideo(nextVideo, null);
 }
 
 function playCurrentVideoAgain() {
@@ -503,6 +543,7 @@ if (randomModeBtn) {
 
   randomModeBtn.addEventListener('click', () => {
     setRandomModeEnabled(!isRandomModeEnabled());
+    resetRandomPlayQueue();
     updateRandomModeButton();
     applyFilters();
   });
@@ -1081,6 +1122,7 @@ if (order) {
 }
 
         currentFilteredVideos = filtered;
+resetRandomPlayQueue();
 renderVideoList(filtered);
 renderActiveTagChips();
       }
