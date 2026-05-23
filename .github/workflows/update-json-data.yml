@@ -1,0 +1,52 @@
+name: Update JSON data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-json-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch JSON data
+        run: |
+          set -euo pipefail
+
+          tmp_dir="$(mktemp -d)"
+          trap 'rm -rf "$tmp_dir"' EXIT
+
+          curl --fail --location --silent --show-error \
+            "https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881" \
+            --output "$tmp_dir/videos.json"
+
+          curl --fail --location --silent --show-error \
+            "https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/管理用" \
+            --output "$tmp_dir/meta.json"
+
+          python3 -m json.tool "$tmp_dir/videos.json" > /dev/null
+          python3 -m json.tool "$tmp_dir/meta.json" > /dev/null
+
+          mkdir -p data
+          cp "$tmp_dir/videos.json" data/videos.json
+          cp "$tmp_dir/meta.json" data/meta.json
+
+      - name: Commit and push changes
+        run: |
+          set -euo pipefail
+
+          if [ -z "$(git status --porcelain -- data/videos.json data/meta.json)" ]; then
+            echo "No JSON data changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/videos.json data/meta.json
+          git commit -m "Update JSON data"
+          git push
