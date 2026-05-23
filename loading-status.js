@@ -104,7 +104,7 @@
 
   function isVideoListRequest(input) {
     const url = String(input?.url || input || '');
-    return url.includes('シート1') || url.includes('%E3%82%B7%E3%83%BC%E3%83%881');
+    return url.includes('シート1') || url.includes('%E3%82%B7%E3%83%BC%E3%83%881') || url.includes('data/videos.json');
   }
 
   function getRequestUrl(input) {
@@ -112,7 +112,8 @@
   }
 
   function isOpenSheetRequest(input) {
-    return getRequestUrl(input).includes('opensheet.elk.sh');
+    const url = getRequestUrl(input);
+    return url.includes('opensheet.elk.sh') || url.includes('data/videos.json') || url.includes('data/meta.json');
   }
 
   function createEmptyArrayResponse() {

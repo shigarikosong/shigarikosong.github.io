@@ -157,9 +157,9 @@ function updateRandomModeButton() {
 document.getElementById('modalSortOrder').value = "";
     
 
-// ===== スプレッドシートURL =====
-    const sheetJsonUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/%E3%82%B7%E3%83%BC%E3%83%881';
-    const metaSheetUrl = 'https://opensheet.elk.sh/1sZGH3TGYdC5UShrIEFEe2T8-axXEFet6qsxbqCoHX5o/管理用';
+// ===== データURL =====
+    const sheetJsonUrl = './data/videos.json';
+    const metaSheetUrl = './data/meta.json';
 
 
 // ===== タグ・絞り込み状態の管理 =====
