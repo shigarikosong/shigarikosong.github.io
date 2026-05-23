@@ -191,3 +191,5 @@ This documentation branch should not change:
 - User-facing help pages
 - Filter behavior
 - Player behavior
+
+Related document: [Player Behavior Rules](player-behavior-rules.md)

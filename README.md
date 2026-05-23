@@ -2,7 +2,7 @@
 
 このサイトは、司賀りこさんの歌ってみた・踊ってみた・歌枠などを探しやすくまとめた非公式ファンアーカイブです。
 
-開発者向けメモ: [フィルタータグ仕様](docs/filter-tag-rules.md)
+開発者向けメモ: [フィルタータグ仕様](docs/filter-tag-rules.md) / [プレイヤー挙動仕様](docs/player-behavior-rules.md)
 
 ### 検索する
 
