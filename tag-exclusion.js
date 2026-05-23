@@ -1,7 +1,6 @@
 (() => {
   const EXCLUDE_BUTTON_CLASS = "tag-exclusion-active";
   const EXCLUDE_CHIP_CLASS = "tag-exclusion-chip";
-  const MOBILE_CHIPS_ID = "mobileModalActiveChips";
   const dateLabelToValue = {
     "最近": "recent",
     "1年以内": "year",
@@ -47,7 +46,6 @@
   let lastRenderedVideos = [];
   let syncFrame = null;
   let isPatchingRender = false;
-  let mobileChipsObserver = null;
 
   const style = document.createElement("style");
   style.textContent = `
@@ -64,39 +62,6 @@
       color: #be123c !important;
     }
 
-    .filter-modal-title-hidden {
-      display: none !important;
-    }
-
-    .mobile-modal-active-chips {
-      margin-bottom: 12px;
-    }
-
-    .mobile-modal-active-chips.is-empty {
-      display: none;
-    }
-
-    .mobile-modal-active-chips-inner {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 0.375rem;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      border: 1px solid rgba(226, 232, 240, 0.9);
-      background: rgba(248, 250, 252, 0.92);
-      border-radius: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-    }
-
-    .mobile-modal-active-chips-inner::-webkit-scrollbar {
-      display: none;
-    }
-
-    .mobile-modal-active-chips-inner button {
-      flex: 0 0 auto;
-    }
   `;
   document.head.appendChild(style);
 
@@ -326,7 +291,7 @@
     refreshKnownTags();
 
     const label = getRawButtonLabel(button);
-    if (!label || button.closest("#activeTagChips, #mobileModalActiveChips")) return null;
+    if (!label || button.closest("#activeTagChips")) return null;
     if (button.classList.contains("collab-member-toggle")) return null;
 
     const dataKind = normalizeFilterGroup(button.dataset.filterGroup);
@@ -388,52 +353,6 @@
     return hasExclusions() ? list.filter(passesExclusion) : list;
   }
 
-  function ensureMobileModalChips() {
-    const modalBody = document.querySelector("#filterModal > div");
-    if (!modalBody) return null;
-
-    const title = modalBody.querySelector("h2");
-    if (title) title.classList.add("filter-modal-title-hidden");
-
-    let wrapper = document.getElementById(MOBILE_CHIPS_ID);
-    if (wrapper) return wrapper;
-
-    wrapper = document.createElement("div");
-    wrapper.id = MOBILE_CHIPS_ID;
-    wrapper.className = "mobile-modal-active-chips is-empty";
-    wrapper.innerHTML = '<div class="mobile-modal-active-chips-inner" aria-label="選択中の絞り込み条件"></div>';
-
-    const inner = wrapper.querySelector(".mobile-modal-active-chips-inner");
-    inner.addEventListener("click", event => {
-      const button = event.target.closest("button");
-      if (!button) return;
-
-      event.preventDefault();
-      const text = button.textContent.trim();
-      const sourceButton = [...document.querySelectorAll("#activeTagChipsInner button")]
-        .find(source => source.textContent.trim() === text);
-      sourceButton?.click();
-    });
-
-    if (title) {
-      title.insertAdjacentElement("afterend", wrapper);
-    } else {
-      modalBody.prepend(wrapper);
-    }
-
-    return wrapper;
-  }
-
-  function syncMobileModalChips() {
-    const wrapper = ensureMobileModalChips();
-    const source = document.getElementById("activeTagChipsInner");
-    const target = wrapper?.querySelector(".mobile-modal-active-chips-inner");
-    if (!wrapper || !source || !target) return;
-
-    target.innerHTML = source.innerHTML;
-    wrapper.classList.toggle("is-empty", source.children.length === 0);
-  }
-
   function renderExcludeChips() {
     const activeTagChips = document.getElementById("activeTagChips");
     const activeTagChipsInner = document.getElementById("activeTagChipsInner");
@@ -478,7 +397,6 @@
       }
     }
 
-    syncMobileModalChips();
   }
 
   function syncExcludedButtonLabel(button, info, active) {
@@ -623,15 +541,6 @@
     requestSync();
   }
 
-  function setupMobileChipsObserver() {
-    const source = document.getElementById("activeTagChipsInner");
-    if (!source || mobileChipsObserver) return;
-
-    mobileChipsObserver = new MutationObserver(syncMobileModalChips);
-    mobileChipsObserver.observe(source, { childList: true, subtree: true, characterData: true });
-    syncMobileModalChips();
-  }
-
   function setup() {
     const patchedList = patchRenderVideoList();
     const patchedChips = patchRenderActiveTagChips();
@@ -641,7 +550,6 @@
       return;
     }
 
-    setupMobileChipsObserver();
     document.addEventListener("click", handleFilteredPlayback, true);
     document.addEventListener("click", handleTagClick, true);
     document.addEventListener("click", handleResetClick, true);
