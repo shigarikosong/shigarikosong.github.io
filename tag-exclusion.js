@@ -1,7 +1,6 @@
 (() => {
   const EXCLUDE_BUTTON_CLASS = "tag-exclusion-active";
   const EXCLUDE_CHIP_CLASS = "tag-exclusion-chip";
-  const MOBILE_CHIPS_ID = "mobileModalActiveChips";
   const dateLabelToValue = {
     "最近": "recent",
     "1年以内": "year",
@@ -47,7 +46,6 @@
   let lastRenderedVideos = [];
   let syncFrame = null;
   let isPatchingRender = false;
-  let mobileChipsObserver = null;
 
   const style = document.createElement("style");
   style.textContent = `
@@ -64,48 +62,6 @@
       color: #be123c !important;
     }
 
-    @media (min-width: 640px) {
-      body.desktop-filter-open #activeTagChips:not(.hidden) {
-        display: block !important;
-        position: static;
-        top: auto !important;
-        margin-top: -4px;
-      }
-    }
-
-    .filter-modal-title-hidden {
-      display: none !important;
-    }
-
-    .mobile-modal-active-chips {
-      margin-bottom: 12px;
-    }
-
-    .mobile-modal-active-chips.is-empty {
-      display: none;
-    }
-
-    .mobile-modal-active-chips-inner {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 0.375rem;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      border: 1px solid rgba(226, 232, 240, 0.9);
-      background: rgba(248, 250, 252, 0.92);
-      border-radius: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-    }
-
-    .mobile-modal-active-chips-inner::-webkit-scrollbar {
-      display: none;
-    }
-
-    .mobile-modal-active-chips-inner button {
-      flex: 0 0 auto;
-    }
   `;
   document.head.appendChild(style);
 
@@ -163,9 +119,106 @@
     return excludedTags[kind]?.has(normalizeLabel(kind, label));
   }
 
+  function isFlagFormat(kind, label) {
+    return kind === "format" && (label === "3D" || label === "Shorts");
+  }
+
+  function clearInclude(kind, label) {
+    const value = normalizeLabel(kind, label);
+
+    if (kind === "category" && selectedCategoryTag === value) {
+      selectedCategoryTag = "";
+    } else if (kind === "platform" && selectedPlatformTag === value) {
+      selectedPlatformTag = "";
+    } else if (kind === "date" && selectedDateTag === value) {
+      selectedDateTag = "";
+    } else if (kind === "role" && selectedRoleTag === value) {
+      selectedRoleTag = "";
+    } else if (kind === "collab" && selectedCollabTag === value) {
+      selectedCollabTag = "";
+    } else if (isFlagFormat(kind, value) || kind === "flag") {
+      if (value === "3D") selected3DTag = null;
+      if (value === "Shorts") selectedShortsTag = null;
+    } else if (kind === "format") {
+      selectedVideoTypeTags.delete(value);
+    }
+  }
+
+  function setInclude(kind, label) {
+    const value = normalizeLabel(kind, label);
+    if (!value) return;
+
+    removeExclude(kind, value);
+
+    if (kind === "category") {
+      selectedCategoryTag = value;
+    } else if (kind === "platform") {
+      selectedPlatformTag = value;
+    } else if (kind === "date") {
+      selectedDateTag = value;
+    } else if (kind === "role") {
+      selectedRoleTag = value;
+    } else if (kind === "collab") {
+      selectedCollabTag = value;
+    } else if (isFlagFormat(kind, value) || kind === "flag") {
+      if (value === "3D") selected3DTag = "include";
+      if (value === "Shorts") selectedShortsTag = "include";
+    } else if (kind === "format") {
+      selectedVideoTypeTags.add(value);
+    }
+  }
+
+  function getTagState(kind, label) {
+    const value = normalizeLabel(kind, label);
+
+    if (isExcluded(kind, value)) return "exclude";
+    if (kind === "category" && selectedCategoryTag === value) return "include";
+    if (kind === "platform" && selectedPlatformTag === value) return "include";
+    if (kind === "date" && selectedDateTag === value) return "include";
+    if (kind === "role" && selectedRoleTag === value) return "include";
+    if (kind === "collab" && selectedCollabTag === value) return "include";
+    if ((isFlagFormat(kind, value) || kind === "flag") && value === "3D" && selected3DTag === "include") return "include";
+    if ((isFlagFormat(kind, value) || kind === "flag") && value === "Shorts" && selectedShortsTag === "include") return "include";
+    if (kind === "format" && selectedVideoTypeTags.has(value)) return "include";
+
+    return "none";
+  }
+
+  function syncFilterControls() {
+    if (typeof renderCategoryTags === "function" && Array.isArray(allVideos)) {
+      renderCategoryTags([...new Set(allVideos.map(video => video["カテゴリ"]).filter(Boolean))].sort());
+    }
+    if (typeof renderPlatformTags === "function") renderPlatformTags();
+    if (typeof renderDateTags === "function") renderDateTags();
+    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+  }
+
+  function clearExclude(kind, label) {
+    removeExclude(kind, label);
+  }
+
+  function cycleTagState(kind, label) {
+    const value = normalizeLabel(kind, label);
+    const state = getTagState(kind, value);
+
+    if (state === "none") {
+      setInclude(kind, value);
+    } else if (state === "include") {
+      clearInclude(kind, value);
+      addExclude(kind, value);
+    } else {
+      clearInclude(kind, value);
+      clearExclude(kind, value);
+    }
+
+    syncFilterControls();
+    applyFiltersWithExclusions();
+  }
+
   function addExclude(kind, label) {
     const value = normalizeLabel(kind, label);
     if (!value || !excludedTags[kind]) return;
+    clearInclude(kind, value);
     excludedTags[kind].add(value);
   }
 
@@ -180,6 +233,19 @@
   }
 
   function refreshKnownTags() {
+    if (Array.isArray(allVideos)) {
+      allVideos.forEach(video => {
+        if (video?.["カテゴリ"]) knownTags.category.add(String(video["カテゴリ"]).trim());
+        if (video?._platform) knownTags.platform.add(String(video._platform).trim());
+        (video?._types || splitTags(video?.["動画種別"])).forEach(tag => knownTags.format.add(tag));
+        (video?._roles || splitTags(video?.["担当区分"])).forEach(tag => knownTags.role.add(tag));
+        [
+          ...(video?._collabLivers || splitTags(video?.["コラボライバー"])),
+          ...(video?._collabUnits || splitTags(video?.["コラボユニット"]))
+        ].forEach(tag => knownTags.collab.add(tag));
+      });
+    }
+
     Object.entries(containerKindMap).forEach(([id, kind]) => {
       const container = document.getElementById(id);
       if (!container) return;
@@ -225,7 +291,8 @@
     refreshKnownTags();
 
     const label = getRawButtonLabel(button);
-    if (!label || button.closest("#activeTagChips, #mobileModalActiveChips")) return null;
+    if (!label || button.closest("#activeTagChips")) return null;
+    if (button.classList.contains("collab-member-toggle")) return null;
 
     const dataKind = normalizeFilterGroup(button.dataset.filterGroup);
     const dataValue = button.dataset.filterValue;
@@ -242,10 +309,6 @@
     if (!button.closest("#videoList")) return null;
 
     return inferCardButtonInfo(button, label);
-  }
-
-  function isIncludedButton(button) {
-    return button.classList.contains("text-white") && !button.classList.contains(EXCLUDE_BUTTON_CLASS);
   }
 
   function isExcludedDate(video) {
@@ -290,52 +353,6 @@
     return hasExclusions() ? list.filter(passesExclusion) : list;
   }
 
-  function ensureMobileModalChips() {
-    const modalBody = document.querySelector("#filterModal > div");
-    if (!modalBody) return null;
-
-    const title = modalBody.querySelector("h2");
-    if (title) title.classList.add("filter-modal-title-hidden");
-
-    let wrapper = document.getElementById(MOBILE_CHIPS_ID);
-    if (wrapper) return wrapper;
-
-    wrapper = document.createElement("div");
-    wrapper.id = MOBILE_CHIPS_ID;
-    wrapper.className = "mobile-modal-active-chips is-empty";
-    wrapper.innerHTML = '<div class="mobile-modal-active-chips-inner" aria-label="選択中の絞り込み条件"></div>';
-
-    const inner = wrapper.querySelector(".mobile-modal-active-chips-inner");
-    inner.addEventListener("click", event => {
-      const button = event.target.closest("button");
-      if (!button) return;
-
-      event.preventDefault();
-      const text = button.textContent.trim();
-      const sourceButton = [...document.querySelectorAll("#activeTagChipsInner button")]
-        .find(source => source.textContent.trim() === text);
-      sourceButton?.click();
-    });
-
-    if (title) {
-      title.insertAdjacentElement("afterend", wrapper);
-    } else {
-      modalBody.prepend(wrapper);
-    }
-
-    return wrapper;
-  }
-
-  function syncMobileModalChips() {
-    const wrapper = ensureMobileModalChips();
-    const source = document.getElementById("activeTagChipsInner");
-    const target = wrapper?.querySelector(".mobile-modal-active-chips-inner");
-    if (!wrapper || !source || !target) return;
-
-    target.innerHTML = source.innerHTML;
-    wrapper.classList.toggle("is-empty", source.children.length === 0);
-  }
-
   function renderExcludeChips() {
     const activeTagChips = document.getElementById("activeTagChips");
     const activeTagChipsInner = document.getElementById("activeTagChipsInner");
@@ -367,6 +384,7 @@
       chip.setAttribute("aria-label", `${displayLabel}を除外条件から外す`);
       chip.addEventListener("click", () => {
         removeExclude(kind, label);
+        syncFilterControls();
         applyFiltersWithExclusions();
       });
       activeTagChipsInner.appendChild(chip);
@@ -379,7 +397,6 @@
       }
     }
 
-    syncMobileModalChips();
   }
 
   function syncExcludedButtonLabel(button, info, active) {
@@ -440,6 +457,7 @@
     window.renderVideoList = function renderVideoListWithExclusion(videos) {
       const filtered = filterExcludedVideos(videos);
       lastRenderedVideos = filtered;
+      currentFilteredVideos = filtered;
       isPatchingRender = true;
       originalRenderVideoList(filtered);
       isPatchingRender = false;
@@ -470,20 +488,9 @@
     const info = findButtonInfo(button);
     if (!info) return;
 
-    if (isExcluded(info.kind, info.label)) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      removeExclude(info.kind, info.label);
-      applyFiltersWithExclusions();
-      return;
-    }
-
-    if (isIncludedButton(button)) {
-      window.setTimeout(() => {
-        addExclude(info.kind, info.label);
-        applyFiltersWithExclusions();
-      }, 0);
-    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    cycleTagState(info.kind, info.label);
   }
 
   function getVisiblePlayingIndex() {
@@ -530,19 +537,8 @@
     const button = event.target.closest("#resetFilters, #modalResetBtn, #resetModalFilters");
     if (!button) return;
 
-    window.setTimeout(() => {
-      clearExclusions();
-      applyFiltersWithExclusions();
-    }, 0);
-  }
-
-  function setupMobileChipsObserver() {
-    const source = document.getElementById("activeTagChipsInner");
-    if (!source || mobileChipsObserver) return;
-
-    mobileChipsObserver = new MutationObserver(syncMobileModalChips);
-    mobileChipsObserver.observe(source, { childList: true, subtree: true, characterData: true });
-    syncMobileModalChips();
+    clearExclusions();
+    requestSync();
   }
 
   function setup() {
@@ -554,7 +550,6 @@
       return;
     }
 
-    setupMobileChipsObserver();
     document.addEventListener("click", handleFilteredPlayback, true);
     document.addEventListener("click", handleTagClick, true);
     document.addEventListener("click", handleResetClick, true);

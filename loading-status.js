@@ -262,7 +262,7 @@
   }
 
   function loadTagExclusionFilter() {
-    loadScriptOnce('./tag-exclusion.js?v=4', 'tag-exclusion-filter');
+    loadScriptOnce('./tag-exclusion.js?v=5', 'tag-exclusion-filter');
     loadScriptOnce('./time-tag-active.js?v=4', 'time-tag-active');
   }
 
