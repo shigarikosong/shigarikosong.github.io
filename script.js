@@ -1060,6 +1060,8 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
     item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
 
     const key = `${video["videoId"]}__${parseInt(video["start"] || 0)}`;
+    item.dataset.videoKey = key;
+
     if (key === nowPlayingKey) {
       item.classList.add('playing');
       playingElement = item;
@@ -1309,6 +1311,21 @@ videoList.appendChild(item);
   }
 }
 
+function updateNowPlayingHighlight() {
+  videoList.querySelectorAll('.playing').forEach(item => {
+    item.classList.remove('playing');
+  });
+
+  if (!nowPlayingKey) return;
+
+  const playingElement = [...videoList.querySelectorAll('[data-video-key]')]
+    .find(item => item.dataset.videoKey === nowPlayingKey);
+  if (playingElement) {
+    playingElement.classList.add('playing');
+    playingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 
 // ===== 動画の再生処理 =====
 function loadVideo(video, item) {
@@ -1398,7 +1415,7 @@ if (ytEl) ytEl.classList.add('hidden');
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   nowPlayingTitle.textContent = `${video["title"]} - ${video["artist"]}`;
   nowPlayingKey = getVideoKey(video);
-  applyFilters(); // ハイライト＆スクロール反映
+  updateNowPlayingHighlight();
 }
 
 // ===== プレイヤー操作ボタン =====
