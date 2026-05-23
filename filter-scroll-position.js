@@ -23,11 +23,27 @@
     });
   }
 
+  function scrollNoticeIntoView(notice) {
+    notice.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    setTimeout(() => {
+      if (document.body.contains(notice)) {
+        notice.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 120);
+  }
+
   function scrollAfterFilterUpdate() {
     const playingItem = videoList.querySelector(".playing");
+    const filteredOutNotice = document.getElementById("nowPlayingFilteredOutNotice");
 
     if (isPlayerOpen() && playingItem) {
       playingItem.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    if (filteredOutNotice) {
+      scrollNoticeIntoView(filteredOutNotice);
       return;
     }
 
