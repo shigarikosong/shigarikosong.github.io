@@ -176,6 +176,7 @@ function updateRepeatModeButton() {
 
   btn.dataset.state = mode;
   btn.setAttribute('aria-label', label);
+  btn.title = label;
   setPlayerControlIcon(btn, icons[mode]);
   btn.querySelector('.player-control-label').textContent = label;
 }
@@ -189,6 +190,7 @@ function updateRandomModeButton() {
 
   btn.dataset.state = on ? 'on' : 'off';
   btn.setAttribute('aria-label', label);
+  btn.title = label;
   setPlayerControlIcon(btn, './assets/icon/icon-shuffle.png');
   btn.querySelector('.player-control-label').textContent = label;
 }
@@ -1544,17 +1546,63 @@ if (closeBtn) {
   // 古い埋め込みプレイヤーを削除（固定プレイヤーを使うので他のプレイヤーは削除）
   document.querySelectorAll('.video-player-container').forEach(el => el.remove());
 
-  document.getElementById('prevVideoBtn').addEventListener('click', () => {
+const prevVideoBtn = document.getElementById('prevVideoBtn');
+const nextVideoBtn = document.getElementById('nextVideoBtn');
+
+if (prevVideoBtn) {
+  prevVideoBtn.setAttribute('aria-label', '前の曲（Shift + A）');
+  prevVideoBtn.title = '前の曲（Shift + A）';
+
+  prevVideoBtn.addEventListener('click', () => {
   playAdjacentVideo(-1);
   });
+}
 
-  document.getElementById('nextVideoBtn').addEventListener('click', () => {
+if (nextVideoBtn) {
+  nextVideoBtn.setAttribute('aria-label', '次の曲（Shift + D）');
+  nextVideoBtn.title = '次の曲（Shift + D）';
+
+  nextVideoBtn.addEventListener('click', () => {
   if (isRandomModeEnabled()) {
     playRandomNextVideo();
   } else {
     playAdjacentVideo(1);
   }
   });
+}
+
+function isTypingTarget(target) {
+  if (!(target instanceof Element)) return false;
+
+  const tagName = target.tagName.toLowerCase();
+  return tagName === 'input' ||
+    tagName === 'textarea' ||
+    tagName === 'select' ||
+    target.isContentEditable ||
+    Boolean(target.closest('[contenteditable="true"]'));
+}
+
+function isPlayerVisible() {
+  return Boolean(
+    fixedPlayerEl &&
+    getComputedStyle(fixedPlayerEl).display !== 'none'
+  );
+}
+
+document.addEventListener('keydown', event => {
+  if (isTypingTarget(event.target)) return;
+  if (!isPlayerVisible()) return;
+  if (!event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
+
+  const key = event.key.toLowerCase();
+  if (key === 'a' && prevVideoBtn) {
+    event.preventDefault();
+    prevVideoBtn.click();
+  } else if (key === 'd' && nextVideoBtn) {
+    event.preventDefault();
+    nextVideoBtn.click();
+  }
+});
 
 function playAdjacentVideo(direction) {
   if (!currentFilteredVideos.length) return;
