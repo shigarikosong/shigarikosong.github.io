@@ -83,6 +83,7 @@ Clicking a chip should clear only that condition:
 - Reset/apply behavior inside the modal
 - Applying modal search/sort values to the main filter state
 - The mobile filter modal is immediate-apply; bottom actions are `リセット` and `閉じる`, where `閉じる` is not a cancel action.
+- Mobile modal search input is also immediate-apply and should update the modal result count while typing.
 
 ### `tag-exclusion.js`
 
