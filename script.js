@@ -475,6 +475,9 @@ function createListTagElement(label, group, value, isActive, onClick) {
 
   tag.type = 'button';
   tag.className = getTagButtonClass(kind, isActive);
+  if (group === "category") {
+    tag.classList.add("tag-list-style");
+  }
   tag.textContent = label;
   tag.dataset.filterGroup = group;
   tag.dataset.filterValue = value;

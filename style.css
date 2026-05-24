@@ -207,6 +207,10 @@ body.player-visible #desktopFilterPanel {
   background: #dbeafe;
 }
 
+.tag-list-style {
+  border-color: #bfdbfe;
+}
+
 .tag-sort-active,
 .tag-style-active {
   color: #fff;
