@@ -105,6 +105,7 @@ let randomPlayQueueSignature = "";
 let endCountdownTimer = null;
 let endCountdownVideoKey = null;
 let endOverrunGraceStartedAt = null;
+let endOverrunGraceVideoKey = null;
 let skipEndAutoAdvanceKey = null;
 let isEndAutoAdvancing = false;
 const END_OVERRUN_GRACE_SECONDS = 10;
@@ -222,6 +223,7 @@ function getEndCountdownUi() {
   keepButton.textContent = "このまま再生";
   keepButton.addEventListener("click", () => {
     if (endCountdownVideoKey) skipEndAutoAdvanceKey = endCountdownVideoKey;
+    resetEndOverrunGrace();
     hideEndCountdownUi();
   });
 
@@ -253,14 +255,16 @@ function hideEndCountdownUi() {
   document.getElementById("endCountdownControls")?.classList.add("hidden");
 }
 
-function stopEndCountdownMonitor() {
+function stopEndCountdownMonitor(options = {}) {
+  const { resetGrace = true } = options;
+
   if (endCountdownTimer) {
     clearInterval(endCountdownTimer);
     endCountdownTimer = null;
   }
   hideEndCountdownUi();
   endCountdownVideoKey = null;
-  endOverrunGraceStartedAt = null;
+  if (resetGrace) resetEndOverrunGrace();
   isEndAutoAdvancing = false;
 }
 
@@ -284,9 +288,11 @@ function shouldUseEndAutoAdvance(video) {
 
 function resetEndOverrunGrace() {
   endOverrunGraceStartedAt = null;
+  endOverrunGraceVideoKey = null;
 }
 
-function startEndOverrunGrace() {
+function startEndOverrunGrace(video) {
+  endOverrunGraceVideoKey = getVideoKey(video);
   endOverrunGraceStartedAt = Date.now();
   showEndCountdownUi(END_OVERRUN_GRACE_SECONDS);
 }
@@ -311,6 +317,8 @@ function advanceFromEndCountdown() {
 }
 
 function checkEndCountdown(video) {
+  if (isEndAutoAdvancing) return;
+
   if (!shouldUseEndAutoAdvance(video)) {
     hideEndCountdownUi();
     return;
@@ -328,7 +336,10 @@ function checkEndCountdown(video) {
 
   const remainingSeconds = video._endSeconds - currentTime;
   if (remainingSeconds <= 0) {
-    if (!endOverrunGraceStartedAt) startEndOverrunGrace();
+    const currentKey = getVideoKey(video);
+    if (!endOverrunGraceStartedAt || endOverrunGraceVideoKey !== currentKey) {
+      startEndOverrunGrace(video);
+    }
 
     const graceRemainingSeconds = getEndOverrunGraceRemainingSeconds();
     showEndCountdownUi(graceRemainingSeconds);
@@ -350,8 +361,11 @@ function checkEndCountdown(video) {
 }
 
 function startEndCountdownMonitor(video) {
-  stopEndCountdownMonitor();
-  endCountdownVideoKey = getVideoKey(video);
+  const videoKey = getVideoKey(video);
+  const shouldKeepGrace = endOverrunGraceVideoKey === videoKey;
+
+  stopEndCountdownMonitor({ resetGrace: !shouldKeepGrace });
+  endCountdownVideoKey = videoKey;
 
   if (!shouldUseEndAutoAdvance(video)) return;
 
