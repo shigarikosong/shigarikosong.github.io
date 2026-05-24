@@ -106,9 +106,11 @@ let endCountdownTimer = null;
 let endCountdownVideoKey = null;
 let endOverrunGraceStartedAt = null;
 let endOverrunGraceVideoKey = null;
+let lastEndCountdownTime = null;
 let skipEndAutoAdvanceKey = null;
 let isEndAutoAdvancing = false;
 const END_OVERRUN_GRACE_SECONDS = 10;
+const END_SEEK_JUMP_THRESHOLD_SECONDS = 2.5;
 
 function resetRandomPlayQueue() {
   randomPlayQueue = [];
@@ -264,6 +266,7 @@ function stopEndCountdownMonitor(options = {}) {
   }
   hideEndCountdownUi();
   endCountdownVideoKey = null;
+  lastEndCountdownTime = null;
   if (resetGrace) resetEndOverrunGrace();
   isEndAutoAdvancing = false;
 }
@@ -304,6 +307,13 @@ function getEndOverrunGraceRemainingSeconds() {
   return Math.max(0, END_OVERRUN_GRACE_SECONDS - elapsedSeconds);
 }
 
+function isEndOverrunFromSeek(currentTime) {
+  if (lastEndCountdownTime === null) return false;
+
+  const jumpedSeconds = currentTime - lastEndCountdownTime;
+  return jumpedSeconds > END_SEEK_JUMP_THRESHOLD_SECONDS;
+}
+
 function advanceFromEndCountdown() {
   if (isEndAutoAdvancing) return;
   isEndAutoAdvancing = true;
@@ -336,7 +346,14 @@ function checkEndCountdown(video) {
 
   const remainingSeconds = video._endSeconds - currentTime;
   if (remainingSeconds <= 0) {
+    const cameFromSeek = isEndOverrunFromSeek(currentTime);
     const currentKey = getVideoKey(video);
+
+    if (!endOverrunGraceStartedAt && !cameFromSeek) {
+      advanceFromEndCountdown();
+      return;
+    }
+
     if (!endOverrunGraceStartedAt || endOverrunGraceVideoKey !== currentKey) {
       startEndOverrunGrace(video);
     }
@@ -352,6 +369,7 @@ function checkEndCountdown(video) {
   }
 
   resetEndOverrunGrace();
+  lastEndCountdownTime = currentTime;
 
   if (remainingSeconds <= 10) {
     showEndCountdownUi(remainingSeconds);
