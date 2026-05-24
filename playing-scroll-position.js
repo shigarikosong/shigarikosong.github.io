@@ -75,8 +75,8 @@
 (() => {
   const classByGroup = {
     category: {
-      active: 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs'
+      active: 'bg-orange-600 text-white border border-orange-600 px-3 py-1 rounded-full text-xs',
+      inactive: 'bg-orange-50 text-orange-700 border border-orange-300 px-3 py-1 rounded-full text-xs'
     },
     platform: {
       active: 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs',
@@ -99,8 +99,8 @@
       inactive: 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
     },
     collabUnit: {
-      active: 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs'
+      active: 'bg-gray-600 text-white px-3 py-1 rounded-full text-xs',
+      inactive: 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
     }
   };
 
@@ -160,13 +160,12 @@
   }
 
   function syncListPlatformButtons(activeLabels) {
-    document.querySelectorAll('#videoList button').forEach(button => {
-      const label = normalizeLabel(button.textContent);
+    document.querySelectorAll('#videoList button[data-filter-group="platform"]').forEach(button => {
+      const label = normalizeLabel(button.dataset.filterValue || button.textContent);
       if (!platformLabels.has(label)) return;
 
-      const nextClassName = activeLabels.has(label)
-        ? 'border border-purple-600 text-white bg-purple-600 px-2.5 py-1 rounded-full text-xs hover:bg-purple-600'
-        : 'border border-purple-300 text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full text-xs hover:bg-purple-100';
+      const isActive = activeLabels.has(label);
+      const nextClassName = `tag-button tag-xs tag-platform${isActive ? " tag-platform-active" : ""}`;
 
       if (button.className !== nextClassName) {
         button.className = nextClassName;

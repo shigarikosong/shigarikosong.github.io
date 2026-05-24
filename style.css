@@ -201,17 +201,27 @@ body.player-visible #desktopFilterPanel {
   background: #f3f4f6;
 }
 
-.tag-sort,
-.tag-style {
+.tag-sort {
   color: #1d4ed8;
   background: #dbeafe;
 }
 
-.tag-sort-active,
-.tag-style-active {
+.tag-sort-active {
   color: #fff;
   background: #2563eb;
   border-color: #2563eb;
+}
+
+.tag-style {
+  color: #c2410c;
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.tag-style-active {
+  color: #fff;
+  background: #ea580c;
+  border-color: #ea580c;
 }
 
 .tag-platform {
@@ -327,67 +337,78 @@ body.player-visible #desktopFilterPanel {
 }
 
 .tag-collab-unit {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #93c5fd;
+  color: #374151;
+  background: #fff;
+  border-color: #d1d5db;
+}
+
+.tag-sm.tag-collab-unit {
+  background: #f3f4f6;
+  border-color: transparent;
 }
 
 .tag-desktop.tag-collab-unit {
-  border-color: #bfdbfe;
+  background: #fff;
+  border-color: #e5e7eb;
 }
 
 .tag-collab-unit-active {
   color: #fff;
-  background: #2563eb;
-  border-color: #2563eb;
+  background: #4b5563;
+  border-color: #6b7280;
+}
+
+.tag-sm.tag-collab-unit.tag-collab-unit-active {
+  background: #374151;
+  border-color: #374151;
 }
 
 .tag-style-solo {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #93c5fd;
+  color: #c2410c;
+  background: #fff7ed;
+  border-color: #fdba74;
 }
 
 .tag-style-solo.tag-style-active {
   color: #fff;
-  background: #2563eb;
-  border-color: #2563eb;
+  background: #ea580c;
+  border-color: #ea580c;
 }
 
 .tag-style-collab {
-  color: #0f766e;
-  background: #f0fdfa;
-  border-color: #5eead4;
+  color: #c2410c;
+  background: #fff7ed;
+  border-color: #fdba74;
 }
 
 .tag-style-collab.tag-style-active {
   color: #fff;
-  background: #0d9488;
-  border-color: #0d9488;
+  background: #ea580c;
+  border-color: #ea580c;
 }
 
 .tag-style-ayakaki {
-  color: #15803d;
-  background: #f0fdf4;
-  border-color: #86efac;
+  color: #c2410c;
+  background: #fff7ed;
+  border-color: #fdba74;
 }
 
 .tag-style-ayakaki.tag-style-active {
   color: #fff;
-  background: #16a34a;
-  border-color: #16a34a;
+  background: #ea580c;
+  border-color: #ea580c;
 }
 
 .tag-style-default {
-  color: #374151;
-  background: #f9fafb;
-  border-color: #d1d5db;
+  color: #c2410c;
+  background: #fff7ed;
+  border-color: #fdba74;
 }
 
 .tag-style-default.tag-style-active {
   color: #fff;
-  background: #4b5563;
-  border-color: #4b5563;
+  background: #ea580c;
+  border-color: #ea580c;
 }
 
 .tag-role {
@@ -502,14 +523,14 @@ body.player-visible #desktopFilterPanel {
   filter: none;
 }
 
-.tag-style:hover { background: #bfdbfe; }
+.tag-style:hover { background: #ffedd5; }
 .tag-time:hover { background: #bbf7d0; }
 .tag-platform:hover { background: #f3e8ff; }
 .tag-format:hover { background: #fce7f3; }
 .tag-format-3d:hover { background: #e0f2fe; }
 .tag-role-filter:hover { background: #fde68a; }
 .tag-collab-liver:hover { background: #f3f4f6; }
-.tag-collab-unit:hover { background: #dbeafe; }
+.tag-collab-unit:hover { background: #f3f4f6; }
 .tag-role:hover { background: #f3f4f6; }
 
 .tag-style-active:hover,
@@ -525,7 +546,7 @@ body.player-visible #desktopFilterPanel {
 }
 
 .tag-sort.tag-sort-active:hover,
-.tag-style.tag-style-active:hover { background: #2563eb; }
+.tag-style.tag-style-active:hover { background: #ea580c; }
 .tag-platform.tag-platform-active:hover { background: #9333ea; }
 .tag-time.tag-time-active:hover { background: #16a34a; }
 .tag-format.tag-format-active:hover { background: #db2777; }
@@ -534,7 +555,8 @@ body.player-visible #desktopFilterPanel {
 .tag-desktop.tag-role-filter.tag-role-filter-active:hover { background: #ca8a04; }
 .tag-collab-liver.tag-collab-liver-active:hover { background: #4b5563; }
 .tag-sm.tag-collab-liver.tag-collab-liver-active:hover { background: #374151; }
-.tag-collab-unit.tag-collab-unit-active:hover { background: #2563eb; }
+.tag-collab-unit.tag-collab-unit-active:hover { background: #4b5563; }
+.tag-sm.tag-collab-unit.tag-collab-unit-active:hover { background: #374151; }
 .tag-role.tag-role-active:hover { background: #2563eb; }
 .tag-role-vocal.tag-role-active:hover { background: #374151; }
 .tag-role-dance.tag-role-active:hover { background: #f43f5e; }
