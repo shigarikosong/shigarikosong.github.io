@@ -539,11 +539,11 @@ if (randomModeBtn) {
 }
 
     // モバイル用フィルターモーダル制御
-document.getElementById('openFilterModal').addEventListener('click', () => {
+document.getElementById('openFilterModal')?.addEventListener('click', () => {
   document.getElementById('filterModal').classList.remove('hidden');
 });
 
-document.getElementById('closeFilterModal').addEventListener('click', () => {
+document.getElementById('closeFilterModal')?.addEventListener('click', () => {
   document.getElementById('filterModal').classList.add('hidden');
 });
 

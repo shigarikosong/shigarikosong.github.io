@@ -365,7 +365,7 @@
     resetButton.textContent = "リセット";
     resetButton.addEventListener("click", resetModalFilters);
 
-    applyButton.insertAdjacentElement("afterend", resetButton);
+    applyButton.insertAdjacentElement("beforebegin", resetButton);
     actions.classList.remove("justify-between");
     actions.classList.add("justify-start", "gap-3", "items-center");
   }
