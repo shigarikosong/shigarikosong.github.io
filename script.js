@@ -241,29 +241,6 @@ function parseCommaTags(value) {
     .filter(Boolean);
 }
 
-function parseYmdToTime(raw) {
-  const s = String(raw ?? '').trim();
-  if (!s) return 0;
-
-  // YYYY[/-.年]MM[/-.月]DD(可) 例: 2024/06/30, 2024-6-3, 2024.06.30, 2024年6月30日
-  let m = s.match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);
-  if (m) {
-    const y = +m[1], mo = +m[2], d = +m[3];
-    if (y && mo && d) return new Date(y, mo - 1, d).getTime();
-  }
-
-  // 年月だけ（公開月対策） 例: 2024/06, 2024-6, 2024年6月
-  m = s.match(/(\d{4})[\/\-.年](\d{1,2})/);
-  if (m) {
-    const y = +m[1], mo = +m[2];
-    if (y && mo) return new Date(y, mo - 1, 1).getTime(); // 日が無ければ1日で補完
-  }
-
-  // 最後の保険：Date.parse に賭ける（失敗なら 0）
-  const t = Date.parse(s);
-  return Number.isFinite(t) ? t : 0;
-}
-
 function normalizeVideos(data) {
   return data.map(video => {
     const roles = parseCommaTags(video["担当区分"]);
@@ -280,7 +257,7 @@ function normalizeVideos(data) {
     video._platform = platform;
     video._is3D = video["3D"] === "TRUE";
     video._isShorts = video["Shorts"] === "TRUE";
-    video._time = parseYmdToTime(video["公開日"] || video["公開月"]);
+    video._time = window.DATE_UTILS.parseYmdToTime(video["公開日"] || video["公開月"]);
     video._searchText = [
       video["title"],
       video["title_kana"],
@@ -313,7 +290,7 @@ function toggleVideoTypeTag(type) {
 }
 
 function getDateTagLabel(value) {
-  return window.TAG_CONFIG.dateLabels[value] || value;
+  return window.DATE_UTILS.getDateTagLabel(value);
 }
 
 function clearDateTag() {
@@ -1048,8 +1025,6 @@ function renderDateTags() {
         const searchTerm = searchInput.value.toLowerCase();
         const now = new Date();
         let filtered = allVideos.filter(video => {
-  const diffMonths = (now - video._time) / (1000 * 60 * 60 * 24 * 30);
-
   return (!searchTerm || video._searchText.includes(searchTerm)) &&
     
 // フィルタ条件
@@ -1057,11 +1032,7 @@ function renderDateTags() {
     (!selectedCollabTag || video._collabTags.includes(selectedCollabTag)) &&
     (!selectedRoleTag || video._roles.includes(selectedRoleTag)) &&
     (!selectedPlatformTag || video._platform === selectedPlatformTag) &&
-(!selectedDateTag ||
-  (selectedDateTag === "recent" && diffMonths <= 3) ||
-  (selectedDateTag === "year" && diffMonths <= 12) ||
-  (selectedDateTag === "old" && diffMonths > 12)
-) &&
+    window.DATE_UTILS.getDateFilterMatch(selectedDateTag, video._time, now) &&
   (
 selected3DTag === null ||
   (selected3DTag === "include" && video._is3D)
