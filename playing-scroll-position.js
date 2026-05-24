@@ -75,8 +75,8 @@
 (() => {
   const classByGroup = {
     category: {
-      active: 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs'
+      active: 'bg-orange-600 text-white border border-orange-600 px-3 py-1 rounded-full text-xs',
+      inactive: 'bg-orange-50 text-orange-700 border border-orange-300 px-3 py-1 rounded-full text-xs'
     },
     platform: {
       active: 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs',
@@ -99,8 +99,8 @@
       inactive: 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
     },
     collabUnit: {
-      active: 'bg-blue-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs'
+      active: 'bg-gray-600 text-white px-3 py-1 rounded-full text-xs',
+      inactive: 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
     }
   };
 
