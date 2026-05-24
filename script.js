@@ -247,7 +247,7 @@ function normalizeVideos(data) {
     const types = parseCommaTags(video["動画種別"]);
     const collabLivers = parseCommaTags(video["コラボライバー"]);
     const collabUnits = parseCommaTags(video["コラボユニット"]);
-    const platform = String(video["platform"] || "").toLowerCase();
+    const platform = String(video["platform"] || "").trim().toLowerCase();
 
     video._roles = roles;
     video._types = types;
@@ -293,6 +293,10 @@ function getDateTagLabel(value) {
   return window.DATE_UTILS.getDateTagLabel(value);
 }
 
+function getPlatformLabel(value) {
+  return window.TAG_CONFIG.getPlatformLabel(value);
+}
+
 function clearDateTag() {
   selectedDateTag = "";
 
@@ -322,7 +326,12 @@ function clearDateTag() {
 if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
 if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
 if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
-if (selectedPlatformTag) activeTags.push({ label: selectedPlatformTag, type: 'include' });
+if (selectedPlatformTag) activeTags.push({
+  label: getPlatformLabel(selectedPlatformTag),
+  value: selectedPlatformTag,
+  type: 'include',
+  source: 'platform'
+});
 if (selectedDateTag) activeTags.push({ label: getDateTagLabel(selectedDateTag), type: 'include', source: 'date' });
 if (selected3DTag) activeTags.push({ label: '3D', type: selected3DTag });
 if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: selectedShortsTag });
@@ -363,6 +372,13 @@ activeTags.forEach(tagData => {
         clearDateTag();
         return;
       }
+
+      if (tagData.source === 'platform') {
+        selectedPlatformTag = "";
+        renderPlatformTags();
+        applyFilters();
+        return;
+      }
         
       switch (tagData.label) {
         case '3D':
@@ -379,10 +395,6 @@ case 'Shorts':
           }
           if (selectedCollabTag === tagData.label) selectedCollabTag = "";
           if (selectedRoleTag === tagData.label) selectedRoleTag = "";
-          if (selectedPlatformTag === tagData.label) {
-            selectedPlatformTag = "";
-            renderPlatformTags();
-          }
           break;
       }
 
@@ -920,7 +932,7 @@ function renderPlatformTags() {
 
       btn.className = getTagButtonClass("tag-platform", isActive, { size: "tag-sm" });
 
-        btn.textContent = p;
+        btn.textContent = getPlatformLabel(p);
         btn.dataset.filterGroup = "platform";
         btn.dataset.filterValue = p;
 
@@ -1161,13 +1173,12 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
 const roles = video._roles;
 const typeTags = video._types;
     const category = video["カテゴリ"];
-const platform = video["platform"];
 const normalizedPlatform = video._platform;
 let roleTagRow = null;
 
 if (
   category ||
-  platform ||
+  normalizedPlatform ||
   roles.length ||
   typeTags.length ||
   video._is3D ||
@@ -1225,7 +1236,7 @@ if (category) {
 }
 
   // platformタグ
-  if (platform) {
+  if (normalizedPlatform) {
     const platformTag = document.createElement('button');
     platformTag.type = 'button';
 
@@ -1233,7 +1244,7 @@ if (category) {
 
     platformTag.className = getTagButtonClass("tag-platform", isPlatformActive);
 
-    platformTag.textContent = platform;
+    platformTag.textContent = getPlatformLabel(normalizedPlatform);
     platformTag.dataset.filterGroup = "platform";
     platformTag.dataset.filterValue = normalizedPlatform;
 
