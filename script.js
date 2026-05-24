@@ -463,6 +463,26 @@ function getRoleTagClass(role, isActive = false) {
   });
 }
 
+function createListTagElement(label, group, value, isActive, onClick) {
+  const kindMap = {
+    category: "tag-style",
+    platform: "tag-platform",
+    format: "tag-format",
+    role: "tag-role-filter"
+  };
+  const kind = kindMap[group] || "tag-format";
+  const tag = document.createElement('button');
+
+  tag.type = 'button';
+  tag.className = getTagButtonClass(kind, isActive);
+  tag.textContent = label;
+  tag.dataset.filterGroup = group;
+  tag.dataset.filterValue = value;
+  tag.addEventListener('click', onClick);
+
+  return tag;
+}
+
 
 // ===== YouTubeプレイヤーの準備 =====
     let ytPlayer = null;
@@ -1187,139 +1207,90 @@ if (
   roleTagRow = document.createElement('div');
   roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
 
-  typeTags.forEach(type => {
-    const tag = document.createElement('button');
-    tag.type = 'button';
+  if (category) {
+    roleTagRow.appendChild(createListTagElement(
+      category,
+      "category",
+      category,
+      selectedCategoryTag === category,
+      () => {
+        selectedCategoryTag = selectedCategoryTag === category ? "" : category;
 
-      const isTypeActive = selectedVideoTypeTags.has(type);
+        const modalCategoryFilter = document.getElementById('modalCategoryFilter');
+        if (modalCategoryFilter) modalCategoryFilter.value = "";
 
-    tag.className = getTagButtonClass("tag-format", isTypeActive);
-
-    tag.textContent = type;
-    tag.dataset.filterGroup = "format";
-    tag.dataset.filterValue = type;
-
-    tag.addEventListener('click', () => {
-
-      toggleVideoTypeTag(type);
-      applyFilters();
-    });
-
-    roleTagRow.appendChild(tag);
-  });
-
-  // カテゴリタグ
-if (category) {
-  const categoryTag = document.createElement('button');
-  categoryTag.type = 'button';
-
-  const isCategoryActive = selectedCategoryTag === category;
-
-  categoryTag.className = getTagButtonClass("tag-style", isCategoryActive, {
-    valueClass: getStyleTagValueClass(category)
-  });
-
-  categoryTag.textContent = category;
-  categoryTag.dataset.filterGroup = "category";
-  categoryTag.dataset.filterValue = category;
-
-  categoryTag.addEventListener('click', () => {
-    selectedCategoryTag = selectedCategoryTag === category ? "" : category;
-    
-    const modalCategoryFilter = document.getElementById('modalCategoryFilter');
-    if (modalCategoryFilter) modalCategoryFilter.value = "";
-
-    applyFilters();
-  });
-
-  roleTagRow.appendChild(categoryTag);
-}
-
-  // platformタグ
-  if (normalizedPlatform) {
-    const platformTag = document.createElement('button');
-    platformTag.type = 'button';
-
-    const isPlatformActive = selectedPlatformTag === normalizedPlatform;
-
-    platformTag.className = getTagButtonClass("tag-platform", isPlatformActive);
-
-    platformTag.textContent = getPlatformLabel(normalizedPlatform);
-    platformTag.dataset.filterGroup = "platform";
-    platformTag.dataset.filterValue = normalizedPlatform;
-
-    platformTag.addEventListener('click', () => {
-selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normalizedPlatform;
-      applyFilters();
-    });
-
-    roleTagRow.appendChild(platformTag);
+        applyFilters();
+      }
+    ));
   }
 
-  // 3Dタグ
-if (video._is3D) {
-  const tag3D = document.createElement('button');
-  tag3D.type = 'button';
+  if (normalizedPlatform) {
+    roleTagRow.appendChild(createListTagElement(
+      getPlatformLabel(normalizedPlatform),
+      "platform",
+      normalizedPlatform,
+      selectedPlatformTag === normalizedPlatform,
+      () => {
+        selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normalizedPlatform;
+        applyFilters();
+      }
+    ));
+  }
 
-  const isInclude = selected3DTag === "include";
-
-  tag3D.className = getTagButtonClass("tag-format-3d", isInclude);
-
-  tag3D.textContent = '3D';
-  tag3D.dataset.filterGroup = "format";
-  tag3D.dataset.filterValue = "3D";
-
-  tag3D.addEventListener('click', () => {
-    selected3DTag = toggleTagState(selected3DTag);
-    applyFilters();
+  typeTags.forEach(type => {
+    roleTagRow.appendChild(createListTagElement(
+      type,
+      "format",
+      type,
+      selectedVideoTypeTags.has(type),
+      () => {
+        toggleVideoTypeTag(type);
+        applyFilters();
+      }
+    ));
   });
 
-  roleTagRow.appendChild(tag3D);
-}
+  if (video._is3D) {
+    roleTagRow.appendChild(createListTagElement(
+      "3D",
+      "format",
+      "3D",
+      selected3DTag === "include",
+      () => {
+        selected3DTag = toggleTagState(selected3DTag);
+        applyFilters();
+      }
+    ));
+  }
 
-  // Shortsタグ
-if (video._isShorts) {
-  const shortsTag = document.createElement('button');
-  shortsTag.type = 'button';
+  if (video._isShorts) {
+    roleTagRow.appendChild(createListTagElement(
+      "Shorts",
+      "format",
+      "Shorts",
+      selectedShortsTag === "include",
+      () => {
+        selectedShortsTag = toggleTagState(selectedShortsTag);
+        applyFilters();
+      }
+    ));
+  }
 
-  const isInclude = selectedShortsTag === "include";
-
-  shortsTag.className = getTagButtonClass("tag-format", isInclude);
-
-  shortsTag.textContent = 'Shorts';
-  shortsTag.dataset.filterGroup = "format";
-  shortsTag.dataset.filterValue = "Shorts";
-
-  shortsTag.addEventListener('click', () => {
-    selectedShortsTag = toggleTagState(selectedShortsTag);
-    applyFilters();
-  });
-
-  roleTagRow.appendChild(shortsTag);
-}
-
-
-  // 担当区分タグ
   roles.forEach(role => {
-    const tag = document.createElement('button');
-    tag.type = 'button';
+    roleTagRow.appendChild(createListTagElement(
+      role,
+      "role",
+      role,
+      selectedRoleTag === role,
+      () => {
+        selectedRoleTag = (selectedRoleTag === role) ? "" : role;
 
-    const isActive = selectedRoleTag === role;
-    tag.className = getRoleTagClass(role, isActive);
-    tag.textContent = role;
-    tag.dataset.filterGroup = "role";
-    tag.dataset.filterValue = role;
+        const modalRoleFilter = document.getElementById('modalRoleFilter');
+        if (modalRoleFilter) modalRoleFilter.value = "";
 
-    tag.addEventListener('click', () => {
-      selectedRoleTag = (selectedRoleTag === role) ? "" : role;
-
-      const modalRoleFilter = document.getElementById('modalRoleFilter');
-      if (modalRoleFilter) modalRoleFilter.value = "";
-
-      applyFilters();
-    });
-
-    roleTagRow.appendChild(tag);
+        applyFilters();
+      }
+    ));
   });
     }
 
