@@ -4,6 +4,8 @@
 
 開発者向けメモ: [フィルタータグ仕様](docs/filter-tag-rules.md) / [プレイヤー挙動仕様](docs/player-behavior-rules.md)
 
+タグ定義・表示順は `tag-config.js` を正本とします。
+
 ### 検索する
 
 画面上部の検索欄から、曲名・アーティスト名・タグ・コラボ名などで検索できます。

@@ -313,13 +313,7 @@ function toggleVideoTypeTag(type) {
 }
 
 function getDateTagLabel(value) {
-  const labels = {
-    recent: '最近',
-    year: '1年以内',
-    old: '1年以上前'
-  };
-
-  return labels[value] || value;
+  return window.TAG_CONFIG.dateLabels[value] || value;
 }
 
 function clearDateTag() {
@@ -878,16 +872,7 @@ document.addEventListener('visibilitychange', () => {
 
 // ===== 絞り込み項目の作成 =====
       function populateFilters(videos) {
-
-  const roleOrder = [
-    "VOCAL",
-    "DANCE",
-    "PIANO",
-    "EUPHONIUM",
-    "MOVIE",
-    "CHORUS",
-    "ILLUSTRATION"
-  ];
+  const { roleOrder } = window.TAG_CONFIG;
         const sets = {
           category: new Set(),
           date: new Set(),
@@ -972,7 +957,7 @@ function renderPlatformTags() {
   containers.forEach(container => {
     container.innerHTML = '';
 
-    ['youtube', 'tiktok'].forEach(p => {
+    window.TAG_CONFIG.platformValues.forEach(p => {
       const btn = document.createElement('button');
       const isActive = selectedPlatformTag === p;
 
