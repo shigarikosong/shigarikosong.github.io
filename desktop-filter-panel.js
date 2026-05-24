@@ -104,7 +104,7 @@
     sortButtons.innerHTML = "";
     [...sortSelect.options].forEach(option => {
       const value = option.value;
-      const isActive = sortSelect.value === value;
+      const isActive = (sortSelect.value || "desc") === value;
 
       sortButtons.appendChild(createButton(sortLabels[value] || option.textContent, isActive, "sort", () => {
         sortSelect.value = value;

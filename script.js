@@ -211,8 +211,8 @@ function updateRandomModeButton() {
   btn.querySelector('.player-control-label').textContent = label;
 }
 
-    sortOrder.value = "";
-document.getElementById('modalSortOrder').value = "";
+    sortOrder.value = "desc";
+document.getElementById('modalSortOrder').value = "desc";
     
 
 // ===== データURL =====
@@ -880,7 +880,7 @@ if (mobileRandomPlayButton) {
      // リセットボタン
   resetButton.addEventListener('click', () => {
   searchInput.value = "";
-  sortOrder.value = "";
+  sortOrder.value = "desc";
   selectedCategoryTag = "";
     renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
   selectedCollabTag = "";
@@ -899,7 +899,7 @@ selectedVideoTypeTags.clear();
   document.getElementById('modalTypeFilter').value = "";
   document.getElementById('modalRoleFilter').value = "";
   document.getElementById('modalSearchInput').value = "";
-  document.getElementById('modalSortOrder').value = "";
+  document.getElementById('modalSortOrder').value = "desc";
   applyFilters();
 });
       }
@@ -1053,7 +1053,7 @@ function videoTime(v) {
   return v._time;
 }
 
-const order = sortOrder.value;
+const order = sortOrder.value || "desc";
 
 if (order) {
   filtered.sort((a, b) => {
