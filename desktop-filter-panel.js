@@ -18,9 +18,7 @@
     artist: "アーティスト順"
   };
 
-  const categoryOrder = ["ソロ", "コラボ", "あやかき"];
-  const formatOrder = ["3D", "Shorts", "歌枠", "ライブ", "Full", "ハイライト", "アカペラ", "企画", "比較"];
-  const roleOrder = ["VOCAL", "DANCE", "CHORUS", "MOVIE", "ILLUSTRATION", "PIANO", "EUPHONIUM", "KALIMBA"];
+  const { categoryOrder, formatOrder, roleOrder } = window.TAG_CONFIG;
 
   function sortByOrder(values, order) {
     return [...values].sort((a, b) => {

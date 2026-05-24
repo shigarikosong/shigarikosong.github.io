@@ -18,9 +18,7 @@
 
   if (!modal || !applyButton) return;
 
-  const categoryOrder = ["ソロ", "コラボ", "あやかき"];
-  const formatOrder = ["3D", "Shorts", "歌枠", "ライブ", "Full", "ハイライト", "アカペラ", "企画", "比較"];
-  const roleOrder = ["VOCAL", "DANCE", "CHORUS", "MOVIE", "ILLUSTRATION", "PIANO", "EUPHONIUM", "KALIMBA"];
+  const { categoryOrder, formatOrder, roleOrder } = window.TAG_CONFIG;
 
   let filtersBeforeApply = null;
   let sortButtonGroup = null;

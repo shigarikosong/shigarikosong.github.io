@@ -1,11 +1,7 @@
 (() => {
   const EXCLUDE_BUTTON_CLASS = "tag-exclusion-active";
   const EXCLUDE_CHIP_CLASS = "tag-exclusion-chip";
-  const dateLabelToValue = {
-    "最近": "recent",
-    "1年以内": "year",
-    "1年以上前": "old"
-  };
+  const { categoryOrder, formatOrder, roleOrder, dateLabelToValue, platformValues } = window.TAG_CONFIG;
   const dateValueToLabel = Object.fromEntries(
     Object.entries(dateLabelToValue).map(([label, value]) => [value, label])
   );
@@ -19,13 +15,13 @@
     flag: new Set()
   };
   const knownTags = {
-    category: new Set(["ソロ", "コラボ", "あやかき"]),
-    platform: new Set(["youtube", "tiktok"]),
+    category: new Set(categoryOrder),
+    platform: new Set(platformValues),
     date: new Set(Object.values(dateLabelToValue)),
     format: new Set(),
-    role: new Set(["VOCAL", "DANCE", "CHORUS", "MOVIE", "ILLUSTRATION", "PIANO", "EUPHONIUM", "KALIMBA"]),
+    role: new Set(roleOrder),
     collab: new Set(),
-    flag: new Set(["3D", "Shorts"])
+    flag: new Set(formatOrder.filter(tag => tag === "3D" || tag === "Shorts"))
   };
   const containerKindMap = {
     modalCategoryTags: "category",

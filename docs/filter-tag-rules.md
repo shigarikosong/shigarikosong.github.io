@@ -105,6 +105,12 @@ Clicking a chip should clear only that condition:
 
 ## 6. Data Attribute Rules
 
+Tag definitions, display order, platform values, and date labels are centralized in `tag-config.js` as `window.TAG_CONFIG`.
+
+When adding or changing tags, check `tag-config.js` first. Do not duplicate the same order arrays or label maps in individual UI scripts.
+
+For `roleOrder`, `tag-config.js` is the source of truth for the desktop and mobile filter panel display order.
+
 When adding or changing tag buttons, add these attributes whenever possible:
 
 - `data-filter-group`
