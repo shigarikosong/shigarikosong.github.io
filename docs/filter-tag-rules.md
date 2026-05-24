@@ -81,6 +81,7 @@ Clicking a chip should clear only that condition:
 - Tag button rendering
 - Result count display inside the modal
 - Reset/apply behavior inside the modal
+- Applying modal search/sort values to the main filter state
 
 ### `tag-exclusion.js`
 
