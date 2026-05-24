@@ -170,6 +170,28 @@ On video end:
 
 TikTok must remain excluded from automatic continuous playback.
 
+## 9.1 `start` / `end` Time Rules
+
+`start` and `end` values in the JSON can use either plain seconds or timestamp text:
+
+- `2894`
+- `"2894"`
+- `"48:14"`
+- `"0:48:14"`
+- `"00:48:14"`
+
+These should all be treated as seconds when playback starts or when end-based continuous playback is checked.
+
+`start` defaults to `0` when it is empty or invalid.
+
+`end` is ignored when it is empty, invalid, or less than or equal to `start`.
+
+`end` is used only when repeat mode is `all` and the current video is YouTube. When playback reaches `end`, the player advances using the same continuous playback direction as video end handling.
+
+When a YouTube video has a valid `end`, repeat mode is `all`, and less than 10 seconds remain, the fixed player can show a countdown near the player window controls. Clicking the countdown advances immediately. Clicking `このまま再生` disables only that video's end-based auto-advance; repeat mode itself remains unchanged, and normal video-end handling still applies.
+
+TikTok is not controlled by `end` and should not show the countdown UI.
+
 ## 10. YouTube / TikTok Rules
 
 YouTube uses the YouTube iframe API or YouTube embed.

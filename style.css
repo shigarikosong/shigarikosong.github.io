@@ -820,6 +820,83 @@ body.player-visible #desktopFilterPanel {
   }
 }
 
+/* ===== Player end countdown ===== */
+.end-countdown-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(68vw, 360px);
+}
+
+.end-countdown-controls.hidden {
+  display: none;
+}
+
+.end-countdown-next,
+.end-countdown-keep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.end-countdown-next {
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 10px;
+}
+
+.end-countdown-keep {
+  min-height: 28px;
+  padding: 0 9px;
+}
+
+.end-countdown-next:hover,
+.end-countdown-keep:hover {
+  background: #ffffff;
+  color: #2563eb;
+}
+
+.end-countdown-time {
+  color: #dc2626;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .end-countdown-controls {
+    gap: 4px;
+    max-width: calc(100vw - 96px);
+  }
+
+  .end-countdown-next {
+    flex-direction: column;
+    gap: 1px;
+    min-height: 30px;
+    padding: 2px 8px;
+  }
+
+  .end-countdown-label {
+    font-size: 10px;
+  }
+
+  .end-countdown-time {
+    font-size: 13px;
+  }
+
+  .end-countdown-keep {
+    min-height: 30px;
+    padding: 0 8px;
+  }
+}
+
 .auto-play-notice {
   font-size: 12px;
   color: #6b7280;
