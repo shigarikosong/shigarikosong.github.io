@@ -1084,7 +1084,13 @@ function renderVideoList(videos) {
 
     // 件数表示を更新
   const countElement = document.getElementById('songCount');
-  countElement.textContent = `${allVideos.length}曲中 ${videos.length}曲表示中`;
+  countElement.innerHTML = `
+    <span class="text-xs">全</span>
+    <span class="text-base font-semibold text-gray-700">${allVideos.length}</span>
+    <span class="text-xs">件中</span>
+    <span class="text-xl font-bold text-blue-600">${videos.length}</span>
+    <span class="text-xs">件表示</span>
+  `;
 
   const oldNotice = document.getElementById('autoPlayNotice');
 if (oldNotice) oldNotice.remove();
