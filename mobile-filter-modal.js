@@ -20,7 +20,6 @@
 
   const { categoryOrder, formatOrder, roleOrder } = window.TAG_CONFIG;
 
-  let filtersBeforeApply = null;
   let sortButtonGroup = null;
   let lockedScrollY = 0;
   let isWatchingSongCount = false;
@@ -429,19 +428,6 @@
   document.getElementById("closeFilterModal")?.addEventListener("click", unlockPageScroll);
 
   applyButton.addEventListener("click", () => {
-    filtersBeforeApply = {
-      category: selectedCategoryTag,
-      date: selectedDateTag,
-      collab: selectedCollabTag,
-      role: selectedRoleTag,
-      platform: selectedPlatformTag,
-      tag3D: selected3DTag,
-      shorts: selectedShortsTag,
-      videoTypes: new Set(selectedVideoTypeTags)
-    };
-  }, true);
-
-  applyButton.addEventListener("click", () => {
     configureSortButtons();
     configureCategoryButtons();
     configureDateButtons();
@@ -450,24 +436,12 @@
     configureResetButton();
     syncModalValues();
 
-    if (filtersBeforeApply) {
-      selectedCategoryTag = filtersBeforeApply.category;
-      selectedDateTag = filtersBeforeApply.date;
-      selectedCollabTag = filtersBeforeApply.collab;
-      selectedRoleTag = filtersBeforeApply.role;
-      selectedPlatformTag = filtersBeforeApply.platform;
-      selected3DTag = filtersBeforeApply.tag3D;
-      selectedShortsTag = filtersBeforeApply.shorts;
-      selectedVideoTypeTags.clear();
-      filtersBeforeApply.videoTypes.forEach(tag => selectedVideoTypeTags.add(tag));
-      filtersBeforeApply = null;
-    }
-
     renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
     renderDateTags();
     renderPlatformTags();
     renderMobileTagSections();
     applyFiltersAndUpdateCount();
+    modal.classList.add("hidden");
     unlockPageScroll();
   });
 

@@ -570,26 +570,6 @@ document.getElementById('closeFilterModal').addEventListener('click', () => {
   document.getElementById('filterModal').classList.add('hidden');
 });
 
-document.getElementById('applyFilters').addEventListener('click', () => {
-  // モーダルから値を取得して本体に反映
-searchInput.value = document.getElementById('modalSearchInput').value;
-sortOrder.value = document.getElementById('modalSortOrder').value;
-
-  //モーダル適用時のリセット
-  selectedCategoryTag = "";
-
-  renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
-  
-  selectedCollabTag = "";
-  selectedRoleTag = "";
-selected3DTag = null;
-selectedShortsTag = null;
-selectedVideoTypeTags.clear();
-    
-  applyFilters();
-  document.getElementById('filterModal').classList.add('hidden');
-});
-
 
   const randomPlayButton = document.getElementById('randomPlayButton');
     randomPlayButton.addEventListener('click', () => {
