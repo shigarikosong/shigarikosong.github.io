@@ -142,6 +142,8 @@ Time labels and internal values differ:
 - `1年以内` -> `year`
 - `1年以上前` -> `old`
 
+Date labels are defined in `tag-config.js`. Date parsing and Time filter matching are centralized in `date-utils.js`; check that file first when changing date conditions.
+
 `3D` and `Shorts` are flags, but they can also appear through the Format UI. Handle them carefully when changing Format or flag behavior.
 
 Collab values combine both columns into the `collab` group:
