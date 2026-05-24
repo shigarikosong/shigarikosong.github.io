@@ -13,7 +13,9 @@
 
     return {
       videoId,
-      start: parseInt(video?.["start"] || "0", 10)
+      start: typeof window.parseTimeToSeconds === "function"
+        ? window.parseTimeToSeconds(video?.["start"], 0)
+        : parseInt(video?.["start"] || "0", 10)
     };
   }
 

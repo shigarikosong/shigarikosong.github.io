@@ -45,8 +45,31 @@ function setRandomModeEnabled(on) {
   localStorage.setItem(RANDOM_MODE_KEY, on ? '1' : '0');
 }
 
+function parseTimeToSeconds(value, fallback = null) {
+  if (value === null || value === undefined || value === "") return fallback;
+  if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
+
+  const text = String(value).trim();
+  if (!text) return fallback;
+  if (/^\d+(?:\.\d+)?$/.test(text)) return Math.floor(Number(text));
+
+  const parts = text.split(":");
+  if (parts.length < 2 || parts.length > 3) return fallback;
+  if (!parts.every(part => /^\d+$/.test(part.trim()))) return fallback;
+
+  const numbers = parts.map(part => Number(part.trim()));
+  const seconds = numbers.pop();
+  const minutes = numbers.pop();
+  const hours = numbers.pop() || 0;
+
+  if (minutes > 59 || seconds > 59) return fallback;
+  return (hours * 3600) + (minutes * 60) + seconds;
+}
+
+window.parseTimeToSeconds = parseTimeToSeconds;
+
 function getVideoKey(video) {
-  return `${video?.["videoId"]}__${parseInt(video?.["start"] || 0, 10)}`;
+  return `${video?.["videoId"]}__${video?._startSeconds ?? parseTimeToSeconds(video?.["start"], 0)}`;
 }
 
 // ===== 再生対象リスト =====
@@ -79,6 +102,10 @@ function playRandomVideoFromCurrentList() {
 // ===== ランダムキュー =====
 let randomPlayQueue = [];
 let randomPlayQueueSignature = "";
+let endCountdownTimer = null;
+let endCountdownVideoKey = null;
+let skipEndAutoAdvanceKey = null;
+let isEndAutoAdvancing = false;
 
 function resetRandomPlayQueue() {
   randomPlayQueue = [];
@@ -143,6 +170,8 @@ function playCurrentVideoAgain() {
 function handleVideoEnded() {
   const repeatMode = getRepeatMode();
 
+  stopEndCountdownMonitor();
+
   if (repeatMode === REPEAT_MODE_OFF) return;
 
   if (repeatMode === REPEAT_MODE_ONE) {
@@ -155,6 +184,150 @@ function handleVideoEnded() {
   } else {
     playAdjacentVideo(1);
   }
+}
+
+// ===== end指定による連続再生カウントダウン =====
+function getEndCountdownUi() {
+  let wrapper = document.getElementById("endCountdownControls");
+  const actions = document.querySelector(".player-window-actions");
+  if (wrapper || !actions) return wrapper;
+
+  wrapper = document.createElement("div");
+  wrapper.id = "endCountdownControls";
+  wrapper.className = "end-countdown-controls hidden";
+
+  const nextButton = document.createElement("button");
+  nextButton.id = "endCountdownNextBtn";
+  nextButton.type = "button";
+  nextButton.className = "end-countdown-next";
+  nextButton.addEventListener("click", advanceFromEndCountdown);
+
+  const label = document.createElement("span");
+  label.className = "end-countdown-label";
+  label.textContent = "次の曲まで";
+
+  const time = document.createElement("span");
+  time.id = "endCountdownTime";
+  time.className = "end-countdown-time";
+  time.textContent = "0:10";
+
+  nextButton.append(label, time);
+
+  const keepButton = document.createElement("button");
+  keepButton.id = "endCountdownKeepBtn";
+  keepButton.type = "button";
+  keepButton.className = "end-countdown-keep";
+  keepButton.textContent = "このまま再生";
+  keepButton.addEventListener("click", () => {
+    if (endCountdownVideoKey) skipEndAutoAdvanceKey = endCountdownVideoKey;
+    hideEndCountdownUi();
+  });
+
+  wrapper.append(nextButton, keepButton);
+  actions.insertBefore(wrapper, actions.firstElementChild);
+
+  return wrapper;
+}
+
+function formatCountdownTime(seconds) {
+  const safeSeconds = Math.max(0, Math.ceil(seconds));
+  return `0:${String(safeSeconds).padStart(2, "0")}`;
+}
+
+function showEndCountdownUi(remainingSeconds) {
+  const wrapper = getEndCountdownUi();
+  const time = document.getElementById("endCountdownTime");
+  const nextButton = document.getElementById("endCountdownNextBtn");
+  if (!wrapper || !time || !nextButton) return;
+
+  const label = formatCountdownTime(remainingSeconds);
+  time.textContent = label;
+  nextButton.title = `次の曲へ進む（${label}）`;
+  nextButton.setAttribute("aria-label", `次の曲へ進む（${label}）`);
+  wrapper.classList.remove("hidden");
+}
+
+function hideEndCountdownUi() {
+  document.getElementById("endCountdownControls")?.classList.add("hidden");
+}
+
+function stopEndCountdownMonitor() {
+  if (endCountdownTimer) {
+    clearInterval(endCountdownTimer);
+    endCountdownTimer = null;
+  }
+  hideEndCountdownUi();
+  endCountdownVideoKey = null;
+  isEndAutoAdvancing = false;
+}
+
+function resetEndCountdownForVideo(video) {
+  const nextKey = getVideoKey(video);
+  if (nextKey !== nowPlayingKey) skipEndAutoAdvanceKey = null;
+  stopEndCountdownMonitor();
+  endCountdownVideoKey = nextKey;
+}
+
+function shouldUseEndAutoAdvance(video) {
+  return Boolean(
+    video &&
+    getRepeatMode() === REPEAT_MODE_ALL &&
+    !isTikTokVideo(video) &&
+    video._endSeconds !== null &&
+    video._endSeconds !== undefined &&
+    skipEndAutoAdvanceKey !== getVideoKey(video)
+  );
+}
+
+function advanceFromEndCountdown() {
+  if (isEndAutoAdvancing) return;
+  isEndAutoAdvancing = true;
+  hideEndCountdownUi();
+
+  if (isRandomModeEnabled()) {
+    playRandomNextVideo({ autoPlayableOnly: true });
+  } else {
+    playAdjacentVideo(1);
+  }
+}
+
+function checkEndCountdown(video) {
+  if (!shouldUseEndAutoAdvance(video)) {
+    hideEndCountdownUi();
+    return;
+  }
+  if (!ytPlayer || typeof ytPlayer.getCurrentTime !== "function") return;
+
+  let currentTime = 0;
+  try {
+    currentTime = ytPlayer.getCurrentTime();
+  } catch {
+    return;
+  }
+
+  if (!Number.isFinite(currentTime)) return;
+
+  const remainingSeconds = video._endSeconds - currentTime;
+  if (remainingSeconds <= 0) {
+    advanceFromEndCountdown();
+    return;
+  }
+
+  if (remainingSeconds <= 10) {
+    showEndCountdownUi(remainingSeconds);
+  } else {
+    hideEndCountdownUi();
+  }
+}
+
+function startEndCountdownMonitor(video) {
+  stopEndCountdownMonitor();
+  endCountdownVideoKey = getVideoKey(video);
+
+  if (!shouldUseEndAutoAdvance(video)) return;
+
+  checkEndCountdown(video);
+  endCountdownTimer = setInterval(() => checkEndCountdown(video), 500);
 }
 
 // ===== プレイヤーボタンUI =====
@@ -248,6 +421,11 @@ function normalizeVideos(data) {
     const collabLivers = parseCommaTags(video["コラボライバー"]);
     const collabUnits = parseCommaTags(video["コラボユニット"]);
     const platform = String(video["platform"] || "").trim().toLowerCase();
+    const startSeconds = parseTimeToSeconds(video["start"], 0);
+    const parsedEndSeconds = parseTimeToSeconds(video["end"], null);
+    const endSeconds = parsedEndSeconds !== null && parsedEndSeconds > startSeconds
+      ? parsedEndSeconds
+      : null;
 
     video._roles = roles;
     video._types = types;
@@ -257,6 +435,8 @@ function normalizeVideos(data) {
     video._platform = platform;
     video._is3D = video["3D"] === "TRUE";
     video._isShorts = video["Shorts"] === "TRUE";
+    video._startSeconds = startSeconds;
+    video._endSeconds = endSeconds;
     video._time = window.DATE_UTILS.parseYmdToTime(video["公開日"] || video["公開月"]);
     video._searchText = [
       video["title"],
@@ -555,6 +735,12 @@ if (repeatModeBtn) {
     const nextMode = REPEAT_MODE_SEQUENCE[(currentIndex + 1) % REPEAT_MODE_SEQUENCE.length];
     setRepeatMode(nextMode);
     updateRepeatModeButton();
+    if (getRepeatMode() === REPEAT_MODE_ALL) {
+      const currentVideo = getCurrentVideo();
+      if (currentVideo) startEndCountdownMonitor(currentVideo);
+    } else {
+      stopEndCountdownMonitor();
+    }
     applyFilters();
   });
 }
@@ -1146,7 +1332,7 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
     const item = document.createElement('div');
     item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
 
-    const key = `${video["videoId"]}__${parseInt(video["start"] || 0)}`;
+    const key = getVideoKey(video);
     item.dataset.videoKey = key;
 
     if (key === nowPlayingKey) {
@@ -1390,9 +1576,10 @@ function updateNowPlaying(video) {
 
 // ===== 動画の再生処理 =====
 function loadVideo(video, item) {
-  const start = parseInt(video["start"] || '0', 10);
+  resetEndCountdownForVideo(video);
+  const start = video._startSeconds ?? parseTimeToSeconds(video["start"], 0);
   let videoId = video["videoId"];
-  let platform = (video["platform"] || "").toLowerCase();
+  let platform = video._platform || (video["platform"] || "").toLowerCase();
 
   if (!videoId) {
     alert("videoId が指定されていません");
@@ -1433,6 +1620,8 @@ function loadVideo(video, item) {
     }
   }
 
+  startEndCountdownMonitor(video);
+
   } else if (platform === "tiktok") {
   if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
     ytPlayer.stopVideo();
@@ -1464,6 +1653,7 @@ if (ytEl) ytEl.classList.add('hidden');
   applyStoredPlayerHeight();
 });
     
+  stopEndCountdownMonitor();
 
   } else {
     alert(`未対応の platform: ${platform}`);
@@ -1478,6 +1668,7 @@ if (ytEl) ytEl.classList.add('hidden');
 // ===== プレイヤーを閉じる =====
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
+    stopEndCountdownMonitor();
     document.body.style.paddingBottom =
       `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
 
