@@ -70,6 +70,7 @@
 
   function getDisplayLabel(kind, value) {
     if (kind === "date") return dateValueToLabel[value] || value;
+    if (kind === "platform") return window.TAG_CONFIG.getPlatformLabel(value);
     return value;
   }
 

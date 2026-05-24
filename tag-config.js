@@ -4,6 +4,15 @@
     year: "1年以内",
     old: "1年以上前"
   });
+  const platformLabels = Object.freeze({
+    youtube: "YouTube",
+    tiktok: "TikTok"
+  });
+
+  function getPlatformLabel(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    return platformLabels[normalized] || value;
+  }
 
   window.TAG_CONFIG = Object.freeze({
     categoryOrder: Object.freeze(["ソロ", "コラボ", "あやかき"]),
@@ -13,6 +22,8 @@
     dateLabelToValue: Object.freeze(
       Object.fromEntries(Object.entries(dateLabels).map(([value, label]) => [label, value]))
     ),
-    platformValues: Object.freeze(["youtube", "tiktok"])
+    platformValues: Object.freeze(["youtube", "tiktok"]),
+    platformLabels,
+    getPlatformLabel
   });
 })();

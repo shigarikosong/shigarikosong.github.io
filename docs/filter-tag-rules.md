@@ -138,6 +138,10 @@ Platform values are normalized to lowercase internally:
 - `youtube`
 - `tiktok`
 
+Spreadsheet / JSON platform display values should use official labels: `YouTube` and `TikTok`.
+
+Platform UI labels are centralized in `tag-config.js`; UI should display `YouTube` / `TikTok` while keeping filter values, `data-filter-value`, and `selectedPlatformTag` lowercase.
+
 Time labels and internal values differ:
 
 - `最近` -> `recent`
