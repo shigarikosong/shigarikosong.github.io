@@ -866,8 +866,11 @@ body.player-visible #desktopFilterPanel {
 }
 
 .end-countdown-time {
+  display: inline-block;
+  min-width: 2.25em;
   color: #dc2626;
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 @media (max-width: 480px) {

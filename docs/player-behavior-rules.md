@@ -186,9 +186,16 @@ These should all be treated as seconds when playback starts or when end-based co
 
 `end` is ignored when it is empty, invalid, or less than or equal to `start`.
 
-`end` is used only when repeat mode is `all` and the current video is YouTube. When playback reaches `end`, the player advances using the same continuous playback direction as video end handling.
+`end` is used only when repeat mode is `all` and the current video is YouTube. When playback reaches or passes `end`, the player should not advance immediately. Instead, it should show a 10-second grace countdown, then advance using the same continuous playback direction as video end handling when that countdown reaches `0:00`.
 
 When a YouTube video has a valid `end`, repeat mode is `all`, and less than 10 seconds remain, the fixed player can show a countdown near the player window controls. Clicking the countdown advances immediately. Clicking `このまま再生` disables only that video's end-based auto-advance; repeat mode itself remains unchanged, and normal video-end handling still applies.
+
+If playback moves back before `end` during the grace countdown, the grace state should reset and return to the normal pre-end countdown rules:
+
+- More than 10 seconds before `end`: hide the countdown.
+- Within 10 seconds before `end`: show the normal pre-end countdown.
+
+Changing repeat mode away from `all`, closing the player, or switching videos should reset the grace countdown state.
 
 TikTok is not controlled by `end` and should not show the countdown UI.
 

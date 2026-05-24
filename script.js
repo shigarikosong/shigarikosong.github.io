@@ -104,8 +104,10 @@ let randomPlayQueue = [];
 let randomPlayQueueSignature = "";
 let endCountdownTimer = null;
 let endCountdownVideoKey = null;
+let endOverrunGraceStartedAt = null;
 let skipEndAutoAdvanceKey = null;
 let isEndAutoAdvancing = false;
+const END_OVERRUN_GRACE_SECONDS = 10;
 
 function resetRandomPlayQueue() {
   randomPlayQueue = [];
@@ -209,7 +211,7 @@ function getEndCountdownUi() {
   const time = document.createElement("span");
   time.id = "endCountdownTime";
   time.className = "end-countdown-time";
-  time.textContent = "0:10";
+  time.textContent = "10秒";
 
   nextButton.append(label, time);
 
@@ -231,7 +233,7 @@ function getEndCountdownUi() {
 
 function formatCountdownTime(seconds) {
   const safeSeconds = Math.max(0, Math.ceil(seconds));
-  return `0:${String(safeSeconds).padStart(2, "0")}`;
+  return `${safeSeconds}秒`;
 }
 
 function showEndCountdownUi(remainingSeconds) {
@@ -258,6 +260,7 @@ function stopEndCountdownMonitor() {
   }
   hideEndCountdownUi();
   endCountdownVideoKey = null;
+  endOverrunGraceStartedAt = null;
   isEndAutoAdvancing = false;
 }
 
@@ -277,6 +280,22 @@ function shouldUseEndAutoAdvance(video) {
     video._endSeconds !== undefined &&
     skipEndAutoAdvanceKey !== getVideoKey(video)
   );
+}
+
+function resetEndOverrunGrace() {
+  endOverrunGraceStartedAt = null;
+}
+
+function startEndOverrunGrace() {
+  endOverrunGraceStartedAt = Date.now();
+  showEndCountdownUi(END_OVERRUN_GRACE_SECONDS);
+}
+
+function getEndOverrunGraceRemainingSeconds() {
+  if (!endOverrunGraceStartedAt) return END_OVERRUN_GRACE_SECONDS;
+
+  const elapsedSeconds = (Date.now() - endOverrunGraceStartedAt) / 1000;
+  return Math.max(0, END_OVERRUN_GRACE_SECONDS - elapsedSeconds);
 }
 
 function advanceFromEndCountdown() {
@@ -309,9 +328,19 @@ function checkEndCountdown(video) {
 
   const remainingSeconds = video._endSeconds - currentTime;
   if (remainingSeconds <= 0) {
-    advanceFromEndCountdown();
+    if (!endOverrunGraceStartedAt) startEndOverrunGrace();
+
+    const graceRemainingSeconds = getEndOverrunGraceRemainingSeconds();
+    showEndCountdownUi(graceRemainingSeconds);
+
+    if (graceRemainingSeconds <= 0) {
+      advanceFromEndCountdown();
+    }
+
     return;
   }
+
+  resetEndOverrunGrace();
 
   if (remainingSeconds <= 10) {
     showEndCountdownUi(remainingSeconds);
