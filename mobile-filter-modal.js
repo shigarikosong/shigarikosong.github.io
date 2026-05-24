@@ -386,6 +386,11 @@
     updateModalResultCount();
   }
 
+  function syncModalSearchInput() {
+    syncModalValues();
+    applyFiltersAndUpdateCount();
+  }
+
   function lockPageScroll() {
     if (document.body.dataset.filterScrollLocked === "true") return;
 
@@ -426,6 +431,8 @@
   });
 
   document.getElementById("closeFilterModal")?.addEventListener("click", unlockPageScroll);
+
+  searchField?.addEventListener("input", syncModalSearchInput);
 
   applyButton.addEventListener("click", () => {
     configureSortButtons();
