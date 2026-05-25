@@ -93,6 +93,7 @@ Clicking a chip should clear only that condition:
 - Filtering the rendered list by exclusion conditions
 - Exclusion chip rendering
 - Wrapping `renderVideoList()` and `renderActiveTagChips()`
+- Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
 
 ### `time-tag-active.js`
 
