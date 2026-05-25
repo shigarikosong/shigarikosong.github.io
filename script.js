@@ -73,12 +73,18 @@ function getVideoKey(video) {
 }
 
 // ===== 再生対象リスト =====
+function getSafeVideoList(list) {
+  return Array.isArray(list) ? list.filter(Boolean) : [];
+}
+
 function getCurrentPlaybackList() {
-  return currentFilteredVideos?.length ? currentFilteredVideos : allVideos;
+  return Array.isArray(currentFilteredVideos)
+    ? getSafeVideoList(currentFilteredVideos)
+    : getSafeVideoList(allVideos);
 }
 
 function getAdjacentPlaybackList() {
-  return currentFilteredVideos;
+  return getSafeVideoList(currentFilteredVideos);
 }
 
 function isTikTokVideo(video) {
@@ -93,9 +99,30 @@ function getCurrentVideo() {
   return getCurrentPlaybackList().find(video => getVideoKey(video) === nowPlayingKey) || null;
 }
 
+function showPlaybackUnavailableNotice(message) {
+  const countElement = document.getElementById('songCount');
+  if (!countElement) return;
+
+  const oldNotice = document.getElementById('autoPlayNotice');
+  if (oldNotice) oldNotice.remove();
+
+  const notice = document.createElement('div');
+  notice.id = 'autoPlayNotice';
+  notice.className = 'auto-play-notice';
+  notice.textContent = message;
+  countElement.insertAdjacentElement('afterend', notice);
+}
+
 function playRandomVideoFromCurrentList() {
   const list = getCurrentPlaybackList();
+  if (!list.length) {
+    showPlaybackUnavailableNotice('この条件で再生できる動画がありません');
+    return;
+  }
+
   const randomVideo = list[Math.floor(Math.random() * list.length)];
+  if (!randomVideo) return;
+
   loadVideo(randomVideo, null);
 }
 
@@ -135,20 +162,28 @@ function getRandomQueueBaseList(options = {}) {
 }
 
 function getRandomQueueSignature(baseList, options = {}) {
+  const list = getSafeVideoList(baseList);
   return [
     options.autoPlayableOnly ? "auto" : "manual",
-    baseList.map(getVideoKey).join("|")
+    list.map(getVideoKey).join("|")
   ].join(":");
 }
 
 function buildRandomPlayQueue(baseList, options = {}) {
+  const list = getSafeVideoList(baseList);
+  if (!list.length) {
+    randomPlayQueue = [];
+    randomPlayQueueSignature = getRandomQueueSignature(list, options);
+    return;
+  }
+
   const currentKey = nowPlayingKey;
-  const queueBase = baseList.length > 1
-    ? baseList.filter(video => getVideoKey(video) !== currentKey)
-    : baseList;
+  const queueBase = list.length > 1
+    ? list.filter(video => getVideoKey(video) !== currentKey)
+    : list;
 
   randomPlayQueue = shuffleVideos(queueBase);
-  randomPlayQueueSignature = getRandomQueueSignature(baseList, options);
+  randomPlayQueueSignature = getRandomQueueSignature(list, options);
 }
 
 function playRandomNextVideo(options = {}) {
