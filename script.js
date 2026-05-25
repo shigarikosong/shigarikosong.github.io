@@ -893,6 +893,16 @@ if (window.ResizeObserver) {
   });
 }
 
+const nowPlayingFloatingMutationObserver = new MutationObserver(scheduleNowPlayingFloatingButtonSettledUpdate);
+[fixedPlayerEl, document.getElementById('nowPlayingWrapper'), playerFrameWrapper].forEach(element => {
+  if (element) {
+    nowPlayingFloatingMutationObserver.observe(element, {
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+  }
+});
+
 
   const randomPlayButton = document.getElementById('randomPlayButton');
     randomPlayButton.addEventListener('click', () => {
@@ -1734,8 +1744,12 @@ function getNowPlayingCardElement() {
 function getBottomReservedHeight() {
   const fixedPlayer = document.getElementById('fixedPlayer');
   const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
+  const windowActions = document.querySelector('.player-window-actions');
+  const playerActionsHeight = fixedPlayer && getComputedStyle(fixedPlayer).display !== 'none'
+    ? getVisibleElementHeight(windowActions) + 32
+    : 0;
 
-  return getVisibleElementHeight(fixedPlayer) + getVisibleElementHeight(nowPlayingWrapper) + 16;
+  return getVisibleElementHeight(fixedPlayer) + getVisibleElementHeight(nowPlayingWrapper) + playerActionsHeight + 16;
 }
 
 function isNowPlayingCardVisible() {
@@ -1767,7 +1781,7 @@ function getNowPlayingFloatingButton() {
   return button;
 }
 
-function syncNowPlayingFloatingButtonOffset(button) {
+function syncNowPlayingFloatingButtonOffset(button, shouldShow) {
   const playerOffset = Math.max(0, getBottomReservedHeight() - 16);
   const isPlayerVisible = playerOffset > 0;
   const backToTopButton = document.getElementById('backToTopButton');
@@ -1777,7 +1791,8 @@ function syncNowPlayingFloatingButtonOffset(button) {
 
   if (backToTopButton) {
     backToTopButton.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
-    backToTopButton.classList.toggle('has-now-playing-companion', button.classList.contains('is-visible'));
+    backToTopButton.classList.toggle('has-now-playing-companion', shouldShow);
+    backToTopButton.dispatchEvent(new Event('now-playing-companion-change'));
   }
 }
 
@@ -1786,7 +1801,13 @@ function updateNowPlayingFloatingButton() {
   const shouldShow = Boolean(nowPlayingKey) && !isNowPlayingCardVisible();
 
   button.classList.toggle('is-visible', shouldShow);
-  syncNowPlayingFloatingButtonOffset(button);
+  syncNowPlayingFloatingButtonOffset(button, shouldShow);
+}
+
+function scheduleNowPlayingFloatingButtonSettledUpdate() {
+  requestNowPlayingFloatingButtonUpdate();
+  window.setTimeout(requestNowPlayingFloatingButtonUpdate, 300);
+  window.setTimeout(requestNowPlayingFloatingButtonUpdate, 700);
 }
 
 function requestNowPlayingFloatingButtonUpdate() {
@@ -1804,14 +1825,14 @@ function scrollToNowPlayingCard() {
   const playingElement = getNowPlayingCardElement();
   if (playingElement) {
     scrollElementBelowFilter(playingElement);
-    requestNowPlayingFloatingButtonUpdate();
+    scheduleNowPlayingFloatingButtonSettledUpdate();
     return;
   }
 
   const notice = document.getElementById('nowPlayingFilteredOutNotice');
   const countElement = document.getElementById('songCount');
   scrollElementBelowFilter(notice || countElement || videoList);
-  requestNowPlayingFloatingButtonUpdate();
+  scheduleNowPlayingFloatingButtonSettledUpdate();
 }
 
 function updateNowPlayingFilteredOutNotice(options = {}) {
