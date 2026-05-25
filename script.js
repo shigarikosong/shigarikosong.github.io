@@ -538,6 +538,14 @@ function getPlatformLabel(value) {
   return window.TAG_CONFIG.getPlatformLabel(value);
 }
 
+function sortCollabTagsForDisplay(values) {
+  const tags = Array.isArray(values) ? values : [];
+  if (window.isCollabTagOrderReady && typeof window.sortCollabTagValues === "function") {
+    return window.sortCollabTagValues(tags);
+  }
+  return [...tags];
+}
+
 function clearDateTag() {
   selectedDateTag = "";
 
@@ -1539,8 +1547,8 @@ if (
     }
 
 // 3行目：コラボタグ
-const collabLivers = video._collabLivers;
-const collabUnits = video._collabUnits;
+const collabLivers = sortCollabTagsForDisplay(video._collabLivers);
+const collabUnits = sortCollabTagsForDisplay(video._collabUnits);
 
 let tagRow = null;
 
@@ -1602,6 +1610,11 @@ videoList.appendChild(item);
 
   updateNowPlayingFilteredOutNotice({ scroll: !playingElement });
 }
+
+window.addEventListener("collabTagOrderReady", () => {
+  if (!Array.isArray(currentFilteredVideos) || !currentFilteredVideos.length) return;
+  window.renderVideoList(currentFilteredVideos);
+});
 
 function updateNowPlayingFilteredOutNotice(options = {}) {
   const { scroll = false } = options;
