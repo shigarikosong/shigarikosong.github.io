@@ -174,6 +174,7 @@
     function getPlayerOffset() {
       const fixedPlayer = document.getElementById('fixedPlayer');
       const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
+      const windowActions = document.querySelector('.player-window-actions');
       const fixedPlayerVisible = fixedPlayer && getComputedStyle(fixedPlayer).display !== 'none';
 
       if (!fixedPlayerVisible) return 0;
@@ -182,14 +183,18 @@
       const nowPlayingHeight = nowPlayingWrapper && !nowPlayingWrapper.classList.contains('hidden')
         ? nowPlayingWrapper.getBoundingClientRect().height || 0
         : 0;
+      const playerActionsHeight = windowActions
+        ? (windowActions.getBoundingClientRect().height || 0) + 32
+        : 0;
 
-      return Math.ceil(playerHeight + nowPlayingHeight);
+      return Math.ceil(playerHeight + nowPlayingHeight + playerActionsHeight);
     }
 
     function updateButtonState() {
       updateFrame = null;
       const playerOffset = getPlayerOffset();
-      const shouldShow = window.scrollY > SHOW_SCROLL_Y && (isScrolling || isPointerOver);
+      const hasNowPlayingCompanion = button.classList.contains('has-now-playing-companion');
+      const shouldShow = window.scrollY > SHOW_SCROLL_Y && (isScrolling || isPointerOver || hasNowPlayingCompanion);
 
       button.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
       button.classList.toggle('is-visible', shouldShow);
@@ -217,17 +222,30 @@
       scheduleHide();
     }
 
+    function holdButtonVisible() {
+      isPointerOver = true;
+      isScrolling = true;
+      window.clearTimeout(hideTimer);
+      requestButtonUpdate();
+    }
+
     button.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       scheduleHide();
     });
 
-    button.addEventListener('pointerenter', () => {
-      isPointerOver = true;
-      isScrolling = true;
-      window.clearTimeout(hideTimer);
-      requestButtonUpdate();
+    button.addEventListener('pointerdown', holdButtonVisible);
+    button.addEventListener('touchstart', holdButtonVisible, { passive: true });
+    button.addEventListener('pointerup', () => {
+      isPointerOver = false;
+      scheduleHide();
     });
+    button.addEventListener('pointercancel', () => {
+      isPointerOver = false;
+      scheduleHide();
+    });
+
+    button.addEventListener('pointerenter', holdButtonVisible);
 
     button.addEventListener('pointerleave', () => {
       isPointerOver = false;
@@ -237,6 +255,7 @@
     window.addEventListener('scroll', showWhileScrolling, { passive: true });
     window.addEventListener('resize', requestButtonUpdate);
     window.visualViewport?.addEventListener('resize', requestButtonUpdate);
+    button.addEventListener('now-playing-companion-change', requestButtonUpdate);
 
     const fixedPlayer = document.getElementById('fixedPlayer');
     if (fixedPlayer) {

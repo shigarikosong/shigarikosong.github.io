@@ -1745,11 +1745,11 @@ function getBottomReservedHeight() {
   const fixedPlayer = document.getElementById('fixedPlayer');
   const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
   const windowActions = document.querySelector('.player-window-actions');
-  const collapsedActionsHeight = fixedPlayer?.classList.contains('is-collapsed')
-    ? getVisibleElementHeight(windowActions) + 16
+  const playerActionsHeight = fixedPlayer && getComputedStyle(fixedPlayer).display !== 'none'
+    ? getVisibleElementHeight(windowActions) + 32
     : 0;
 
-  return getVisibleElementHeight(fixedPlayer) + getVisibleElementHeight(nowPlayingWrapper) + collapsedActionsHeight + 16;
+  return getVisibleElementHeight(fixedPlayer) + getVisibleElementHeight(nowPlayingWrapper) + playerActionsHeight + 16;
 }
 
 function isNowPlayingCardVisible() {
@@ -1792,6 +1792,7 @@ function syncNowPlayingFloatingButtonOffset(button, shouldShow) {
   if (backToTopButton) {
     backToTopButton.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
     backToTopButton.classList.toggle('has-now-playing-companion', shouldShow);
+    backToTopButton.dispatchEvent(new Event('now-playing-companion-change'));
   }
 }
 
