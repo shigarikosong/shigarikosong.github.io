@@ -64,7 +64,6 @@
     }
 
     .back-to-top-button.is-player-visible {
-      right: 84px;
       bottom: calc(var(--back-to-top-player-offset, 120px) + 10px);
     }
 
@@ -73,7 +72,7 @@
     }
 
     .back-to-top-button.is-player-visible.has-now-playing-companion {
-      bottom: calc(var(--back-to-top-player-offset, 120px) + 54px);
+      bottom: calc(var(--back-to-top-player-offset, 120px) + 64px);
     }
 
     .back-to-top-button.now-playing-floating-button {
@@ -93,7 +92,7 @@
       }
 
       .back-to-top-button.is-player-visible {
-        right: 82px;
+        right: 12px;
       }
     }
   `;
