@@ -51,6 +51,10 @@
   }
 
   document.addEventListener("click", event => {
+    if (event.target.closest("#videoList button[data-filter-group]")) {
+      return;
+    }
+
     if (
       event.target.closest("#videoList button") ||
       event.target.closest("#desktopFilterPanel button") ||
