@@ -245,6 +245,8 @@ Closing the player should clear the current playing state and remove list highli
 
 After clicking a tag inside a video-list card, scrolling should prefer the tapped source card after the list rerenders. If that card is no longer visible, scroll back near the result count or list top instead of jumping to the now playing card.
 
+When there is a now playing state, a `♪` floating button can appear only while the now playing card is outside the viewport or filtered out. It should scroll back to the now playing card, or to the filtered-out notice/result count when the card is not in the visible list.
+
 Now playing behavior can interact with scroll-position adjustment logic, so check those scripts when changing it.
 
 ## 13. Relationship With `tag-exclusion.js`

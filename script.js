@@ -501,6 +501,8 @@ document.getElementById('modalSortOrder').value = "desc";
     let selected3DTag = null;
     let selectedShortsTag = null;
     let pendingListTagScrollVideoKey = null;
+    let nowPlayingFloatingButton = null;
+    let nowPlayingFloatingUpdateFrame = null;
     const selectedVideoTypeTags = new Set();
 
 // ===== タグの表示・解除 =====
@@ -879,6 +881,17 @@ document.getElementById('openFilterModal')?.addEventListener('click', () => {
 document.getElementById('closeFilterModal')?.addEventListener('click', () => {
   document.getElementById('filterModal').classList.add('hidden');
 });
+
+window.addEventListener('scroll', requestNowPlayingFloatingButtonUpdate, { passive: true });
+window.addEventListener('resize', requestNowPlayingFloatingButtonUpdate);
+window.visualViewport?.addEventListener('resize', requestNowPlayingFloatingButtonUpdate);
+
+if (window.ResizeObserver) {
+  const nowPlayingFloatingResizeObserver = new ResizeObserver(requestNowPlayingFloatingButtonUpdate);
+  [fixedPlayerEl, document.getElementById('nowPlayingWrapper'), playerFrameWrapper].forEach(element => {
+    if (element) nowPlayingFloatingResizeObserver.observe(element);
+  });
+}
 
 
   const randomPlayButton = document.getElementById('randomPlayButton');
@@ -1658,6 +1671,7 @@ videoList.appendChild(item);
   }
 
   updateNowPlayingFilteredOutNotice({ scroll: !handledListTagScroll && !playingElement });
+  requestNowPlayingFloatingButtonUpdate();
 }
 
 window.addEventListener("collabTagOrderReady", () => {
@@ -1711,6 +1725,95 @@ function scrollElementBelowFilter(element) {
   });
 }
 
+function getNowPlayingCardElement() {
+  if (!nowPlayingKey) return null;
+  return [...videoList.querySelectorAll('[data-video-key]')]
+    .find(item => item.dataset.videoKey === nowPlayingKey) || null;
+}
+
+function getBottomReservedHeight() {
+  const fixedPlayer = document.getElementById('fixedPlayer');
+  const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
+
+  return getVisibleElementHeight(fixedPlayer) + getVisibleElementHeight(nowPlayingWrapper) + 16;
+}
+
+function isNowPlayingCardVisible() {
+  const card = getNowPlayingCardElement();
+  if (!card) return false;
+
+  const rect = card.getBoundingClientRect();
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const topReserved = getListTagScrollTopReservedHeight();
+  const bottomReserved = getBottomReservedHeight();
+
+  return rect.bottom > topReserved && rect.top < viewportHeight - bottomReserved;
+}
+
+function getNowPlayingFloatingButton() {
+  if (nowPlayingFloatingButton) return nowPlayingFloatingButton;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.id = 'nowPlayingFloatingButton';
+  button.className = 'back-to-top-button now-playing-floating-button';
+  button.textContent = '♪';
+  button.setAttribute('aria-label', '再生中のカードへ移動');
+  button.title = '再生中へ';
+  button.addEventListener('click', scrollToNowPlayingCard);
+  document.body.appendChild(button);
+
+  nowPlayingFloatingButton = button;
+  return button;
+}
+
+function syncNowPlayingFloatingButtonOffset(button) {
+  const playerOffset = Math.max(0, getBottomReservedHeight() - 16);
+  const isPlayerVisible = playerOffset > 0;
+  const backToTopButton = document.getElementById('backToTopButton');
+
+  button.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
+  button.classList.toggle('is-player-visible', isPlayerVisible);
+
+  if (backToTopButton) {
+    backToTopButton.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
+    backToTopButton.classList.toggle('has-now-playing-companion', button.classList.contains('is-visible'));
+  }
+}
+
+function updateNowPlayingFloatingButton() {
+  const button = getNowPlayingFloatingButton();
+  const shouldShow = Boolean(nowPlayingKey) && !isNowPlayingCardVisible();
+
+  button.classList.toggle('is-visible', shouldShow);
+  syncNowPlayingFloatingButtonOffset(button);
+}
+
+function requestNowPlayingFloatingButtonUpdate() {
+  if (nowPlayingFloatingUpdateFrame !== null) return;
+
+  nowPlayingFloatingUpdateFrame = requestAnimationFrame(() => {
+    nowPlayingFloatingUpdateFrame = null;
+    updateNowPlayingFloatingButton();
+  });
+}
+
+function scrollToNowPlayingCard() {
+  if (!nowPlayingKey) return;
+
+  const playingElement = getNowPlayingCardElement();
+  if (playingElement) {
+    scrollElementBelowFilter(playingElement);
+    requestNowPlayingFloatingButtonUpdate();
+    return;
+  }
+
+  const notice = document.getElementById('nowPlayingFilteredOutNotice');
+  const countElement = document.getElementById('songCount');
+  scrollElementBelowFilter(notice || countElement || videoList);
+  requestNowPlayingFloatingButtonUpdate();
+}
+
 function updateNowPlayingFilteredOutNotice(options = {}) {
   const { scroll = false } = options;
   const oldNotice = document.getElementById('nowPlayingFilteredOutNotice');
@@ -1754,6 +1857,7 @@ function clearNowPlayingState() {
   nowPlayingKey = null;
   updateNowPlayingHighlight();
   updateNowPlayingFilteredOutNotice();
+  requestNowPlayingFloatingButtonUpdate();
 }
 
 function updateNowPlaying(video) {
@@ -1764,6 +1868,7 @@ function updateNowPlaying(video) {
   nowPlayingKey = getVideoKey(video);
   updateNowPlayingHighlight();
   updateNowPlayingFilteredOutNotice();
+  requestNowPlayingFloatingButtonUpdate();
 }
 
 // ===== 動画の再生処理 =====

@@ -68,6 +68,22 @@
       bottom: calc(var(--back-to-top-player-offset, 120px) + 10px);
     }
 
+    .back-to-top-button.has-now-playing-companion {
+      bottom: 68px;
+    }
+
+    .back-to-top-button.is-player-visible.has-now-playing-companion {
+      bottom: calc(var(--back-to-top-player-offset, 120px) + 54px);
+    }
+
+    .back-to-top-button.now-playing-floating-button {
+      bottom: 24px;
+    }
+
+    .back-to-top-button.now-playing-floating-button.is-player-visible {
+      bottom: calc(var(--back-to-top-player-offset, 120px) + 10px);
+    }
+
     @media (max-width: 639px) {
       .back-to-top-button {
         right: 12px;
