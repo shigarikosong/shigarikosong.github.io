@@ -1690,6 +1690,12 @@ function updateNowPlayingHighlight() {
   }
 }
 
+function clearNowPlayingState() {
+  nowPlayingKey = null;
+  updateNowPlayingHighlight();
+  updateNowPlayingFilteredOutNotice();
+}
+
 function updateNowPlaying(video) {
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   const label = `${video["title"]} - ${video["artist"]}`;
@@ -1809,6 +1815,7 @@ if (closeBtn) {
     } else {
       playerIframe.src = "";
     }
+    clearNowPlayingState();
     fixedPlayerEl.style.display = 'none';
   });
 }

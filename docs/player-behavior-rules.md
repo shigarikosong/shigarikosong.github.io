@@ -241,6 +241,8 @@ If there is a notice for the case where the currently playing video is no longer
 
 The currently playing card should receive the `playing` class.
 
+Closing the player should clear the current playing state and remove list highlights.
+
 Now playing behavior can interact with scroll-position adjustment logic, so check those scripts when changing it.
 
 ## 13. Relationship With `tag-exclusion.js`
