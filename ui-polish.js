@@ -110,8 +110,26 @@
     return tagA.label.localeCompare(tagB.label, "ja");
   }
 
+  function compareCollabValueItems(a, b) {
+    const tagA = getCollabSortInfoByLabel(a.value);
+    const tagB = getCollabSortInfoByLabel(b.value);
+
+    if (tagA.matched !== tagB.matched) {
+      return tagA.matched ? -1 : 1;
+    }
+
+    if (!tagA.matched && !tagB.matched) {
+      return a.index - b.index;
+    }
+
+    return compareCollabLabels(a.value, b.value) || a.index - b.index;
+  }
+
   function sortCollabTagValues(values) {
-    return [...values].sort(compareCollabLabels);
+    return [...values]
+      .map((value, index) => ({ value, index }))
+      .sort(compareCollabValueItems)
+      .map(item => item.value);
   }
 
   function debugCollabTagOrder(values) {
@@ -156,7 +174,10 @@
     const buttons = [...container.children].filter(child => child.tagName === "BUTTON");
     if (buttons.length <= 1) return;
 
-    const sorted = [...buttons].sort((a, b) => compareCollabLabels(getCollabButtonLabel(a), getCollabButtonLabel(b)));
+    const sorted = buttons
+      .map((button, index) => ({ button, index, value: getCollabButtonLabel(button) }))
+      .sort(compareCollabValueItems)
+      .map(item => item.button);
 
     const changed = sorted.some((button, index) => button !== buttons[index]);
     if (!changed) return;
@@ -231,8 +252,10 @@
       const video = videos[index];
       if (!video) return;
 
-      const collabLivers = parseCommaTags(video["コラボライバー"]);
-      const collabUnits = parseCommaTags(video["コラボユニット"]);
+      const rawCollabLivers = parseCommaTags(video["コラボライバー"]);
+      const rawCollabUnits = parseCommaTags(video["コラボユニット"]);
+      const collabLivers = isCollabTagOrderReady ? sortCollabTagValues(rawCollabLivers) : rawCollabLivers;
+      const collabUnits = isCollabTagOrderReady ? sortCollabTagValues(rawCollabUnits) : rawCollabUnits;
 
       if (!collabLivers.length || !collabUnits.length) return;
 

@@ -158,6 +158,8 @@ Collab values combine both columns into the `collab` group:
 - `コラボライバー`
 - `コラボユニット`
 
+Video list Collab tags should prefer the same collab tag definition order as the filter UI. Tags missing from the definition should stay after known tags while preserving their local order as much as possible.
+
 ## 8. Random And Continuous Playback
 
 The visible list should reflect the result after both `include` and `exclude` filtering.
