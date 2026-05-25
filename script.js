@@ -1672,13 +1672,43 @@ function scrollToListTagFilterSource(sourceVideoKey) {
     .find(item => item.dataset.videoKey === sourceVideoKey);
 
   if (sourceElement) {
-    sourceElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    scrollElementBelowFilter(sourceElement);
     return true;
   }
 
   const countElement = document.getElementById('songCount');
-  (countElement || videoList).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollElementBelowFilter(countElement || videoList);
   return true;
+}
+
+function getVisibleElementHeight(element) {
+  if (!element || element.classList.contains('hidden')) return 0;
+
+  const style = window.getComputedStyle(element);
+  if (style.display === 'none' || style.visibility === 'hidden') return 0;
+
+  const rect = element.getBoundingClientRect();
+  return rect.height > 0 ? rect.height : 0;
+}
+
+function getListTagScrollTopReservedHeight() {
+  const filterSection = document.getElementById('filterSection');
+  const activeTagChips = document.getElementById('activeTagChips');
+
+  return getVisibleElementHeight(filterSection) + getVisibleElementHeight(activeTagChips) + 12;
+}
+
+function scrollElementBelowFilter(element) {
+  if (!element) return;
+
+  const rect = element.getBoundingClientRect();
+  const pageTop = window.scrollY + rect.top;
+  const targetY = pageTop - getListTagScrollTopReservedHeight();
+
+  window.scrollTo({
+    top: Math.max(0, Math.round(targetY)),
+    behavior: 'smooth'
+  });
 }
 
 function updateNowPlayingFilteredOutNotice(options = {}) {
