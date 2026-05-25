@@ -69,6 +69,8 @@ Automatic continuous playback must exclude TikTok.
 
 Manual random playback should follow the current behavior and target the currently visible list.
 
+When the random playback target list is empty, random playback should not start and should not call playback with an undefined video.
+
 Even when TikTok is included in the visible list, automatic continuous playback should treat it as skipped / not auto-playable.
 
 ## 5. `getVideoKey()` / `nowPlayingKey` Rules
