@@ -39,6 +39,24 @@
     modalCollabUnitTags: "collab",
     desktopCollabUnitTags: "collab"
   };
+  const tagSyncButtonSelector = [
+    "#modalCategoryTags button",
+    "#desktopCategoryTags button",
+    "#modalPlatformTags button",
+    "#desktopPlatformTags button",
+    "#modalDateTags button",
+    "#desktopDateTags button",
+    "#modalFormatTags button",
+    "#desktopFormatTags button",
+    "#modalRoleTags button",
+    "#desktopRoleTags button",
+    "#modalCollabLiverTags button",
+    "#desktopCollabLiverTags button",
+    "#modalCollabUnitTags button",
+    "#desktopCollabUnitTags button",
+    "#videoList [data-filter-group]",
+    "#activeTagChips button"
+  ].join(",");
   let lastRenderedVideos = [];
   let syncFrame = null;
   let isPatchingRender = false;
@@ -285,8 +303,6 @@
   }
 
   function findButtonInfo(button) {
-    refreshKnownTags();
-
     const label = getRawButtonLabel(button);
     if (!label || button.closest("#activeTagChips")) return null;
     if (button.classList.contains("collab-member-toggle")) return null;
@@ -418,7 +434,7 @@
   function syncExcludeButtonStyles() {
     refreshKnownTags();
 
-    document.querySelectorAll("button").forEach(button => {
+    document.querySelectorAll(tagSyncButtonSelector).forEach(button => {
       const info = findButtonInfo(button);
       const active = info ? isExcluded(info.kind, info.label) : false;
       button.classList.toggle(EXCLUDE_BUTTON_CLASS, active);
@@ -481,7 +497,9 @@
   function handleTagClick(event) {
     const button = event.target.closest("button");
     if (!button || isPatchingRender) return;
+    if (!button.matches(tagSyncButtonSelector) || button.closest("#activeTagChips")) return;
 
+    refreshKnownTags();
     const info = findButtonInfo(button);
     if (!info) return;
 
