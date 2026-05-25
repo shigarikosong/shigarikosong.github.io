@@ -243,6 +243,8 @@ The currently playing card should receive the `playing` class.
 
 Closing the player should clear the current playing state and remove list highlights.
 
+After clicking a tag inside a video-list card, scrolling should prefer the tapped source card after the list rerenders. If that card is no longer visible, scroll back near the result count or list top instead of jumping to the now playing card.
+
 Now playing behavior can interact with scroll-position adjustment logic, so check those scripts when changing it.
 
 ## 13. Relationship With `tag-exclusion.js`

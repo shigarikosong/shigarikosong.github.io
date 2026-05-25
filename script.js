@@ -500,6 +500,7 @@ document.getElementById('modalSortOrder').value = "desc";
     let selectedPlatformTag = "";
     let selected3DTag = null;
     let selectedShortsTag = null;
+    let pendingListTagScrollVideoKey = null;
     const selectedVideoTypeTags = new Set();
 
 // ===== タグの表示・解除 =====
@@ -766,6 +767,16 @@ function createListTagElement(label, group, value, isActive, onClick) {
 
   return tag;
 }
+
+function captureListTagScrollSource(event) {
+  const button = event.target.closest('#videoList button[data-filter-group]');
+  if (!button) return;
+
+  const sourceCard = button.closest('[data-video-key]');
+  pendingListTagScrollVideoKey = sourceCard?.dataset.videoKey || null;
+}
+
+document.addEventListener('click', captureListTagScrollSource, true);
 
 
 // ===== YouTubeプレイヤーの準備 =====
@@ -1637,19 +1648,38 @@ if (tagRow) item.appendChild(tagRow);
 
 videoList.appendChild(item);
       });
-  
+
+  const handledListTagScroll = scrollToListTagFilterSource(pendingListTagScrollVideoKey);
+  pendingListTagScrollVideoKey = null;
+
   // スクロール実行
-  if (playingElement) {
+  if (!handledListTagScroll && playingElement) {
     playingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  updateNowPlayingFilteredOutNotice({ scroll: !playingElement });
+  updateNowPlayingFilteredOutNotice({ scroll: !handledListTagScroll && !playingElement });
 }
 
 window.addEventListener("collabTagOrderReady", () => {
   if (!Array.isArray(currentFilteredVideos) || !currentFilteredVideos.length) return;
   window.renderVideoList(currentFilteredVideos);
 });
+
+function scrollToListTagFilterSource(sourceVideoKey) {
+  if (!sourceVideoKey) return false;
+
+  const sourceElement = [...videoList.querySelectorAll('[data-video-key]')]
+    .find(item => item.dataset.videoKey === sourceVideoKey);
+
+  if (sourceElement) {
+    sourceElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return true;
+  }
+
+  const countElement = document.getElementById('songCount');
+  (countElement || videoList).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  return true;
+}
 
 function updateNowPlayingFilteredOutNotice(options = {}) {
   const { scroll = false } = options;
