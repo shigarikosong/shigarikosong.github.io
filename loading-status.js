@@ -172,6 +172,10 @@
     document.body.appendChild(button);
 
     function getPlayerOffset() {
+      if (window.ScrollUtils?.getPlayerBottomOffset) {
+        return Math.ceil(window.ScrollUtils.getPlayerBottomOffset());
+      }
+
       const fixedPlayer = document.getElementById('fixedPlayer');
       const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
       const windowActions = document.querySelector('.player-window-actions');
