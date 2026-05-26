@@ -1696,43 +1696,12 @@ function scrollToListTagFilterSource(sourceVideoKey) {
     .find(item => item.dataset.videoKey === sourceVideoKey);
 
   if (sourceElement) {
-    scrollElementBelowFilter(sourceElement);
+    window.ScrollUtils.scrollElementIntoComfortView(sourceElement);
     return true;
   }
 
-  const countElement = document.getElementById('songCount');
-  scrollElementBelowFilter(countElement || videoList);
+  window.ScrollUtils.scrollToResultCountOrListTop();
   return true;
-}
-
-function getVisibleElementHeight(element) {
-  if (!element || element.classList.contains('hidden')) return 0;
-
-  const style = window.getComputedStyle(element);
-  if (style.display === 'none' || style.visibility === 'hidden') return 0;
-
-  const rect = element.getBoundingClientRect();
-  return rect.height > 0 ? rect.height : 0;
-}
-
-function getListTagScrollTopReservedHeight() {
-  const filterSection = document.getElementById('filterSection');
-  const activeTagChips = document.getElementById('activeTagChips');
-
-  return getVisibleElementHeight(filterSection) + getVisibleElementHeight(activeTagChips) + 12;
-}
-
-function scrollElementBelowFilter(element) {
-  if (!element) return;
-
-  const rect = element.getBoundingClientRect();
-  const pageTop = window.scrollY + rect.top;
-  const targetY = pageTop - getListTagScrollTopReservedHeight();
-
-  window.scrollTo({
-    top: Math.max(0, Math.round(targetY)),
-    behavior: 'smooth'
-  });
 }
 
 function getNowPlayingCardElement() {
@@ -1741,27 +1710,9 @@ function getNowPlayingCardElement() {
     .find(item => item.dataset.videoKey === nowPlayingKey) || null;
 }
 
-function getBottomReservedHeight() {
-  const fixedPlayer = document.getElementById('fixedPlayer');
-  const nowPlayingWrapper = document.getElementById('nowPlayingWrapper');
-  const windowActions = document.querySelector('.player-window-actions');
-  const playerActionsHeight = fixedPlayer && getComputedStyle(fixedPlayer).display !== 'none'
-    ? getVisibleElementHeight(windowActions) + 32
-    : 0;
-
-  return getVisibleElementHeight(fixedPlayer) + getVisibleElementHeight(nowPlayingWrapper) + playerActionsHeight + 16;
-}
-
 function isNowPlayingCardVisible() {
   const card = getNowPlayingCardElement();
-  if (!card) return false;
-
-  const rect = card.getBoundingClientRect();
-  const viewportHeight = window.visualViewport?.height || window.innerHeight;
-  const topReserved = getListTagScrollTopReservedHeight();
-  const bottomReserved = getBottomReservedHeight();
-
-  return rect.bottom > topReserved && rect.top < viewportHeight - bottomReserved;
+  return window.ScrollUtils.isElementComfortablyVisible(card);
 }
 
 function getNowPlayingFloatingButton() {
@@ -1782,7 +1733,7 @@ function getNowPlayingFloatingButton() {
 }
 
 function syncNowPlayingFloatingButtonOffset(button, shouldShow) {
-  const playerOffset = Math.max(0, getBottomReservedHeight() - 16);
+  const playerOffset = window.ScrollUtils.getPlayerBottomOffset();
   const isPlayerVisible = playerOffset > 0;
   const backToTopButton = document.getElementById('backToTopButton');
 
@@ -1824,14 +1775,14 @@ function scrollToNowPlayingCard() {
 
   const playingElement = getNowPlayingCardElement();
   if (playingElement) {
-    scrollElementBelowFilter(playingElement);
+    window.ScrollUtils.scrollElementIntoComfortView(playingElement);
     scheduleNowPlayingFloatingButtonSettledUpdate();
     return;
   }
 
   const notice = document.getElementById('nowPlayingFilteredOutNotice');
   const countElement = document.getElementById('songCount');
-  scrollElementBelowFilter(notice || countElement || videoList);
+  window.ScrollUtils.scrollElementIntoComfortView(notice || countElement || videoList);
   scheduleNowPlayingFloatingButtonSettledUpdate();
 }
 
