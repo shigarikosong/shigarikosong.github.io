@@ -802,6 +802,13 @@ body.player-visible #desktopFilterPanel {
     padding-bottom: calc(1rem + 8px + env(safe-area-inset-bottom, 0px));
   }
 
+  #playerFrameWrapper:has(#youtubePlayer:not(.hidden)),
+  #playerFrameWrapper:has(#youtubePlayer:not(.hidden)) #youtubePlayer,
+  #playerFrameWrapper:has(#youtubePlayer:not(.hidden)) #youtubePlayer iframe {
+    overscroll-behavior: contain;
+    touch-action: none;
+  }
+
   #nowPlayingWrapper {
     padding-top: 3px;
     padding-bottom: 4px;
