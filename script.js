@@ -543,9 +543,16 @@ function normalizeVideos(data) {
       video["artist"],
       video["artist_kana"],
       video["waku_name"],
+      video["カテゴリ"],
+      video["platform"],
+      window.TAG_CONFIG?.getPlatformLabel?.(platform),
+      video["動画種別"],
       video["担当区分"],
       video["コラボライバー"],
       video["コラボユニット"],
+      video._is3D ? "3D" : "",
+      video._isShorts ? "Shorts" : "",
+      types.join(" "),
       roles.join(" "),
       collabLivers.join(" "),
       collabUnits.join(" ")
@@ -779,6 +786,45 @@ function captureListTagScrollSource(event) {
 }
 
 document.addEventListener('click', captureListTagScrollSource, true);
+
+function parseSearchQuery(query) {
+  const tokens = String(query || "").trim().split(/\s+/).filter(Boolean);
+  const excludeTerms = [];
+  const groups = [[]];
+
+  tokens.forEach(token => {
+    if (token.startsWith("-") && token.length > 1) {
+      excludeTerms.push(token.slice(1).toLowerCase());
+      return;
+    }
+
+    if (token === "OR") {
+      if (groups[groups.length - 1].length) groups.push([]);
+      return;
+    }
+
+    groups[groups.length - 1].push(token.toLowerCase());
+  });
+
+  return {
+    excludeTerms,
+    groups: groups.filter(group => group.length)
+  };
+}
+
+function matchesSearchQuery(video, query) {
+  const rawQuery = String(query || "").trim();
+  if (!rawQuery) return true;
+
+  const text = video._searchText || "";
+  const { excludeTerms, groups } = parseSearchQuery(rawQuery);
+  const hasExcludedTerm = excludeTerms.some(term => text.includes(term));
+  if (hasExcludedTerm) return false;
+
+  if (!groups.length) return true;
+
+  return groups.some(group => group.every(term => text.includes(term)));
+}
 
 
 // ===== YouTubeプレイヤーの準備 =====
@@ -1378,10 +1424,10 @@ function renderDateTags() {
 
 // ===== 検索・絞り込み処理 =====
       function applyFilters() {
-        const searchTerm = searchInput.value.toLowerCase();
+        const searchQuery = searchInput.value;
         const now = new Date();
         let filtered = allVideos.filter(video => {
-  return (!searchTerm || video._searchText.includes(searchTerm)) &&
+  return matchesSearchQuery(video, searchQuery) &&
     
 // フィルタ条件
     (!selectedCategoryTag || video["カテゴリ"] === selectedCategoryTag) &&
