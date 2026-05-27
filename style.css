@@ -798,6 +798,10 @@ body.player-visible #desktopFilterPanel {
 }
 
 @media (max-width: 768px) {
+  #fixedPlayer > div {
+    padding-bottom: calc(1rem + 8px + env(safe-area-inset-bottom, 0px));
+  }
+
   #nowPlayingWrapper {
     padding-top: 3px;
     padding-bottom: 4px;
