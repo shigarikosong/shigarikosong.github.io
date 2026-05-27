@@ -858,7 +858,7 @@ if (repeatModeBtn) {
     } else {
       stopEndCountdownMonitor();
     }
-    applyFilters();
+    requestNowPlayingFloatingButtonUpdate();
   });
 }
 
@@ -869,7 +869,7 @@ if (randomModeBtn) {
     setRandomModeEnabled(!isRandomModeEnabled());
     resetRandomPlayQueue();
     updateRandomModeButton();
-    applyFilters();
+    requestNowPlayingFloatingButtonUpdate();
   });
 }
 
