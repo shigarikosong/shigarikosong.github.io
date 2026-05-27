@@ -156,6 +156,7 @@
 
   function setupBackToTopButton() {
     const SHOW_SCROLL_Y = 420;
+    const TOP_HIDE_SCROLL_Y = 24;
     const HIDE_DELAY_MS = 1100;
     const button = document.createElement('button');
     let updateFrame = null;
@@ -198,7 +199,15 @@
       updateFrame = null;
       const playerOffset = getPlayerOffset();
       const hasNowPlayingCompanion = button.classList.contains('has-now-playing-companion');
-      const shouldShow = window.scrollY > SHOW_SCROLL_Y && (isScrolling || isPointerOver || hasNowPlayingCompanion);
+      const isNearTop = window.scrollY <= TOP_HIDE_SCROLL_Y;
+
+      if (isNearTop) {
+        isScrolling = false;
+        isPointerOver = false;
+        window.clearTimeout(hideTimer);
+      }
+
+      const shouldShow = !isNearTop && window.scrollY > SHOW_SCROLL_Y && (isScrolling || isPointerOver || hasNowPlayingCompanion);
 
       button.style.setProperty('--back-to-top-player-offset', `${playerOffset}px`);
       button.classList.toggle('is-visible', shouldShow);
@@ -236,6 +245,8 @@
     button.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       scheduleHide();
+      window.setTimeout(requestButtonUpdate, 300);
+      window.setTimeout(requestButtonUpdate, 700);
     });
 
     button.addEventListener('pointerdown', holdButtonVisible);
