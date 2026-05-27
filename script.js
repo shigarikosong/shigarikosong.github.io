@@ -1028,7 +1028,7 @@ function loadTikTokEmbed(tiktokId) {
       cite="${tiktokUrl}"
       data-video-id="${tiktokId}"
       data-embed-from="embed_page"
-      style="max-width:605px; min-width:325px;">
+      style="max-width:360px; min-width:0; width:100%;">
       <section>
         <a target="_blank" rel="noopener" href="${tiktokUrl}">TikTokで見る</a>
       </section>

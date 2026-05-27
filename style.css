@@ -912,6 +912,30 @@ body.player-visible #desktopFilterPanel {
   margin-bottom: 4px;
 }
 
+/* ===== TikTok player embed ===== */
+#tiktokPlayer {
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+#tiktokPlayer .tiktok-embed,
+#tiktokPlayer iframe {
+  width: min(100%, 360px) !important;
+  max-width: 360px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+@media (max-width: 480px) {
+  #tiktokPlayer .tiktok-embed,
+  #tiktokPlayer iframe {
+    width: min(100%, 340px) !important;
+    max-width: 340px !important;
+  }
+}
+
 /* ===== Filter modal sections ===== */
 .modal-section-title {
   display: flex;
