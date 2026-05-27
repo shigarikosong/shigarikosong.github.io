@@ -232,18 +232,46 @@
     renderCollabTags();
   }
 
-  toggleButton.addEventListener("click", () => {
-    const isHidden = panel.classList.toggle("hidden");
-    const isOpen = !isHidden;
-
+  function syncPanelState(isOpen) {
     toggleButton.setAttribute("aria-expanded", String(isOpen));
     toggleButton.textContent = isOpen ? "閉じる" : "絞り込み";
     document.body.classList.toggle("desktop-filter-open", isOpen);
 
-    if (isOpen) renderDesktopPanel();
     requestAnimationFrame(() => {
       if (typeof updateActiveTagChipsPosition === "function") updateActiveTagChipsPosition();
     });
+  }
+
+  function openPanel() {
+    panel.classList.remove("hidden");
+    renderDesktopPanel();
+    syncPanelState(true);
+  }
+
+  function closePanel() {
+    panel.classList.add("hidden");
+    syncPanelState(false);
+  }
+
+  function togglePanel() {
+    if (panel.classList.contains("hidden")) {
+      openPanel();
+    } else {
+      closePanel();
+    }
+  }
+
+  toggleButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    togglePanel();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (panel.classList.contains("hidden")) return;
+    const path = event.composedPath();
+    if (path.includes(panel) || path.includes(toggleButton)) return;
+
+    closePanel();
   });
 
   if (categoryTags) {
