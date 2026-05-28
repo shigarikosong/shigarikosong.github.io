@@ -3,7 +3,7 @@ name: Update JSON data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 15 * * *"
+    - cron: "37 15 * * *"
 
 permissions:
   contents: write
