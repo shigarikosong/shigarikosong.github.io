@@ -94,30 +94,6 @@
       .trim();
   }
 
-  function splitTags(value) {
-    return String(value || "")
-      .split(",")
-      .map(tag => tag.trim())
-      .filter(Boolean);
-  }
-
-  function parseYmdToTime(value) {
-    if (!value) return NaN;
-
-    const normalized = String(value).trim().replaceAll("/", "-");
-    const [year, month = "1", day = "1"] = normalized.split("-");
-    const date = new Date(Number(year), Number(month) - 1, Number(day));
-
-    return Number.isNaN(date.getTime()) ? NaN : date.getTime();
-  }
-
-  function getDiffMonths(video) {
-    const videoTime = parseYmdToTime(video?.["公開日"] || video?.["公開月"]);
-    if (Number.isNaN(videoTime)) return null;
-
-    return (Date.now() - videoTime) / (1000 * 60 * 60 * 24 * 30);
-  }
-
   function hasExclusions() {
     return window.FilterState.hasExclusions();
   }
@@ -172,11 +148,11 @@
       allVideos.forEach(video => {
         if (video?.["カテゴリ"]) knownTags.category.add(String(video["カテゴリ"]).trim());
         if (video?._platform) knownTags.platform.add(String(video._platform).trim());
-        (video?._types || splitTags(video?.["動画種別"])).forEach(tag => knownTags.format.add(tag));
-        (video?._roles || splitTags(video?.["担当区分"])).forEach(tag => knownTags.role.add(tag));
+        (video?._types || []).forEach(tag => knownTags.format.add(tag));
+        (video?._roles || []).forEach(tag => knownTags.role.add(tag));
         [
-          ...(video?._collabLivers || splitTags(video?.["コラボライバー"])),
-          ...(video?._collabUnits || splitTags(video?.["コラボユニット"]))
+          ...(video?._collabLivers || []),
+          ...(video?._collabUnits || [])
         ].forEach(tag => knownTags.collab.add(tag));
       });
     }
@@ -244,47 +220,8 @@
     return inferCardButtonInfo(button, label);
   }
 
-  function isExcludedDate(video) {
-    const excludedDates = window.FilterState.getExcludedValues("date");
-    if (excludedDates.length === 0) return false;
-
-    const diffMonths = getDiffMonths(video);
-    if (diffMonths === null) return false;
-
-    return (
-      (excludedDates.includes("recent") && diffMonths <= 3) ||
-      (excludedDates.includes("year") && diffMonths <= 12) ||
-      (excludedDates.includes("old") && diffMonths > 12)
-    );
-  }
-
-  function passesExclusion(video) {
-    if (!hasExclusions()) return true;
-
-    const category = String(video?.["カテゴリ"] || "").trim();
-    const platform = String(video?.platform || "").toLowerCase();
-    const formats = splitTags(video?.["動画種別"]);
-    const roles = splitTags(video?.["担当区分"]);
-    const collabs = [
-      ...splitTags(video?.["コラボライバー"]),
-      ...splitTags(video?.["コラボユニット"])
-    ];
-
-    if (category && window.FilterState.isTagExcluded("category", category)) return false;
-    if (platform && window.FilterState.isTagExcluded("platform", platform)) return false;
-    if (isExcludedDate(video)) return false;
-    if (formats.some(tag => window.FilterState.isTagExcluded("format", tag))) return false;
-    if (roles.some(tag => window.FilterState.isTagExcluded("role", tag))) return false;
-    if (collabs.some(tag => window.FilterState.isTagExcluded("collab", tag))) return false;
-    if (video?.["3D"] === "TRUE" && (window.FilterState.isTagExcluded("flag", "3D") || window.FilterState.isTagExcluded("format", "3D"))) return false;
-    if (video?.Shorts === "TRUE" && (window.FilterState.isTagExcluded("flag", "Shorts") || window.FilterState.isTagExcluded("format", "Shorts"))) return false;
-
-    return true;
-  }
-
   function filterExcludedVideos(videos) {
-    const list = Array.isArray(videos) ? videos : [];
-    return hasExclusions() ? list.filter(passesExclusion) : list;
+    return window.FilterState.filterExcludedVideos(videos);
   }
 
   function renderExcludeChips() {

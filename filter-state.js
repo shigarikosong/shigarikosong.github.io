@@ -254,6 +254,64 @@
     return Object.values(excludedTags).some(set => set.size > 0);
   }
 
+  function splitTags(value) {
+    return String(value || "")
+      .split(",")
+      .map(tag => tag.trim())
+      .filter(Boolean);
+  }
+
+  function getVideoDateTime(video) {
+    if (Number.isFinite(video?._time)) return video._time;
+    return window.DATE_UTILS?.parseYmdToTime?.(video?.["公開日"] || video?.["公開月"]) ?? NaN;
+  }
+
+  function isExcludedDate(video) {
+    const excludedDates = getExcludedValues("date");
+    if (excludedDates.length === 0) return false;
+
+    const videoTime = getVideoDateTime(video);
+    if (Number.isNaN(videoTime)) return false;
+
+    const diffMonths = (Date.now() - videoTime) / (1000 * 60 * 60 * 24 * 30);
+    return (
+      (excludedDates.includes("recent") && diffMonths <= 3) ||
+      (excludedDates.includes("year") && diffMonths <= 12) ||
+      (excludedDates.includes("old") && diffMonths > 12)
+    );
+  }
+
+  function passesExclusion(video) {
+    if (!hasExclusions()) return true;
+
+    const category = String(video?.["カテゴリ"] || "").trim();
+    const platform = String(video?._platform || video?.platform || "").toLowerCase();
+    const formats = Array.isArray(video?._types) ? video._types : splitTags(video?.["動画種別"]);
+    const roles = Array.isArray(video?._roles) ? video._roles : splitTags(video?.["担当区分"]);
+    const collabs = Array.isArray(video?._collabTags)
+      ? video._collabTags
+      : [
+        ...splitTags(video?.["コラボライバー"]),
+        ...splitTags(video?.["コラボユニット"])
+      ];
+
+    if (category && isTagExcluded("category", category)) return false;
+    if (platform && isTagExcluded("platform", platform)) return false;
+    if (isExcludedDate(video)) return false;
+    if (formats.some(tag => isTagExcluded("format", tag))) return false;
+    if (roles.some(tag => isTagExcluded("role", tag))) return false;
+    if (collabs.some(tag => isTagExcluded("collab", tag))) return false;
+    if ((video?._is3D || video?.["3D"] === "TRUE") && (isTagExcluded("flag", "3D") || isTagExcluded("format", "3D"))) return false;
+    if ((video?._isShorts || video?.Shorts === "TRUE") && (isTagExcluded("flag", "Shorts") || isTagExcluded("format", "Shorts"))) return false;
+
+    return true;
+  }
+
+  function filterExcludedVideos(videos) {
+    const list = Array.isArray(videos) ? videos : [];
+    return hasExclusions() ? list.filter(passesExclusion) : list;
+  }
+
   function registerExclusionAdapter() {
     // Kept as a no-op for older extension scripts during the transition.
   }
@@ -267,6 +325,8 @@
     isTagExcluded,
     getExcludedValues,
     hasExclusions,
+    passesExclusion,
+    filterExcludedVideos,
     setTagState,
     registerExclusionAdapter
   });
