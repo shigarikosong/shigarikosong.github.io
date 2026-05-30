@@ -2,7 +2,7 @@
 
 このサイトは、司賀りこさんの歌ってみた・踊ってみた・歌枠などを探しやすくまとめた非公式ファンアーカイブです。
 
-開発者向けメモ: [フィルタータグ仕様](docs/filter-tag-rules.md) / [プレイヤー挙動仕様](docs/player-behavior-rules.md)
+開発者向けメモ: [フィルタータグ仕様](docs/filter-tag-rules.md) / [プレイヤー挙動仕様](docs/player-behavior-rules.md) / [手動チェックリスト](docs/manual-checklist.md)
 
 タグ定義・表示順は `tag-config.js` を正本とします。
 
