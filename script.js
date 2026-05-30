@@ -762,7 +762,7 @@ function createListTagElement(label, group, value, isActive, onClick) {
 }
 
 function handleListTagClick(group, value, options = {}) {
-  const { allowExclude = false, beforeApply = null } = options;
+  const { allowExclude = true, beforeApply = null } = options;
   const nextState = window.FilterState.toggleTag(group, value);
 
   if (!allowExclude && nextState === "exclude") {
@@ -770,7 +770,18 @@ function handleListTagClick(group, value, options = {}) {
   }
 
   if (typeof beforeApply === "function") beforeApply();
+  syncFilterControlsAfterListTagClick();
   applyFilters();
+}
+
+function syncFilterControlsAfterListTagClick() {
+  if (Array.isArray(allVideos)) {
+    renderCategoryTags([...new Set(allVideos.map(video => video["カテゴリ"]).filter(Boolean))].sort());
+  }
+
+  renderPlatformTags();
+  renderDateTags();
+  window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
 }
 
 function captureListTagScrollSource(event) {
