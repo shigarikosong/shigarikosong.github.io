@@ -611,26 +611,7 @@ function clearDateTag() {
 
   activeTagChipsInner.innerHTML = '';
 
-  const activeTags = [];
-
-// アクティブ状態のタグを収集
-const filterState = window.FilterState.getState();
-if (filterState.include.category) activeTags.push({ label: filterState.include.category, type: 'include' });
-if (filterState.include.collab) activeTags.push({ label: filterState.include.collab, type: 'include' });
-if (filterState.include.role) activeTags.push({ label: filterState.include.role, type: 'include' });
-if (filterState.include.platform) activeTags.push({
-  label: getPlatformLabel(filterState.include.platform),
-  value: filterState.include.platform,
-  type: 'include',
-  source: 'platform'
-});
-if (filterState.include.date) activeTags.push({ label: getDateTagLabel(filterState.include.date), type: 'include', source: 'date' });
-if (filterState.include.flag.includes('3D')) activeTags.push({ label: '3D', type: 'include' });
-if (filterState.include.flag.includes('Shorts')) activeTags.push({ label: 'Shorts', type: 'include' });
-
-filterState.include.format.forEach(type => {
-  activeTags.push({ label: type, type: 'include', source: 'videoType' });
-});
+  const activeTags = window.FilterState.getActiveChips({ states: ["include"] });
 
   if (activeTags.length === 0) {
   activeTagChips.classList.add('hidden');
@@ -655,7 +636,7 @@ activeTags.forEach(tagData => {
 
     
         if (tagData.source === 'videoType') {
-        window.FilterState.setTagState("format", tagData.label, "none");
+        window.FilterState.setTagState(tagData.group, tagData.value, "none");
         applyFilters();
         return;
       }
@@ -666,27 +647,19 @@ activeTags.forEach(tagData => {
       }
 
       if (tagData.source === 'platform') {
-        window.FilterState.setState({ platform: "" });
+        window.FilterState.setTagState(tagData.group, tagData.value, "none");
         renderPlatformTags();
         applyFilters();
         return;
       }
-        
-      switch (tagData.label) {
-        case '3D':
-  window.FilterState.setTagState("format", "3D", "none");
-  break;
-case 'Shorts':
-  window.FilterState.setTagState("format", "Shorts", "none");
-  break;
-    
-        default:
-          if (window.FilterState.isTagIncluded("category", tagData.label)) {
-            window.FilterState.setState({ category: "" });
+
+      switch (tagData.group) {
+        case "category":
+            window.FilterState.setTagState(tagData.group, tagData.value, "none");
             renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
-          }
-          if (window.FilterState.isTagIncluded("collab", tagData.label)) window.FilterState.setState({ collab: "" });
-          if (window.FilterState.isTagIncluded("role", tagData.label)) window.FilterState.setState({ role: "" });
+          break;
+        default:
+          window.FilterState.setTagState(tagData.group, tagData.value, "none");
           break;
       }
 
