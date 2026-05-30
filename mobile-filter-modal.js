@@ -195,23 +195,11 @@
       button.dataset.filterGroup = "format";
       button.dataset.filterValue = format;
 
-      const is3D = format === "3D";
-      const isShorts = format === "Shorts";
-      const isActive = is3D
-        ? selected3DTag === "include"
-        : isShorts
-          ? selectedShortsTag === "include"
-          : selectedVideoTypeTags.has(format);
+      const isActive = window.FilterState.isTagIncluded("format", format);
 
       button.className = getFormatButtonClass(isActive);
       button.addEventListener("click", () => {
-        if (is3D) {
-          selected3DTag = selected3DTag === "include" ? null : "include";
-        } else if (isShorts) {
-          selectedShortsTag = selectedShortsTag === "include" ? null : "include";
-        } else {
-          toggleVideoTypeTag(format);
-        }
+        window.FilterState.setTagState("format", format, isActive ? "none" : "include");
 
         if (typeSelect) typeSelect.value = "";
         renderFormatTags();
@@ -267,10 +255,10 @@
       button.dataset.filterGroup = "role";
       button.dataset.filterValue = role;
 
-      const isActive = selectedRoleTag === role;
+      const isActive = window.FilterState.isTagIncluded("role", role);
       button.className = getTagButtonClass("tag-role-filter", isActive, { size: "tag-sm" });
       button.addEventListener("click", () => {
-        selectedRoleTag = selectedRoleTag === role ? "" : role;
+        window.FilterState.setTagState("role", role, isActive ? "none" : "include");
 
         if (roleSelect) roleSelect.value = "";
         renderRoleTags();
@@ -299,10 +287,10 @@
       button.dataset.filterGroup = "collab";
       button.dataset.filterValue = value;
 
-      const isActive = selectedCollabTag === value;
+      const isActive = window.FilterState.isTagIncluded("collab", value);
       button.className = getCollabButtonClass(isActive);
       button.addEventListener("click", () => {
-        selectedCollabTag = selectedCollabTag === value ? "" : value;
+        window.FilterState.setTagState("collab", value, isActive ? "none" : "include");
         renderCollabTags();
         applyFiltersAndUpdateCount();
       });
@@ -340,14 +328,7 @@
     if (typeSelect) typeSelect.value = "";
     if (roleSelect) roleSelect.value = "";
 
-    selectedCategoryTag = "";
-    selectedCollabTag = "";
-    selectedRoleTag = "";
-    selectedPlatformTag = "";
-    selectedDateTag = "";
-    selected3DTag = null;
-    selectedShortsTag = null;
-    selectedVideoTypeTags.clear();
+    window.FilterState.resetState();
 
     renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
     renderDateTags();
@@ -383,7 +364,7 @@
   function syncModalControls() {
     if (searchField && searchInput) searchField.value = searchInput.value;
     if (sortSelect && sortOrder) sortSelect.value = sortOrder.value || "desc";
-    if (categorySelect) categorySelect.value = selectedCategoryTag || "";
+    if (categorySelect) categorySelect.value = window.FilterState.getState().include.category || "";
     if (roleSelect) roleSelect.value = "";
     if (typeSelect) typeSelect.value = "";
     updateSortButtons();
