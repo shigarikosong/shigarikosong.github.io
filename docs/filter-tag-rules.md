@@ -93,11 +93,6 @@ Clicking a chip should clear only that condition:
 - Exclusion button style and label sync
 - Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
 
-### `time-tag-active.js`
-
-- Time tag support behavior
-- Time active display and sync support
-
 ### `loading-status.js`
 
 - Loading status display
