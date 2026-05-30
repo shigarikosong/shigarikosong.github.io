@@ -224,40 +224,6 @@
     return window.FilterState.filterExcludedVideos(videos);
   }
 
-  function renderExcludeChips() {
-    const activeTagChips = document.getElementById("activeTagChips");
-    const activeTagChipsInner = document.getElementById("activeTagChipsInner");
-    if (!activeTagChips || !activeTagChipsInner) return;
-
-    activeTagChipsInner
-      .querySelectorAll(`.${EXCLUDE_CHIP_CLASS}`)
-      .forEach(chip => chip.remove());
-
-    const chips = window.FilterState.getActiveChips({ states: ["exclude"] });
-
-    chips.forEach(({ group, value, label }) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = `${EXCLUDE_CHIP_CLASS} px-3 py-1 rounded-full text-sm whitespace-nowrap transition`;
-      chip.textContent = `- ${label}`;
-      chip.setAttribute("aria-label", `${label}を除外条件から外す`);
-      chip.addEventListener("click", () => {
-        window.FilterState.setTagState(group, value, "none");
-        syncFilterControls();
-        applyFiltersWithExclusions();
-      });
-      activeTagChipsInner.appendChild(chip);
-    });
-
-    if (chips.length > 0) {
-      activeTagChips.classList.remove("hidden");
-      if (typeof window.updateActiveTagChipsPosition === "function") {
-        window.updateActiveTagChipsPosition();
-      }
-    }
-
-  }
-
   function syncExcludedButtonLabel(button, info, active) {
     if (!info) return;
 
@@ -290,7 +256,7 @@
       }
     });
 
-    renderExcludeChips();
+    if (typeof window.renderActiveTagChips === "function") window.renderActiveTagChips();
   }
 
   function requestSync() {
@@ -323,19 +289,6 @@
       requestSync();
     };
     window.renderVideoList.isExcludeWrapped = true;
-
-    return true;
-  }
-
-  function patchRenderActiveTagChips() {
-    if (typeof window.renderActiveTagChips !== "function" || window.renderActiveTagChips.isExcludeWrapped) return false;
-
-    const originalRenderActiveTagChips = window.renderActiveTagChips;
-    window.renderActiveTagChips = function renderActiveTagChipsWithExclusion() {
-      originalRenderActiveTagChips();
-      renderExcludeChips();
-    };
-    window.renderActiveTagChips.isExcludeWrapped = true;
 
     return true;
   }
@@ -404,9 +357,8 @@
 
   function setup() {
     const patchedList = patchRenderVideoList();
-    const patchedChips = patchRenderActiveTagChips();
 
-    if (!patchedList || !patchedChips) {
+    if (!patchedList) {
       window.setTimeout(setup, 100);
       return;
     }

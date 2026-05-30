@@ -611,7 +611,7 @@ function clearDateTag() {
 
   activeTagChipsInner.innerHTML = '';
 
-  const activeTags = window.FilterState.getActiveChips({ states: ["include"] });
+  const activeTags = window.FilterState.getActiveChips();
 
   if (activeTags.length === 0) {
   activeTagChips.classList.add('hidden');
@@ -626,14 +626,25 @@ activeTags.forEach(tagData => {
     const chip = document.createElement('button');
     chip.type = 'button';
 
-    chip.className = 'tag-button tag-xs tag-active-chip';
+    chip.className = tagData.state === "exclude"
+      ? 'tag-exclusion-chip px-3 py-1 rounded-full text-sm whitespace-nowrap transition'
+      : 'tag-button tag-xs tag-active-chip';
 
-    chip.textContent = tagData.label;
+    chip.textContent = tagData.state === "exclude" ? `- ${tagData.label}` : tagData.label;
+    if (tagData.state === "exclude") {
+      chip.setAttribute("aria-label", `${tagData.label}を除外条件から外す`);
+    }
+    chip.dataset.filterChipState = tagData.state;
     if (tagData.source) chip.dataset.activeChipSource = tagData.source;
     
     chip.addEventListener('click', () => {
       // 解除処理
 
+      if (tagData.state === "exclude") {
+        window.FilterState.setTagState(tagData.group, tagData.value, "none");
+        applyFilters();
+        return;
+      }
     
         if (tagData.source === 'videoType') {
         window.FilterState.setTagState(tagData.group, tagData.value, "none");
@@ -672,7 +683,7 @@ activeTags.forEach(tagData => {
 
 if (activeTagChipsInner) {
   activeTagChipsInner.addEventListener('click', event => {
-    const chip = event.target.closest('[data-active-chip-source="date"]');
+    const chip = event.target.closest('[data-active-chip-source="date"][data-filter-chip-state="include"]');
     if (!chip) return;
 
     event.preventDefault();
