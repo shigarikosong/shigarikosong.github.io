@@ -490,20 +490,20 @@ document.getElementById('modalSortOrder').value = "desc";
 
 
 // ===== タグ・絞り込み状態の管理 =====
-    let allVideos = [];
-    let currentFilteredVideos = [];
-    let nowPlayingKey = null;
-    let selectedCategoryTag = "";
-    let selectedDateTag = "";
-    let selectedCollabTag = "";
-    let selectedRoleTag = "";
-    let selectedPlatformTag = "";
-    let selected3DTag = null;
-    let selectedShortsTag = null;
+    var allVideos = [];
+    var currentFilteredVideos = [];
+    var nowPlayingKey = null;
+    var selectedCategoryTag = "";
+    var selectedDateTag = "";
+    var selectedCollabTag = "";
+    var selectedRoleTag = "";
+    var selectedPlatformTag = "";
+    var selected3DTag = null;
+    var selectedShortsTag = null;
     let pendingListTagScrollVideoKey = null;
     let nowPlayingFloatingButton = null;
     let nowPlayingFloatingUpdateFrame = null;
-    const selectedVideoTypeTags = new Set();
+    var selectedVideoTypeTags = new Set();
 
 // ===== タグの表示・解除 =====
 function parseCommaTags(value) {
@@ -568,11 +568,8 @@ function normalizeVideos(data) {
 }
 
 function toggleVideoTypeTag(type) {
-  if (selectedVideoTypeTags.has(type)) {
-    selectedVideoTypeTags.delete(type);
-  } else {
-    selectedVideoTypeTags.add(type);
-  }
+  const nextState = window.FilterState.toggleTag("format", type);
+  if (nextState === "exclude") window.FilterState.setTagState("format", type, "none");
 }
 
 function getDateTagLabel(value) {
@@ -592,7 +589,7 @@ function sortCollabTagsForDisplay(values) {
 }
 
 function clearDateTag() {
-  selectedDateTag = "";
+  window.FilterState.setState({ date: "" });
 
   const modalDateFilter = document.getElementById('modalDateFilter');
   if (modalDateFilter) modalDateFilter.value = "";
@@ -617,20 +614,21 @@ function clearDateTag() {
   const activeTags = [];
 
 // アクティブ状態のタグを収集
-if (selectedCategoryTag) activeTags.push({ label: selectedCategoryTag, type: 'include' });
-if (selectedCollabTag) activeTags.push({ label: selectedCollabTag, type: 'include' });
-if (selectedRoleTag) activeTags.push({ label: selectedRoleTag, type: 'include' });
-if (selectedPlatformTag) activeTags.push({
-  label: getPlatformLabel(selectedPlatformTag),
-  value: selectedPlatformTag,
+const filterState = window.FilterState.getState();
+if (filterState.include.category) activeTags.push({ label: filterState.include.category, type: 'include' });
+if (filterState.include.collab) activeTags.push({ label: filterState.include.collab, type: 'include' });
+if (filterState.include.role) activeTags.push({ label: filterState.include.role, type: 'include' });
+if (filterState.include.platform) activeTags.push({
+  label: getPlatformLabel(filterState.include.platform),
+  value: filterState.include.platform,
   type: 'include',
   source: 'platform'
 });
-if (selectedDateTag) activeTags.push({ label: getDateTagLabel(selectedDateTag), type: 'include', source: 'date' });
-if (selected3DTag) activeTags.push({ label: '3D', type: selected3DTag });
-if (selectedShortsTag) activeTags.push({ label: 'Shorts', type: selectedShortsTag });
+if (filterState.include.date) activeTags.push({ label: getDateTagLabel(filterState.include.date), type: 'include', source: 'date' });
+if (filterState.include.flag.includes('3D')) activeTags.push({ label: '3D', type: 'include' });
+if (filterState.include.flag.includes('Shorts')) activeTags.push({ label: 'Shorts', type: 'include' });
 
-selectedVideoTypeTags.forEach(type => {
+filterState.include.format.forEach(type => {
   activeTags.push({ label: type, type: 'include', source: 'videoType' });
 });
 
@@ -657,7 +655,7 @@ activeTags.forEach(tagData => {
 
     
         if (tagData.source === 'videoType') {
-        selectedVideoTypeTags.delete(tagData.label);
+        window.FilterState.setTagState("format", tagData.label, "none");
         applyFilters();
         return;
       }
@@ -668,7 +666,7 @@ activeTags.forEach(tagData => {
       }
 
       if (tagData.source === 'platform') {
-        selectedPlatformTag = "";
+        window.FilterState.setState({ platform: "" });
         renderPlatformTags();
         applyFilters();
         return;
@@ -676,19 +674,19 @@ activeTags.forEach(tagData => {
         
       switch (tagData.label) {
         case '3D':
-  selected3DTag = null;
+  window.FilterState.setTagState("format", "3D", "none");
   break;
 case 'Shorts':
-  selectedShortsTag = null;
+  window.FilterState.setTagState("format", "Shorts", "none");
   break;
     
         default:
-          if (selectedCategoryTag === tagData.label) {
-            selectedCategoryTag = "";
+          if (window.FilterState.isTagIncluded("category", tagData.label)) {
+            window.FilterState.setState({ category: "" });
             renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
           }
-          if (selectedCollabTag === tagData.label) selectedCollabTag = "";
-          if (selectedRoleTag === tagData.label) selectedRoleTag = "";
+          if (window.FilterState.isTagIncluded("collab", tagData.label)) window.FilterState.setState({ collab: "" });
+          if (window.FilterState.isTagIncluded("role", tagData.label)) window.FilterState.setState({ role: "" });
           break;
       }
 
@@ -1281,20 +1279,10 @@ if (mobileRandomPlayButton) {
 
      // リセットボタン
   resetButton.addEventListener('click', () => {
-  searchInput.value = "";
-  sortOrder.value = "desc";
-  selectedCategoryTag = "";
+  window.FilterState.resetState();
     renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
-  selectedCollabTag = "";
-  selectedRoleTag = "";
-  selectedPlatformTag = "";
-  selectedDateTag = "";
   renderDateTags();
   renderPlatformTags();
-    
-selected3DTag = null;
-selectedShortsTag = null;
-selectedVideoTypeTags.clear();
     
   document.getElementById('modalCategoryFilter').value = "";
   document.getElementById('modalDateFilter').value = "";
@@ -1318,7 +1306,7 @@ function renderPlatformTags() {
 
     window.TAG_CONFIG.platformValues.forEach(p => {
       const btn = document.createElement('button');
-      const isActive = selectedPlatformTag === p;
+      const isActive = window.FilterState.isTagIncluded("platform", p);
 
       btn.className = getTagButtonClass("tag-platform", isActive, { size: "tag-sm" });
 
@@ -1327,7 +1315,7 @@ function renderPlatformTags() {
         btn.dataset.filterValue = p;
 
       btn.onclick = () => {
-        selectedPlatformTag = selectedPlatformTag === p ? "" : p;
+        window.FilterState.setTagState("platform", p, isActive ? "none" : "include");
         renderPlatformTags();
         applyFilters();
       };
@@ -1348,7 +1336,7 @@ function renderPlatformTags() {
 
     categories.forEach(category => {
       const btn = document.createElement('button');
-      const isActive = selectedCategoryTag === category;
+      const isActive = window.FilterState.isTagIncluded("category", category);
 
       btn.className = getTagButtonClass("tag-style", isActive, { size: "tag-sm" });
 
@@ -1357,7 +1345,7 @@ function renderPlatformTags() {
         btn.dataset.filterValue = category;
 
       btn.onclick = () => {
-        selectedCategoryTag = selectedCategoryTag === category ? "" : category;
+        window.FilterState.setTagState("category", category, isActive ? "none" : "include");
 
         const modalCategoryFilter = document.getElementById('modalCategoryFilter');
         if (modalCategoryFilter) modalCategoryFilter.value = "";
@@ -1388,7 +1376,7 @@ function renderDateTags() {
 
     options.forEach(opt => {
       const btn = document.createElement('button');
-      const isActive = selectedDateTag === opt.value;
+      const isActive = window.FilterState.isTagIncluded("date", opt.value);
 
       btn.className = getTagButtonClass("tag-time", isActive, { size: "tag-sm" });
 
@@ -1397,7 +1385,7 @@ function renderDateTags() {
         btn.dataset.filterValue = opt.value;
 
       btn.onclick = () => {
-        selectedDateTag = selectedDateTag === opt.value ? "" : opt.value;
+        window.FilterState.setTagState("date", opt.value, isActive ? "none" : "include");
 
         const modalDate = document.getElementById('modalDateFilter');
         if (modalDate) modalDate.value = "";
@@ -1426,26 +1414,27 @@ function renderDateTags() {
       function applyFilters() {
         const searchQuery = searchInput.value;
         const now = new Date();
+        const filterState = window.FilterState.getState();
         let filtered = allVideos.filter(video => {
   return matchesSearchQuery(video, searchQuery) &&
     
 // フィルタ条件
-    (!selectedCategoryTag || video["カテゴリ"] === selectedCategoryTag) &&
-    (!selectedCollabTag || video._collabTags.includes(selectedCollabTag)) &&
-    (!selectedRoleTag || video._roles.includes(selectedRoleTag)) &&
-    (!selectedPlatformTag || video._platform === selectedPlatformTag) &&
-    window.DATE_UTILS.getDateFilterMatch(selectedDateTag, video._time, now) &&
+    (!filterState.include.category || video["カテゴリ"] === filterState.include.category) &&
+    (!filterState.include.collab || video._collabTags.includes(filterState.include.collab)) &&
+    (!filterState.include.role || video._roles.includes(filterState.include.role)) &&
+    (!filterState.include.platform || video._platform === filterState.include.platform) &&
+    window.DATE_UTILS.getDateFilterMatch(filterState.include.date, video._time, now) &&
   (
-selected3DTag === null ||
-  (selected3DTag === "include" && video._is3D)
+!filterState.include.flag.includes("3D") ||
+  video._is3D
 ) &&
 (
-selectedShortsTag === null ||   
-(selectedShortsTag === "include" && video._isShorts)
+!filterState.include.flag.includes("Shorts") ||
+video._isShorts
 ) &&
 (
- selectedVideoTypeTags.size === 0 ||
-  [...selectedVideoTypeTags].every(tag => video._types.includes(tag))
+ filterState.include.format.length === 0 ||
+  filterState.include.format.every(tag => video._types.includes(tag))
  )
 });
 
@@ -1579,9 +1568,10 @@ if (
       category,
       "category",
       category,
-      selectedCategoryTag === category,
+      window.FilterState.isTagIncluded("category", category),
       () => {
-        selectedCategoryTag = selectedCategoryTag === category ? "" : category;
+        const nextState = window.FilterState.toggleTag("category", category);
+        if (nextState === "exclude") window.FilterState.setTagState("category", category, "none");
 
         const modalCategoryFilter = document.getElementById('modalCategoryFilter');
         if (modalCategoryFilter) modalCategoryFilter.value = "";
@@ -1596,9 +1586,10 @@ if (
       getPlatformLabel(normalizedPlatform),
       "platform",
       normalizedPlatform,
-      selectedPlatformTag === normalizedPlatform,
+      window.FilterState.isTagIncluded("platform", normalizedPlatform),
       () => {
-        selectedPlatformTag = selectedPlatformTag === normalizedPlatform ? "" : normalizedPlatform;
+        const nextState = window.FilterState.toggleTag("platform", normalizedPlatform);
+        if (nextState === "exclude") window.FilterState.setTagState("platform", normalizedPlatform, "none");
         applyFilters();
       }
     ));
@@ -1609,7 +1600,7 @@ if (
       type,
       "format",
       type,
-      selectedVideoTypeTags.has(type),
+      window.FilterState.isTagIncluded("format", type),
       () => {
         toggleVideoTypeTag(type);
         applyFilters();
@@ -1622,9 +1613,10 @@ if (
       "3D",
       "format",
       "3D",
-      selected3DTag === "include",
+      window.FilterState.isTagIncluded("format", "3D"),
       () => {
-        selected3DTag = toggleTagState(selected3DTag);
+        const nextState = window.FilterState.toggleTag("format", "3D");
+        if (nextState === "exclude") window.FilterState.setTagState("format", "3D", "none");
         applyFilters();
       }
     ));
@@ -1635,9 +1627,10 @@ if (
       "Shorts",
       "format",
       "Shorts",
-      selectedShortsTag === "include",
+      window.FilterState.isTagIncluded("format", "Shorts"),
       () => {
-        selectedShortsTag = toggleTagState(selectedShortsTag);
+        const nextState = window.FilterState.toggleTag("format", "Shorts");
+        if (nextState === "exclude") window.FilterState.setTagState("format", "Shorts", "none");
         applyFilters();
       }
     ));
@@ -1648,9 +1641,10 @@ if (
       role,
       "role",
       role,
-      selectedRoleTag === role,
+      window.FilterState.isTagIncluded("role", role),
       () => {
-        selectedRoleTag = (selectedRoleTag === role) ? "" : role;
+        const nextState = window.FilterState.toggleTag("role", role);
+        if (nextState === "exclude") window.FilterState.setTagState("role", role, "none");
 
         const modalRoleFilter = document.getElementById('modalRoleFilter');
         if (modalRoleFilter) modalRoleFilter.value = "";
@@ -1675,7 +1669,7 @@ if (collabLivers.length || collabUnits.length) {
     const tag = document.createElement('button');
     tag.type = 'button';
 
-    const isActive = selectedCollabTag === name;
+    const isActive = window.FilterState.isTagIncluded("collab", name);
     tag.className = getTagButtonClass("tag-collab-liver", isActive);
 
     tag.textContent = name;
@@ -1683,7 +1677,8 @@ if (collabLivers.length || collabUnits.length) {
     tag.dataset.filterValue = name;
 
     tag.addEventListener('click', () => {
-      selectedCollabTag = (selectedCollabTag === name) ? "" : name;
+      const nextState = window.FilterState.toggleTag("collab", name);
+      if (nextState === "exclude") window.FilterState.setTagState("collab", name, "none");
       applyFilters();
     });
 
@@ -1694,7 +1689,7 @@ if (collabLivers.length || collabUnits.length) {
     const tag = document.createElement('button');
     tag.type = 'button';
 
-    const isActive = selectedCollabTag === unit;
+    const isActive = window.FilterState.isTagIncluded("collab", unit);
     tag.className = getTagButtonClass("tag-collab-unit", isActive);
 
     tag.textContent = unit;
@@ -1702,7 +1697,8 @@ if (collabLivers.length || collabUnits.length) {
     tag.dataset.filterValue = unit;
 
     tag.addEventListener('click', () => {
-      selectedCollabTag = (selectedCollabTag === unit) ? "" : unit;
+      const nextState = window.FilterState.toggleTag("collab", unit);
+      if (nextState === "exclude") window.FilterState.setTagState("collab", unit, "none");
       applyFilters();
     });
 

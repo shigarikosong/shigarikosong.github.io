@@ -140,8 +140,8 @@
     formatTags.innerHTML = "";
     values.forEach((value, index) => {
       if (value === "3D") {
-        const button = createButton(value, selected3DTag === "include", "format", () => {
-          selected3DTag = toggleTagState(selected3DTag);
+        const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
+          window.FilterState.setTagState("format", value, window.FilterState.isTagIncluded("format", value) ? "none" : "include");
           applyFilters();
           renderFormatTags();
         });
@@ -151,8 +151,8 @@
 
         formatTags.appendChild(button);
       } else if (value === "Shorts") {
-        const button = createButton(value, selectedShortsTag === "include", "format", () => {
-          selectedShortsTag = toggleTagState(selectedShortsTag);
+        const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
+          window.FilterState.setTagState("format", value, window.FilterState.isTagIncluded("format", value) ? "none" : "include");
           applyFilters();
           renderFormatTags();
         });
@@ -162,8 +162,8 @@
 
         formatTags.appendChild(button);
       } else {
-        const button = createButton(value, selectedVideoTypeTags.has(value), "format", () => {
-          toggleVideoTypeTag(value);
+        const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
+          window.FilterState.setTagState("format", value, window.FilterState.isTagIncluded("format", value) ? "none" : "include");
           applyFilters();
           renderFormatTags();
         });
@@ -185,8 +185,8 @@
     roleTags.innerHTML = "";
 
     values.forEach((value, index) => {
-      const button = createButton(value, selectedRoleTag === value, "role", () => {
-        selectedRoleTag = selectedRoleTag === value ? "" : value;
+      const button = createButton(value, window.FilterState.isTagIncluded("role", value), "role", () => {
+        window.FilterState.setTagState("role", value, window.FilterState.isTagIncluded("role", value) ? "none" : "include");
         applyFilters();
         renderRoleTags();
       });
@@ -205,8 +205,8 @@
 
     container.innerHTML = "";
     sortCollabValues(values).forEach(value => {
-      const button = createButton(value, selectedCollabTag === value, kind, () => {
-        selectedCollabTag = selectedCollabTag === value ? "" : value;
+      const button = createButton(value, window.FilterState.isTagIncluded("collab", value), kind, () => {
+        window.FilterState.setTagState("collab", value, window.FilterState.isTagIncluded("collab", value) ? "none" : "include");
         applyFilters();
         renderCollabTags();
       });

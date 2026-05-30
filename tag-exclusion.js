@@ -139,62 +139,21 @@
   }
 
   function clearInclude(kind, label) {
-    const value = normalizeLabel(kind, label);
-
-    if (kind === "category" && selectedCategoryTag === value) {
-      selectedCategoryTag = "";
-    } else if (kind === "platform" && selectedPlatformTag === value) {
-      selectedPlatformTag = "";
-    } else if (kind === "date" && selectedDateTag === value) {
-      selectedDateTag = "";
-    } else if (kind === "role" && selectedRoleTag === value) {
-      selectedRoleTag = "";
-    } else if (kind === "collab" && selectedCollabTag === value) {
-      selectedCollabTag = "";
-    } else if (isFlagFormat(kind, value) || kind === "flag") {
-      if (value === "3D") selected3DTag = null;
-      if (value === "Shorts") selectedShortsTag = null;
-    } else if (kind === "format") {
-      selectedVideoTypeTags.delete(value);
-    }
+    window.FilterState.setTagState(kind, label, "none");
   }
 
   function setInclude(kind, label) {
     const value = normalizeLabel(kind, label);
     if (!value) return;
 
-    removeExclude(kind, value);
-
-    if (kind === "category") {
-      selectedCategoryTag = value;
-    } else if (kind === "platform") {
-      selectedPlatformTag = value;
-    } else if (kind === "date") {
-      selectedDateTag = value;
-    } else if (kind === "role") {
-      selectedRoleTag = value;
-    } else if (kind === "collab") {
-      selectedCollabTag = value;
-    } else if (isFlagFormat(kind, value) || kind === "flag") {
-      if (value === "3D") selected3DTag = "include";
-      if (value === "Shorts") selectedShortsTag = "include";
-    } else if (kind === "format") {
-      selectedVideoTypeTags.add(value);
-    }
+    window.FilterState.setTagState(kind, value, "include");
   }
 
   function getTagState(kind, label) {
     const value = normalizeLabel(kind, label);
 
     if (isExcluded(kind, value)) return "exclude";
-    if (kind === "category" && selectedCategoryTag === value) return "include";
-    if (kind === "platform" && selectedPlatformTag === value) return "include";
-    if (kind === "date" && selectedDateTag === value) return "include";
-    if (kind === "role" && selectedRoleTag === value) return "include";
-    if (kind === "collab" && selectedCollabTag === value) return "include";
-    if ((isFlagFormat(kind, value) || kind === "flag") && value === "3D" && selected3DTag === "include") return "include";
-    if ((isFlagFormat(kind, value) || kind === "flag") && value === "Shorts" && selectedShortsTag === "include") return "include";
-    if (kind === "format" && selectedVideoTypeTags.has(value)) return "include";
+    if (window.FilterState.isTagIncluded(kind, value)) return "include";
 
     return "none";
   }
@@ -246,6 +205,29 @@
   function clearExclusions() {
     Object.values(excludedTags).forEach(set => set.clear());
   }
+
+  function setExclusionsState(nextState = {}) {
+    Object.entries(excludedTags).forEach(([kind, set]) => {
+      set.clear();
+      (nextState[kind] || []).forEach(value => {
+        const normalizedValue = normalizeLabel(kind, value);
+        if (normalizedValue) set.add(normalizedValue);
+      });
+    });
+  }
+
+  window.FilterState.registerExclusionAdapter({
+    getState() {
+      return Object.fromEntries(
+        Object.entries(excludedTags).map(([kind, set]) => [kind, [...set]])
+      );
+    },
+    setState: setExclusionsState,
+    isExcluded,
+    add: addExclude,
+    remove: removeExclude,
+    clear: clearExclusions
+  });
 
   function refreshKnownTags() {
     if (Array.isArray(allVideos)) {
