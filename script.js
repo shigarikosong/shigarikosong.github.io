@@ -83,6 +83,13 @@ function getCurrentPlaybackList() {
     : getSafeVideoList(allVideos);
 }
 
+function getVisibleFilteredVideos(videos) {
+  const list = getSafeVideoList(videos);
+  return window.FilterState?.filterExcludedVideos
+    ? window.FilterState.filterExcludedVideos(list)
+    : list;
+}
+
 function getAdjacentPlaybackList() {
   return getSafeVideoList(currentFilteredVideos);
 }
@@ -1446,9 +1453,11 @@ if (order) {
   });
 }
 
-        currentFilteredVideos = filtered;
+const visibleVideos = getVisibleFilteredVideos(filtered);
+
+        currentFilteredVideos = visibleVideos;
 resetRandomPlayQueue();
-renderVideoList(filtered);
+renderVideoList(visibleVideos);
 renderActiveTagChips();
       }
 
@@ -1708,6 +1717,7 @@ videoList.appendChild(item);
 
   updateNowPlayingFilteredOutNotice({ scroll: !handledListTagScroll && !playingElement });
   requestNowPlayingFloatingButtonUpdate();
+  window.dispatchEvent(new CustomEvent("videoListRendered"));
 }
 
 window.addEventListener("collabTagOrderReady", () => {
