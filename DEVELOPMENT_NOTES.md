@@ -30,6 +30,17 @@
 
 をまとめて管理する。
 
+## 現在のフィルター構成
+
+- `filter-state.js` は `window.FilterState` として、include / exclude のタグ状態、アクティブチップ用データ、除外判定を持つ
+- `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
+- `renderVideoList()` は `script.js` が持つ。`tag-exclusion.js` から上書きしない
+- `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
+- ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
+- `tag-exclusion.js` は3状態タグクリックと除外スタイル同期だけを担当する
+- `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
+- タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
+
 ## 触るときの注意
 
 以下の関数・変数はタグや表示に深く関係しているため、変更時は要注意。
@@ -58,6 +69,8 @@
 - `filter-scroll-position.js`
 
 特に `tag-exclusion.js` は、タグ状態や見た目を後から補正しているため、今後も本体のフィルター処理へ少しずつ統合していきたい。
+
+`time-tag-active.js` は削除済み。復活させる前に、`script.js` の `renderDateTags()` と `renderActiveTagChips()`、`filter-state.js` のdate状態で対応できないか確認する。
 
 ## 今後Codex/ChatGPTに依頼するときのルール
 
