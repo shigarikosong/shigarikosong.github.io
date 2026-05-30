@@ -28,6 +28,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] Style / category タグで絞り込みできる。
 - [ ] Platform タグで絞り込みできる。
 - [ ] Time タグで絞り込みできる。
+- [ ] Time タグの選択状態とアクティブタグチップが一致する。
 - [ ] Format タグで絞り込みできる。
 - [ ] `3D` と `Shorts` がFormat UI上で従来通り動く。
 - [ ] Riko Part / role タグで絞り込みできる。
@@ -45,6 +46,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] アクティブタグチップを押すと、その `include` 条件だけ解除される。
 - [ ] 除外チップを押すと、その `exclude` 条件だけ解除される。
 - [ ] リセットで `include` と `exclude` の両方が解除される。
+- [ ] 除外条件の追加・解除後、PC/モバイル/リスト内タグの赤い除外表示が一致する。
 
 ## 5. Desktop Filter Panel
 
@@ -88,6 +90,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] ランダム再生できる。
 - [ ] 絞り込み後のランダム再生対象が現在の表示リストになっている。
 - [ ] 除外条件適用後のランダム再生対象が現在の表示リストになっている。
+- [ ] 除外条件適用後、Next / Previous とランダム再生が非表示カードを選ばない。
 - [ ] Next / Previous が現在の表示リストに沿って動く。
 - [ ] Random OFF のNextは順番通りに動く。
 - [ ] Random ON のNextはランダムキューに沿って動く。
@@ -110,7 +113,14 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] Time内部値は `recent` / `year` / `old` のままになっている。
 - [ ] スプレッドシート列名を変えていない、または参照コードも合わせて更新している。
 
-## 12. Pre-Merge Diff Check
+## 12. Script Loading And Helper Boundaries
+
+- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` が、依存するスクリプトより前にある。
+- [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
+- [ ] `tag-exclusion.js` が `renderVideoList()` を上書きしていない。
+- [ ] `time-tag-active.js` など削除済み補助スクリプトへの参照が残っていない。
+
+## 13. Pre-Merge Diff Check
 
 - [ ] `git status` で意図したファイルだけが変更されている。
 - [ ] `.DS_Store` が差分に含まれていない。
@@ -118,7 +128,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 挙動変更とリファクタリングが不要に混ざっていない。
 - [ ] 変更範囲に応じて `README.md`、`DEVELOPMENT_NOTES.md`、`docs/filter-tag-rules.md`、`docs/player-behavior-rules.md` の更新要否を確認した。
 
-## 13. Preview Deployment
+## 14. Preview Deployment
 
 - [ ] Cloudflare Pages のPreview Deploymentで確認した。
 - [ ] Preview URLで動画一覧が読み込まれる。
