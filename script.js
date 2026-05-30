@@ -574,11 +574,6 @@ function normalizeVideos(data) {
   return null;
 }
 
-function toggleVideoTypeTag(type) {
-  const nextState = window.FilterState.toggleTag("format", type);
-  if (nextState === "exclude") window.FilterState.setTagState("format", type, "none");
-}
-
 function getDateTagLabel(value) {
   return window.DATE_UTILS.getDateTagLabel(value);
 }
@@ -764,6 +759,18 @@ function createListTagElement(label, group, value, isActive, onClick) {
   tag.addEventListener('click', onClick);
 
   return tag;
+}
+
+function handleListTagClick(group, value, options = {}) {
+  const { allowExclude = false, beforeApply = null } = options;
+  const nextState = window.FilterState.toggleTag(group, value);
+
+  if (!allowExclude && nextState === "exclude") {
+    window.FilterState.setTagState(group, value, "none");
+  }
+
+  if (typeof beforeApply === "function") beforeApply();
+  applyFilters();
 }
 
 function captureListTagScrollSource(event) {
@@ -1563,13 +1570,12 @@ if (
       category,
       window.FilterState.isTagIncluded("category", category),
       () => {
-        const nextState = window.FilterState.toggleTag("category", category);
-        if (nextState === "exclude") window.FilterState.setTagState("category", category, "none");
-
-        const modalCategoryFilter = document.getElementById('modalCategoryFilter');
-        if (modalCategoryFilter) modalCategoryFilter.value = "";
-
-        applyFilters();
+        handleListTagClick("category", category, {
+          beforeApply: () => {
+            const modalCategoryFilter = document.getElementById('modalCategoryFilter');
+            if (modalCategoryFilter) modalCategoryFilter.value = "";
+          }
+        });
       }
     ));
   }
@@ -1581,9 +1587,7 @@ if (
       normalizedPlatform,
       window.FilterState.isTagIncluded("platform", normalizedPlatform),
       () => {
-        const nextState = window.FilterState.toggleTag("platform", normalizedPlatform);
-        if (nextState === "exclude") window.FilterState.setTagState("platform", normalizedPlatform, "none");
-        applyFilters();
+        handleListTagClick("platform", normalizedPlatform);
       }
     ));
   }
@@ -1595,8 +1599,7 @@ if (
       type,
       window.FilterState.isTagIncluded("format", type),
       () => {
-        toggleVideoTypeTag(type);
-        applyFilters();
+        handleListTagClick("format", type);
       }
     ));
   });
@@ -1608,9 +1611,7 @@ if (
       "3D",
       window.FilterState.isTagIncluded("format", "3D"),
       () => {
-        const nextState = window.FilterState.toggleTag("format", "3D");
-        if (nextState === "exclude") window.FilterState.setTagState("format", "3D", "none");
-        applyFilters();
+        handleListTagClick("format", "3D");
       }
     ));
   }
@@ -1622,9 +1623,7 @@ if (
       "Shorts",
       window.FilterState.isTagIncluded("format", "Shorts"),
       () => {
-        const nextState = window.FilterState.toggleTag("format", "Shorts");
-        if (nextState === "exclude") window.FilterState.setTagState("format", "Shorts", "none");
-        applyFilters();
+        handleListTagClick("format", "Shorts");
       }
     ));
   }
@@ -1636,13 +1635,12 @@ if (
       role,
       window.FilterState.isTagIncluded("role", role),
       () => {
-        const nextState = window.FilterState.toggleTag("role", role);
-        if (nextState === "exclude") window.FilterState.setTagState("role", role, "none");
-
-        const modalRoleFilter = document.getElementById('modalRoleFilter');
-        if (modalRoleFilter) modalRoleFilter.value = "";
-
-        applyFilters();
+        handleListTagClick("role", role, {
+          beforeApply: () => {
+            const modalRoleFilter = document.getElementById('modalRoleFilter');
+            if (modalRoleFilter) modalRoleFilter.value = "";
+          }
+        });
       }
     ));
   });
@@ -1670,9 +1668,7 @@ if (collabLivers.length || collabUnits.length) {
     tag.dataset.filterValue = name;
 
     tag.addEventListener('click', () => {
-      const nextState = window.FilterState.toggleTag("collab", name);
-      if (nextState === "exclude") window.FilterState.setTagState("collab", name, "none");
-      applyFilters();
+      handleListTagClick("collab", name);
     });
 
     tagRow.appendChild(tag);
@@ -1690,9 +1686,7 @@ if (collabLivers.length || collabUnits.length) {
     tag.dataset.filterValue = unit;
 
     tag.addEventListener('click', () => {
-      const nextState = window.FilterState.toggleTag("collab", unit);
-      if (nextState === "exclude") window.FilterState.setTagState("collab", unit, "none");
-      applyFilters();
+      handleListTagClick("collab", unit);
     });
 
     tagRow.appendChild(tag);
