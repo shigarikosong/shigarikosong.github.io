@@ -196,11 +196,7 @@
     return buttons;
   }
 
-  function hasClassPart(button, part) {
-    return [...button.classList].some(className => className.includes(part));
-  }
-
-  function inferCardButtonInfo(button, label) {
+  function inferKnownTagInfo(label) {
     const lowerLabel = label.toLowerCase();
 
     if (knownTags.flag.has(label)) return { kind: "flag", label };
@@ -211,19 +207,7 @@
     if (knownTags.format.has(label)) return { kind: "format", label };
     if (knownTags.collab.has(label)) return { kind: "collab", label };
 
-    if (hasClassPart(button, "pink-")) return { kind: "format", label };
-    if (
-      hasClassPart(button, "rose-") ||
-      hasClassPart(button, "orange-") ||
-      hasClassPart(button, "amber-") ||
-      hasClassPart(button, "lime-") ||
-      hasClassPart(button, "cyan-") ||
-      hasClassPart(button, "sky-")
-    ) {
-      return { kind: "role", label };
-    }
-
-    return { kind: "collab", label };
+    return null;
   }
 
   function findButtonInfo(button) {
@@ -243,9 +227,7 @@
       return { kind, label: normalizeLabel(kind, label) };
     }
 
-    if (!button.closest("#videoList")) return null;
-
-    return inferCardButtonInfo(button, label);
+    return inferKnownTagInfo(label);
   }
 
   function syncExcludedButtonLabel(button, info, active) {
