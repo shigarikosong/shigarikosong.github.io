@@ -65,7 +65,8 @@
     for (const key of keys) {
       if (Object.prototype.hasOwnProperty.call(row, key)) return row[key];
 
-      const matchedKey = Object.keys(row).find(rowKey => normalizeCollabTag(rowKey) === key);
+      const normalizedKey = normalizeCollabTag(key).toLowerCase();
+      const matchedKey = Object.keys(row).find(rowKey => normalizeCollabTag(rowKey).toLowerCase() === normalizedKey);
       if (matchedKey) return row[matchedKey];
     }
 
@@ -158,10 +159,23 @@
   function notifyCollabTagOrderReady() {
     exposeCollabTagOrder();
     sortAllCollabTagContainers();
+    dispatchCollabTagOrderReady();
+
+    requestAnimationFrame(() => {
+      dispatchCollabTagOrderReady();
+      sortAllCollabTagContainers();
+    });
+
+    window.setTimeout(() => {
+      dispatchCollabTagOrderReady();
+      sortAllCollabTagContainers();
+    }, 120);
+  }
+
+  function dispatchCollabTagOrderReady() {
     window.dispatchEvent(new CustomEvent("collabTagOrderReady", {
       detail: { ready: isCollabTagOrderReady }
     }));
-    requestAnimationFrame(sortAllCollabTagContainers);
   }
 
   function getCollabSortInfo(button) {
