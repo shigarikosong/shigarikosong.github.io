@@ -254,6 +254,51 @@
     return Object.values(excludedTags).some(set => set.size > 0);
   }
 
+  function getDisplayLabel(group, value) {
+    const normalizedGroup = normalizeGroup(group);
+    if (normalizedGroup === "platform") return window.TAG_CONFIG?.getPlatformLabel?.(value) || value;
+    if (normalizedGroup === "date") {
+      return window.DATE_UTILS?.getDateTagLabel?.(value) ||
+        Object.entries(window.TAG_CONFIG?.dateLabelToValue || {}).find(([, tagValue]) => tagValue === value)?.[0] ||
+        value;
+    }
+    return value;
+  }
+
+  function getActiveChips(options = {}) {
+    const { states = ["include", "exclude"] } = options;
+    const allowedStates = new Set(states);
+    const { include, exclude } = getState();
+    const chips = [];
+
+    function addChip(state, group, value, source = group) {
+      if (!allowedStates.has(state) || !value) return;
+      chips.push({
+        state,
+        group,
+        value,
+        label: getDisplayLabel(group, value),
+        source
+      });
+    }
+
+    addChip("include", "category", include.category);
+    addChip("include", "collab", include.collab);
+    addChip("include", "role", include.role);
+    addChip("include", "platform", include.platform, "platform");
+    addChip("include", "date", include.date, "date");
+    include.flag.forEach(value => addChip("include", "format", value, "flag"));
+    include.format.forEach(value => addChip("include", "format", value, "videoType"));
+
+    ["category", "platform", "date", "flag", "format", "role", "collab"].forEach(group => {
+      (exclude[group] || []).forEach(value => {
+        addChip("exclude", group, value, group);
+      });
+    });
+
+    return chips;
+  }
+
   function splitTags(value) {
     return String(value || "")
       .split(",")
@@ -325,6 +370,7 @@
     isTagExcluded,
     getExcludedValues,
     hasExclusions,
+    getActiveChips,
     passesExclusion,
     filterExcludedVideos,
     setTagState,

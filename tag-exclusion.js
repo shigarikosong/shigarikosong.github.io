@@ -233,20 +233,16 @@
       .querySelectorAll(`.${EXCLUDE_CHIP_CLASS}`)
       .forEach(chip => chip.remove());
 
-    const chips = [];
-    ["category", "platform", "date", "flag", "format", "role", "collab"].forEach(kind => {
-      window.FilterState.getExcludedValues(kind).forEach(label => chips.push({ kind, label }));
-    });
+    const chips = window.FilterState.getActiveChips({ states: ["exclude"] });
 
-    chips.forEach(({ kind, label }) => {
+    chips.forEach(({ group, value, label }) => {
       const chip = document.createElement("button");
-      const displayLabel = getDisplayLabel(kind, label);
       chip.type = "button";
       chip.className = `${EXCLUDE_CHIP_CLASS} px-3 py-1 rounded-full text-sm whitespace-nowrap transition`;
-      chip.textContent = `- ${displayLabel}`;
-      chip.setAttribute("aria-label", `${displayLabel}を除外条件から外す`);
+      chip.textContent = `- ${label}`;
+      chip.setAttribute("aria-label", `${label}を除外条件から外す`);
       chip.addEventListener("click", () => {
-        window.FilterState.setTagState(kind, label, "none");
+        window.FilterState.setTagState(group, value, "none");
         syncFilterControls();
         applyFiltersWithExclusions();
       });
