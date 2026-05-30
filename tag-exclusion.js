@@ -49,9 +49,7 @@
     "#videoList [data-filter-group]",
     "#activeTagChips button"
   ].join(",");
-  let lastRenderedVideos = [];
   let syncFrame = null;
-  let isPatchingRender = false;
 
   const style = document.createElement("style");
   style.textContent = `
@@ -220,10 +218,6 @@
     return inferCardButtonInfo(button, label);
   }
 
-  function filterExcludedVideos(videos) {
-    return window.FilterState.filterExcludedVideos(videos);
-  }
-
   function syncExcludedButtonLabel(button, info, active) {
     if (!info) return;
 
@@ -275,27 +269,9 @@
     requestSync();
   }
 
-  function patchRenderVideoList() {
-    if (typeof window.renderVideoList !== "function" || window.renderVideoList.isExcludeWrapped) return false;
-
-    const originalRenderVideoList = window.renderVideoList;
-    window.renderVideoList = function renderVideoListWithExclusion(videos) {
-      const filtered = filterExcludedVideos(videos);
-      lastRenderedVideos = filtered;
-      currentFilteredVideos = filtered;
-      isPatchingRender = true;
-      originalRenderVideoList(filtered);
-      isPatchingRender = false;
-      requestSync();
-    };
-    window.renderVideoList.isExcludeWrapped = true;
-
-    return true;
-  }
-
   function handleTagClick(event) {
     const button = event.target.closest("button");
-    if (!button || isPatchingRender) return;
+    if (!button) return;
     if (!button.matches(tagSyncButtonSelector) || button.closest("#activeTagChips")) return;
 
     refreshKnownTags();
@@ -307,46 +283,6 @@
     cycleTagState(info.kind, info.label);
   }
 
-  function getVisiblePlayingIndex() {
-    const cards = [...document.querySelectorAll("#videoList > div")];
-    return cards.findIndex(card => card.classList.contains("playing"));
-  }
-
-  function playVisibleVideo(video) {
-    if (!video || typeof window.loadVideo !== "function") return;
-    window.loadVideo(video, null);
-  }
-
-  function handleFilteredPlayback(event) {
-    if (!hasExclusions() || lastRenderedVideos.length === 0) return;
-
-    const button = event.target.closest("button");
-    if (!button) return;
-
-    const id = button.id;
-    if (id === "randomPlayButton" || id === "randomFromFilteredBtn") {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      const randomVideo = lastRenderedVideos[Math.floor(Math.random() * lastRenderedVideos.length)];
-      playVisibleVideo(randomVideo);
-      return;
-    }
-
-    if (id !== "prevButton" && id !== "nextButton") return;
-
-    const currentIndex = getVisiblePlayingIndex();
-    if (currentIndex < 0) return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    const nextIndex = id === "nextButton"
-      ? (currentIndex + 1) % lastRenderedVideos.length
-      : (currentIndex - 1 + lastRenderedVideos.length) % lastRenderedVideos.length;
-
-    playVisibleVideo(lastRenderedVideos[nextIndex]);
-  }
-
   function handleResetClick(event) {
     const button = event.target.closest("#resetFilters, #modalResetBtn, #resetModalFilters");
     if (!button) return;
@@ -356,16 +292,9 @@
   }
 
   function setup() {
-    const patchedList = patchRenderVideoList();
-
-    if (!patchedList) {
-      window.setTimeout(setup, 100);
-      return;
-    }
-
-    document.addEventListener("click", handleFilteredPlayback, true);
     document.addEventListener("click", handleTagClick, true);
     document.addEventListener("click", handleResetClick, true);
+    window.addEventListener("videoListRendered", requestSync);
     requestSync();
   }
 

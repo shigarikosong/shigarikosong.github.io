@@ -31,9 +31,7 @@ All loaded video data.
 
 ### `currentFilteredVideos`
 
-The current video list after search and tag filtering.
-
-Be careful that `tag-exclusion.js` can further update this to the exclusion-filtered visible list.
+The current video list after search, tag filtering, and exclusion filtering.
 
 ### `nowPlayingKey`
 
@@ -251,11 +249,11 @@ Now playing behavior can interact with scroll-position adjustment logic, so chec
 
 ## 13. Relationship With `tag-exclusion.js`
 
-`tag-exclusion.js` wraps `renderVideoList()` and renders the list after applying exclusion conditions.
+`script.js` applies exclusion conditions before rendering the list and updating `currentFilteredVideos`.
 
-`tag-exclusion.js` can update `currentFilteredVideos` to the exclusion-filtered visible list.
+`tag-exclusion.js` handles the 3-state tag click flow and exclusion style sync, but should not wrap `renderVideoList()`.
 
-When changing player behavior, remember that `currentFilteredVideos` may not be only the result from `script.js`.
+When changing player behavior, keep `currentFilteredVideos` aligned with the actual visible list.
 
 Random playback, previous/next, and automatic continuous playback should not drift away from the exclusion-filtered visible list.
 

@@ -58,7 +58,7 @@
 - `playing-scroll-position.js`
 - `filter-scroll-position.js`
 
-特に `tag-exclusion.js` と `time-tag-active.js` は、タグ状態や見た目を後から補正しているため、今後は本体のフィルター処理に統合したい。
+特に `tag-exclusion.js` と `time-tag-active.js` は、タグ状態や見た目を後から補正しているため、今後も本体のフィルター処理へ少しずつ統合していきたい。
 
 ## 今後Codex/ChatGPTに依頼するときのルール
 

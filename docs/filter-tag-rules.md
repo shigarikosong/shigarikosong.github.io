@@ -64,6 +64,7 @@ Clicking a chip should clear only that condition:
 - Data loading
 - Data normalization
 - Base `include` filter state
+- Applying exclusion conditions to the visible list before rendering
 - `applyFilters()`
 - `renderVideoList()`
 - `renderActiveTagChips()`
@@ -87,12 +88,9 @@ Clicking a chip should clear only that condition:
 
 ### `tag-exclusion.js`
 
-- `exclude` state management
 - `none` / `include` / `exclude` state detection
 - Tag click state transition control
-- Filtering the rendered list by exclusion conditions
-- Exclusion chip rendering
-- Wrapping `renderVideoList()` and `renderActiveTagChips()`
+- Exclusion button style and label sync
 - Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
 
 ### `time-tag-active.js`
@@ -171,7 +169,6 @@ The visible list should reflect the result after both `include` and `exclude` fi
 When changing tag behavior, check consistency between:
 
 - `currentFilteredVideos`
-- `lastRenderedVideos`
 - `randomPlayQueue`
 
 ## 9. Reset Rules
