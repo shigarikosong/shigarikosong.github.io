@@ -31,7 +31,9 @@
     modalCollabUnitTags: "collab",
     desktopCollabUnitTags: "collab"
   };
-  const tagSyncButtonSelector = [
+  const filterControlRootSelector = Object.keys(containerKindMap).map(id => `#${id}`).join(",");
+  const filterControlButtonSelector = Object.keys(containerKindMap).map(id => `#${id} button`).join(",");
+  const tagClickButtonSelector = [
     "#modalCategoryTags button",
     "#desktopCategoryTags button",
     "#modalPlatformTags button",
@@ -46,10 +48,14 @@
     "#desktopCollabLiverTags button",
     "#modalCollabUnitTags button",
     "#desktopCollabUnitTags button",
-    "#videoList [data-filter-group]",
-    "#activeTagChips button"
+    "#videoList [data-filter-group]"
+  ].join(",");
+  const tagSyncButtonSelector = [
+    filterControlButtonSelector,
+    "#videoList [data-filter-group]"
   ].join(",");
   let syncFrame = null;
+  let knownVideosSource = null;
 
   const style = document.createElement("style");
   style.textContent = `
@@ -141,8 +147,8 @@
     applyFiltersWithExclusions();
   }
 
-  function refreshKnownTags() {
-    if (Array.isArray(allVideos)) {
+  function refreshKnownTags(root = document) {
+    if (Array.isArray(allVideos) && knownVideosSource !== allVideos) {
       allVideos.forEach(video => {
         if (video?.["カテゴリ"]) knownTags.category.add(String(video["カテゴリ"]).trim());
         if (video?._platform) knownTags.platform.add(String(video._platform).trim());
@@ -153,9 +159,14 @@
           ...(video?._collabUnits || [])
         ].forEach(tag => knownTags.collab.add(tag));
       });
+      knownVideosSource = allVideos;
     }
 
-    Object.entries(containerKindMap).forEach(([id, kind]) => {
+    const entries = root === document
+      ? Object.entries(containerKindMap)
+      : Object.entries(containerKindMap).filter(([id]) => root?.id === id || root?.querySelector?.(`#${id}`));
+
+    entries.forEach(([id, kind]) => {
       const container = document.getElementById(id);
       if (!container) return;
 
@@ -164,6 +175,25 @@
         if (label) knownTags[kind].add(label);
       });
     });
+  }
+
+  function getSyncButtons(root = document) {
+    if (!root || root === document) {
+      return [...document.querySelectorAll(tagSyncButtonSelector)];
+    }
+
+    if (root.matches?.(filterControlRootSelector)) {
+      return [...root.querySelectorAll("button")];
+    }
+
+    if (root.matches?.("#videoList")) {
+      return [...root.querySelectorAll("[data-filter-group]")];
+    }
+
+    const buttons = [];
+    if (root.matches?.(tagSyncButtonSelector)) buttons.push(root);
+    root.querySelectorAll?.(tagSyncButtonSelector).forEach(button => buttons.push(button));
+    return buttons;
   }
 
   function hasClassPart(button, part) {
@@ -237,20 +267,21 @@
     }
   }
 
-  function syncExcludeButtonStyles() {
-    refreshKnownTags();
+  function syncExcludeButton(button) {
+    const info = findButtonInfo(button);
+    const active = info ? isExcluded(info.kind, info.label) : false;
+    button.classList.toggle(EXCLUDE_BUTTON_CLASS, active);
+    syncExcludedButtonLabel(button, info, active);
+    if (active) {
+      button.setAttribute("aria-label", `${getDisplayLabel(info.kind, info.label)}を除外中`);
+    }
+  }
 
-    document.querySelectorAll(tagSyncButtonSelector).forEach(button => {
-      const info = findButtonInfo(button);
-      const active = info ? isExcluded(info.kind, info.label) : false;
-      button.classList.toggle(EXCLUDE_BUTTON_CLASS, active);
-      syncExcludedButtonLabel(button, info, active);
-      if (active) {
-        button.setAttribute("aria-label", `${getDisplayLabel(info.kind, info.label)}を除外中`);
-      }
+  function syncExcludeButtonStyles(roots = [document]) {
+    roots.forEach(root => {
+      refreshKnownTags(root);
+      getSyncButtons(root).forEach(syncExcludeButton);
     });
-
-    if (typeof window.renderActiveTagChips === "function") window.renderActiveTagChips();
   }
 
   function requestSync() {
@@ -272,7 +303,7 @@
   function handleTagClick(event) {
     const button = event.target.closest("button");
     if (!button) return;
-    if (!button.matches(tagSyncButtonSelector) || button.closest("#activeTagChips")) return;
+    if (!button.matches(tagClickButtonSelector) || button.closest("#activeTagChips")) return;
 
     refreshKnownTags();
     const info = findButtonInfo(button);
