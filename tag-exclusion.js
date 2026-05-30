@@ -47,8 +47,7 @@
     "#modalCollabLiverTags button",
     "#desktopCollabLiverTags button",
     "#modalCollabUnitTags button",
-    "#desktopCollabUnitTags button",
-    "#videoList [data-filter-group]"
+    "#desktopCollabUnitTags button"
   ].join(",");
   const tagSyncButtonSelector = [
     filterControlButtonSelector,
