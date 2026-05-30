@@ -102,7 +102,6 @@ Clicking a chip should clear only that condition:
 
 - Loading status display
 - Fetch guards
-- Lazy loading `tag-exclusion.js` and `time-tag-active.js`
 - Back-to-top button
 
 ## 6. Data Attribute Rules
