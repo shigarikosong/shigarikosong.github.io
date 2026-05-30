@@ -14,40 +14,46 @@
     );
   }
 
-  function scrollToFilterTop() {
-    const targetTop = filterSection.getBoundingClientRect().top + window.scrollY - 8;
-
-    window.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: "smooth"
-    });
+  function scrollToFilterTop(options = {}) {
+    const { behavior = "smooth" } = options;
+    const countElement = document.getElementById("songCount");
+    window.ScrollUtils.scrollElementIntoComfortView(countElement || filterSection || videoList, { behavior });
   }
 
-  function scrollNoticeIntoView(notice) {
-    notice.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    setTimeout(() => {
-      if (document.body.contains(notice)) {
-        notice.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 120);
-  }
-
-  function scrollAfterFilterUpdate() {
+  function scrollAfterFilterUpdate(options = {}) {
+    const { behavior = "smooth" } = options;
     const playingItem = videoList.querySelector(".playing");
     const filteredOutNotice = document.getElementById("nowPlayingFilteredOutNotice");
 
     if (isPlayerOpen() && playingItem) {
-      playingItem.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.ScrollUtils.scrollElementIntoComfortView(playingItem, { behavior });
       return;
     }
 
     if (filteredOutNotice) {
-      scrollNoticeIntoView(filteredOutNotice);
+      window.ScrollUtils.scrollElementIntoComfortView(filteredOutNotice, { behavior });
       return;
     }
 
-    scrollToFilterTop();
+    scrollToFilterTop({ behavior });
+  }
+
+  function requestScrollAfterFilterUpdate(options = {}) {
+    const { behavior = "smooth", waitForSettledLayout = false } = options;
+
+    requestAnimationFrame(() => {
+      if (!waitForSettledLayout) {
+        scrollAfterFilterUpdate({ behavior });
+        return;
+      }
+
+      requestAnimationFrame(() => scrollAfterFilterUpdate({ behavior }));
+    });
+
+    if (!waitForSettledLayout) return;
+
+    window.setTimeout(() => scrollAfterFilterUpdate({ behavior }), 120);
+    window.setTimeout(() => scrollAfterFilterUpdate({ behavior }), 320);
   }
 
   document.addEventListener("click", event => {
@@ -83,8 +89,12 @@
     if (!shouldScrollAfterListUpdate) return;
 
     shouldScrollAfterListUpdate = false;
-    requestAnimationFrame(scrollAfterFilterUpdate);
+    requestScrollAfterFilterUpdate();
   });
 
   observer.observe(videoList, { childList: true });
+
+  window.FilterScrollPosition = Object.freeze({
+    requestScrollAfterFilterUpdate
+  });
 })();

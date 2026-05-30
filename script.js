@@ -1723,7 +1723,7 @@ videoList.appendChild(item);
 
   // スクロール実行
   if (!handledListTagScroll && playingElement) {
-    playingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.ScrollUtils.scrollElementIntoComfortView(playingElement);
   }
 
   updateNowPlayingFilteredOutNotice({ scroll: !handledListTagScroll && !playingElement });
@@ -1852,7 +1852,7 @@ function updateNowPlayingFilteredOutNotice(options = {}) {
   countElement.insertAdjacentElement('afterend', notice);
 
   if (scroll) {
-    notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.ScrollUtils.scrollElementIntoComfortView(notice);
   }
 }
 
@@ -1867,7 +1867,7 @@ function updateNowPlayingHighlight() {
     .find(item => item.dataset.videoKey === nowPlayingKey);
   if (playingElement) {
     playingElement.classList.add('playing');
-    playingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.ScrollUtils.scrollElementIntoComfortView(playingElement);
   }
 }
 
