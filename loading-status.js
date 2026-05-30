@@ -300,21 +300,6 @@
     updateButtonState();
   }
 
-  function loadScriptOnce(src, marker) {
-    if (document.querySelector(`script[data-loader-marker="${marker}"]`)) return;
-
-    const script = document.createElement('script');
-    script.src = src;
-    script.defer = true;
-    script.dataset.loaderMarker = marker;
-    document.body.appendChild(script);
-  }
-
-  function loadTagExclusionFilter() {
-    loadScriptOnce('./tag-exclusion.js?v=6', 'tag-exclusion-filter');
-    loadScriptOnce('./time-tag-active.js?v=4', 'time-tag-active');
-  }
-
   function installArrayGuards(retries = 20) {
     let installed = false;
 
@@ -362,12 +347,6 @@
   const originalFetch = window.fetch.bind(window);
   setStatus('動画リストを読み込んでいます...', false, true);
   setupBackToTopButton();
-
-  if (document.readyState === 'complete') {
-    loadTagExclusionFilter();
-  } else {
-    window.addEventListener('load', loadTagExclusionFilter, { once: true });
-  }
 
   window.fetch = (input, init) => {
     const shouldWatch = isVideoListRequest(input);
