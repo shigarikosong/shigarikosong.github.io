@@ -23,6 +23,7 @@
   let sortButtonGroup = null;
   let lockedScrollY = 0;
   let isWatchingSongCount = false;
+  let shouldCorrectScrollAfterUnlock = false;
 
   function sortByPreferredOrder(values, preferredOrder) {
     return [...values].sort((a, b) => {
@@ -70,6 +71,10 @@
   function applyFiltersAndUpdateCount() {
     applyFilters();
     updateModalResultCount();
+
+    if (document.body.dataset.filterScrollLocked === "true") {
+      shouldCorrectScrollAfterUnlock = true;
+    }
   }
 
   function watchSongCount() {
@@ -415,6 +420,14 @@
     document.body.style.width = "";
     document.body.style.overflow = "";
     window.scrollTo(0, lockedScrollY);
+
+    if (shouldCorrectScrollAfterUnlock) {
+      shouldCorrectScrollAfterUnlock = false;
+      window.FilterScrollPosition?.requestScrollAfterFilterUpdate({
+        behavior: "smooth",
+        waitForSettledLayout: true
+      });
+    }
   }
 
   document.getElementById("openFilterModal")?.addEventListener("click", () => {
