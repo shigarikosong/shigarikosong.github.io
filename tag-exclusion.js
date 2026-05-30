@@ -5,15 +5,7 @@
   const dateValueToLabel = Object.fromEntries(
     Object.entries(dateLabelToValue).map(([label, value]) => [value, label])
   );
-  const excludedTags = {
-    category: new Set(),
-    platform: new Set(),
-    date: new Set(),
-    format: new Set(),
-    role: new Set(),
-    collab: new Set(),
-    flag: new Set()
-  };
+  const filterGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
   const knownTags = {
     category: new Set(categoryOrder),
     platform: new Set(platformValues),
@@ -127,19 +119,11 @@
   }
 
   function hasExclusions() {
-    return Object.values(excludedTags).some(set => set.size > 0);
+    return window.FilterState.hasExclusions();
   }
 
   function isExcluded(kind, label) {
-    return excludedTags[kind]?.has(normalizeLabel(kind, label));
-  }
-
-  function isFlagFormat(kind, label) {
-    return kind === "format" && (label === "3D" || label === "Shorts");
-  }
-
-  function clearInclude(kind, label) {
-    window.FilterState.setTagState(kind, label, "none");
+    return window.FilterState.isTagExcluded(kind, label);
   }
 
   function setInclude(kind, label) {
@@ -167,10 +151,6 @@
     window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
   }
 
-  function clearExclude(kind, label) {
-    removeExclude(kind, label);
-  }
-
   function cycleTagState(kind, label) {
     const value = normalizeLabel(kind, label);
     const state = getTagState(kind, value);
@@ -178,56 +158,14 @@
     if (state === "none") {
       setInclude(kind, value);
     } else if (state === "include") {
-      clearInclude(kind, value);
-      addExclude(kind, value);
+      window.FilterState.setTagState(kind, value, "exclude");
     } else {
-      clearInclude(kind, value);
-      clearExclude(kind, value);
+      window.FilterState.setTagState(kind, value, "none");
     }
 
     syncFilterControls();
     applyFiltersWithExclusions();
   }
-
-  function addExclude(kind, label) {
-    const value = normalizeLabel(kind, label);
-    if (!value || !excludedTags[kind]) return;
-    clearInclude(kind, value);
-    excludedTags[kind].add(value);
-  }
-
-  function removeExclude(kind, label) {
-    const value = normalizeLabel(kind, label);
-    if (!value || !excludedTags[kind]) return;
-    excludedTags[kind].delete(value);
-  }
-
-  function clearExclusions() {
-    Object.values(excludedTags).forEach(set => set.clear());
-  }
-
-  function setExclusionsState(nextState = {}) {
-    Object.entries(excludedTags).forEach(([kind, set]) => {
-      set.clear();
-      (nextState[kind] || []).forEach(value => {
-        const normalizedValue = normalizeLabel(kind, value);
-        if (normalizedValue) set.add(normalizedValue);
-      });
-    });
-  }
-
-  window.FilterState.registerExclusionAdapter({
-    getState() {
-      return Object.fromEntries(
-        Object.entries(excludedTags).map(([kind, set]) => [kind, [...set]])
-      );
-    },
-    setState: setExclusionsState,
-    isExcluded,
-    add: addExclude,
-    remove: removeExclude,
-    clear: clearExclusions
-  });
 
   function refreshKnownTags() {
     if (Array.isArray(allVideos)) {
@@ -291,7 +229,7 @@
 
     const dataKind = normalizeFilterGroup(button.dataset.filterGroup);
     const dataValue = button.dataset.filterValue;
-    if (dataKind && dataValue && excludedTags[dataKind]) {
+    if (dataKind && dataValue && filterGroups.includes(dataKind)) {
       return { kind: dataKind, label: normalizeLabel(dataKind, dataValue) };
     }
 
@@ -307,15 +245,16 @@
   }
 
   function isExcludedDate(video) {
-    if (excludedTags.date.size === 0) return false;
+    const excludedDates = window.FilterState.getExcludedValues("date");
+    if (excludedDates.length === 0) return false;
 
     const diffMonths = getDiffMonths(video);
     if (diffMonths === null) return false;
 
     return (
-      (excludedTags.date.has("recent") && diffMonths <= 3) ||
-      (excludedTags.date.has("year") && diffMonths <= 12) ||
-      (excludedTags.date.has("old") && diffMonths > 12)
+      (excludedDates.includes("recent") && diffMonths <= 3) ||
+      (excludedDates.includes("year") && diffMonths <= 12) ||
+      (excludedDates.includes("old") && diffMonths > 12)
     );
   }
 
@@ -331,14 +270,14 @@
       ...splitTags(video?.["コラボユニット"])
     ];
 
-    if (category && excludedTags.category.has(category)) return false;
-    if (platform && excludedTags.platform.has(platform)) return false;
+    if (category && window.FilterState.isTagExcluded("category", category)) return false;
+    if (platform && window.FilterState.isTagExcluded("platform", platform)) return false;
     if (isExcludedDate(video)) return false;
-    if (formats.some(tag => excludedTags.format.has(tag))) return false;
-    if (roles.some(tag => excludedTags.role.has(tag))) return false;
-    if (collabs.some(tag => excludedTags.collab.has(tag))) return false;
-    if (video?.["3D"] === "TRUE" && (excludedTags.flag.has("3D") || excludedTags.format.has("3D"))) return false;
-    if (video?.Shorts === "TRUE" && (excludedTags.flag.has("Shorts") || excludedTags.format.has("Shorts"))) return false;
+    if (formats.some(tag => window.FilterState.isTagExcluded("format", tag))) return false;
+    if (roles.some(tag => window.FilterState.isTagExcluded("role", tag))) return false;
+    if (collabs.some(tag => window.FilterState.isTagExcluded("collab", tag))) return false;
+    if (video?.["3D"] === "TRUE" && (window.FilterState.isTagExcluded("flag", "3D") || window.FilterState.isTagExcluded("format", "3D"))) return false;
+    if (video?.Shorts === "TRUE" && (window.FilterState.isTagExcluded("flag", "Shorts") || window.FilterState.isTagExcluded("format", "Shorts"))) return false;
 
     return true;
   }
@@ -358,16 +297,8 @@
       .forEach(chip => chip.remove());
 
     const chips = [];
-    [
-      ["category", excludedTags.category],
-      ["platform", excludedTags.platform],
-      ["date", excludedTags.date],
-      ["flag", excludedTags.flag],
-      ["format", excludedTags.format],
-      ["role", excludedTags.role],
-      ["collab", excludedTags.collab]
-    ].forEach(([kind, set]) => {
-      set.forEach(label => chips.push({ kind, label }));
+    ["category", "platform", "date", "flag", "format", "role", "collab"].forEach(kind => {
+      window.FilterState.getExcludedValues(kind).forEach(label => chips.push({ kind, label }));
     });
 
     chips.forEach(({ kind, label }) => {
@@ -378,7 +309,7 @@
       chip.textContent = `- ${displayLabel}`;
       chip.setAttribute("aria-label", `${displayLabel}を除外条件から外す`);
       chip.addEventListener("click", () => {
-        removeExclude(kind, label);
+        window.FilterState.setTagState(kind, label, "none");
         syncFilterControls();
         applyFiltersWithExclusions();
       });
@@ -534,7 +465,7 @@
     const button = event.target.closest("#resetFilters, #modalResetBtn, #resetModalFilters");
     if (!button) return;
 
-    clearExclusions();
+    window.FilterState.setState({ exclude: {} });
     requestSync();
   }
 

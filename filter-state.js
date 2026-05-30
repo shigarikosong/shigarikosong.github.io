@@ -2,7 +2,7 @@
   // Thin compatibility layer over the existing global filter variables.
   // Keep DOM rendering and filter matching in their current files while callers migrate here.
   const includeGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
-  let exclusionAdapter = null;
+  const excludedTags = Object.fromEntries(includeGroups.map(group => [group, new Set()]));
 
   function normalizeGroup(group) {
     return group === "time" ? "date" : group;
@@ -30,8 +30,9 @@
   }
 
   function getExcludeState() {
-    const empty = Object.fromEntries(includeGroups.map(group => [group, []]));
-    return exclusionAdapter?.getState?.() || empty;
+    return Object.fromEntries(
+      Object.entries(excludedTags).map(([group, set]) => [group, [...set]])
+    );
   }
 
   function setSearchAndSort(partialState) {
@@ -101,16 +102,16 @@
   function addExclude(group, value) {
     const normalizedGroup = normalizeGroup(group);
     const normalizedValue = normalizeValue(normalizedGroup, value);
-    if (!normalizedValue) return;
+    if (!normalizedValue || !excludedTags[normalizedGroup]) return;
     clearInclude(normalizedGroup, normalizedValue);
-    exclusionAdapter?.add?.(normalizedGroup, normalizedValue);
+    excludedTags[normalizedGroup].add(normalizedValue);
   }
 
   function removeExclude(group, value) {
     const normalizedGroup = normalizeGroup(group);
     const normalizedValue = normalizeValue(normalizedGroup, value);
-    if (!normalizedValue) return;
-    exclusionAdapter?.remove?.(normalizedGroup, normalizedValue);
+    if (!normalizedValue || !excludedTags[normalizedGroup]) return;
+    excludedTags[normalizedGroup].delete(normalizedValue);
   }
 
   function getState() {
@@ -154,9 +155,19 @@
       window.selectedShortsTag = flags.has("Shorts") ? "include" : null;
     }
 
-    if (partialState.exclude && exclusionAdapter?.setState) {
-      exclusionAdapter.setState(partialState.exclude);
+    if (partialState.exclude) {
+      setExcludeState(partialState.exclude);
     }
+  }
+
+  function setExcludeState(nextState = {}) {
+    Object.entries(excludedTags).forEach(([group, set]) => {
+      set.clear();
+      (nextState[group] || []).forEach(value => {
+        const normalizedValue = normalizeValue(group, value);
+        if (normalizedValue) set.add(normalizedValue);
+      });
+    });
   }
 
   function resetState(options = {}) {
@@ -174,7 +185,11 @@
         flag: []
       }
     });
-    exclusionAdapter?.clear?.();
+    clearExcludeState();
+  }
+
+  function clearExcludeState() {
+    Object.values(excludedTags).forEach(set => set.clear());
   }
 
   function isTagIncluded(group, value) {
@@ -195,7 +210,7 @@
   function isTagExcluded(group, value) {
     const normalizedGroup = normalizeGroup(group);
     const normalizedValue = normalizeValue(normalizedGroup, value);
-    return Boolean(exclusionAdapter?.isExcluded?.(normalizedGroup, normalizedValue));
+    return Boolean(excludedTags[normalizedGroup]?.has(normalizedValue));
   }
 
   function setTagState(group, value, state) {
@@ -230,8 +245,17 @@
     return "include";
   }
 
-  function registerExclusionAdapter(adapter) {
-    exclusionAdapter = adapter;
+  function getExcludedValues(group) {
+    const normalizedGroup = normalizeGroup(group);
+    return [...(excludedTags[normalizedGroup] || [])];
+  }
+
+  function hasExclusions() {
+    return Object.values(excludedTags).some(set => set.size > 0);
+  }
+
+  function registerExclusionAdapter() {
+    // Kept as a no-op for older extension scripts during the transition.
   }
 
   window.FilterState = Object.freeze({
@@ -241,6 +265,8 @@
     toggleTag,
     isTagIncluded,
     isTagExcluded,
+    getExcludedValues,
+    hasExclusions,
     setTagState,
     registerExclusionAdapter
   });
