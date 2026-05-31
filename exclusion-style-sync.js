@@ -34,24 +34,6 @@
   ].join(",");
   let syncFrame = null;
 
-  const style = document.createElement("style");
-  style.textContent = `
-    .${EXCLUDE_BUTTON_CLASS} {
-      border-color: #fda4af !important;
-      background: #fff1f2 !important;
-      color: #be123c !important;
-      box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.08) !important;
-    }
-
-    .${EXCLUDE_CHIP_CLASS} {
-      border: 1px solid #fda4af !important;
-      background: #fff1f2 !important;
-      color: #be123c !important;
-    }
-
-  `;
-  document.head.appendChild(style);
-
   function normalizeLabel(kind, label) {
     const value = String(label || "").trim();
     if (kind === "platform") return value.toLowerCase();

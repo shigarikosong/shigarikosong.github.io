@@ -150,6 +150,10 @@ body.player-visible #desktopFilterPanel {
 }
 
 .exclusion-style-active {
+  border-color: #fda4af !important;
+  background: #fff1f2 !important;
+  color: #be123c !important;
+  box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.08) !important;
   font-size: 0.75rem !important;
   line-height: 1rem !important;
 }
@@ -605,6 +609,9 @@ body.player-visible #desktopFilterPanel {
 }
 
 #activeTagChipsInner .exclusion-style-chip {
+  border: 1px solid #fda4af !important;
+  background: #fff1f2 !important;
+  color: #be123c !important;
   font-size: 0.75rem !important;
   line-height: 1rem !important;
 }
