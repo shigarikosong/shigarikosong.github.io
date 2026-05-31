@@ -1534,29 +1534,35 @@ renderActiveTagChips();
 
 
 // ===== 動画一覧の描画 =====
-function renderVideoList(videos) {
-  videoList.innerHTML = '';
-
-    // 件数表示を更新
+function updateResultCounts(totalCount, visibleCount) {
   const countElement = document.getElementById('songCount');
   const desktopResultCount = document.getElementById('desktopResultCount');
   const desktopResultTotal = document.getElementById('desktopResultTotal');
   const desktopResultVisible = document.getElementById('desktopResultVisible');
-  const totalCount = allVideos.length;
-  const visibleCount = videos.length;
 
-  countElement.innerHTML = `
-    <span class="text-xs">全</span>
-    <span class="text-base font-semibold text-gray-700">${totalCount}</span>
-    <span class="text-xs">件中</span>
-    <span class="text-xl font-bold text-blue-600">${visibleCount}</span>
-    <span class="text-xs">件表示</span>
-  `;
+  if (countElement) {
+    countElement.innerHTML = `
+      <span class="text-xs">全</span>
+      <span class="text-base font-semibold text-gray-700">${totalCount}</span>
+      <span class="text-xs">件中</span>
+      <span class="text-xl font-bold text-blue-600">${visibleCount}</span>
+      <span class="text-xs">件表示</span>
+    `;
+  }
+
   if (desktopResultCount && desktopResultTotal && desktopResultVisible) {
     desktopResultTotal.textContent = String(totalCount);
     desktopResultVisible.textContent = String(visibleCount);
     desktopResultCount.classList.remove('hidden');
   }
+}
+
+function renderVideoList(videos) {
+  videoList.innerHTML = '';
+
+    // 件数表示を更新
+  const countElement = document.getElementById('songCount');
+  updateResultCounts(allVideos.length, videos.length);
 
   const oldNotice = document.getElementById('autoPlayNotice');
 if (oldNotice) oldNotice.remove();
