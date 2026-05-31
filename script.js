@@ -629,7 +629,7 @@ activeTags.forEach(tagData => {
     chip.type = 'button';
 
     chip.className = tagData.state === "exclude"
-      ? 'tag-exclusion-chip px-3 py-1 rounded-full text-sm whitespace-nowrap transition'
+      ? 'exclusion-style-chip px-3 py-1 rounded-full text-sm whitespace-nowrap transition'
       : 'tag-button tag-xs tag-active-chip';
 
     chip.textContent = tagData.state === "exclude" ? `- ${tagData.label}` : tagData.label;
