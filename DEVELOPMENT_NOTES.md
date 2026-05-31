@@ -37,7 +37,9 @@
 - `renderVideoList()` は `script.js` が持つ。`tag-exclusion.js` から上書きしない
 - `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
 - ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
-- `tag-exclusion.js` は3状態タグクリックと除外スタイル同期だけを担当する
+- リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
+- PC/モバイルフィルター内タグの3状態クリックは、まだ `tag-exclusion.js` が補っている
+- `tag-exclusion.js` はリスト内タグのクリックを横取りしない。除外スタイル同期はリスト内タグにも行う
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
 

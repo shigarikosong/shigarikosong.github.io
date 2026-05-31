@@ -68,6 +68,7 @@ Clicking a chip should clear only that condition:
 - `applyFilters()`
 - `renderVideoList()`
 - `renderActiveTagChips()`
+- Three-state click handling for tags inside the video list
 - Player, random playback, repeat mode, and related playback behavior
 
 ### `desktop-filter-panel.js`
@@ -75,6 +76,7 @@ Clicking a chip should clear only that condition:
 - Desktop filter panel UI generation
 - Tag button rendering
 - Sort button rendering
+- Desktop filter tag clicks are still upgraded to the three-state cycle by `tag-exclusion.js`.
 
 ### `mobile-filter-modal.js`
 
@@ -85,11 +87,13 @@ Clicking a chip should clear only that condition:
 - Applying modal search/sort values to the main filter state
 - The mobile filter modal is immediate-apply; bottom actions are `リセット` and `閉じる`, where `閉じる` is not a cancel action.
 - Mobile modal search input is also immediate-apply and should update the modal result count while typing.
+- Mobile filter tag clicks are still upgraded to the three-state cycle by `tag-exclusion.js`.
 
 ### `tag-exclusion.js`
 
 - `none` / `include` / `exclude` state detection
-- Tag click state transition control
+- Three-state click support for desktop and mobile filter tags
+- Does not intercept clicks on tags inside the video list
 - Exclusion button style and label sync
 - Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
 
