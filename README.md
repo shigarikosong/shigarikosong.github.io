@@ -20,7 +20,7 @@
 - Style：ソロ、コラボ、あやかき
 - Platform：YouTube、TikTok
 - Time：最近、1年以内、1年以上前
-- Format：3D、Shorts、歌枠、ライブなど
+- Format：3D、Shorts、歌枠、ライブ、イラストなど
 - Riko Part：VOCAL、DANCE、CHORUS、MOVIEなど
 - Collab：コラボライバー、コラボユニット
 
