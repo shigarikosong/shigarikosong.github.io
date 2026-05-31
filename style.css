@@ -149,7 +149,7 @@ body.player-visible #desktopFilterPanel {
   padding: 0.25rem 0.75rem;
 }
 
-.tag-exclusion-active {
+.exclusion-style-active {
   font-size: 0.75rem !important;
   line-height: 1rem !important;
 }
@@ -604,7 +604,7 @@ body.player-visible #desktopFilterPanel {
   pointer-events: auto;
 }
 
-#activeTagChipsInner .tag-exclusion-chip {
+#activeTagChipsInner .exclusion-style-chip {
   font-size: 0.75rem !important;
   line-height: 1rem !important;
 }
