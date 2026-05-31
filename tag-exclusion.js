@@ -33,15 +33,6 @@
   };
   const filterControlRootSelector = Object.keys(containerKindMap).map(id => `#${id}`).join(",");
   const filterControlButtonSelector = Object.keys(containerKindMap).map(id => `#${id} button`).join(",");
-  const tagClickButtonSelector = [
-    "#modalCategoryTags button",
-    "#modalPlatformTags button",
-    "#modalDateTags button",
-    "#modalFormatTags button",
-    "#modalRoleTags button",
-    "#modalCollabLiverTags button",
-    "#modalCollabUnitTags button"
-  ].join(",");
   const tagSyncButtonSelector = [
     filterControlButtonSelector,
     "#videoList [data-filter-group]"
@@ -90,53 +81,8 @@
       .trim();
   }
 
-  function hasExclusions() {
-    return window.FilterState.hasExclusions();
-  }
-
   function isExcluded(kind, label) {
     return window.FilterState.isTagExcluded(kind, label);
-  }
-
-  function setInclude(kind, label) {
-    const value = normalizeLabel(kind, label);
-    if (!value) return;
-
-    window.FilterState.setTagState(kind, value, "include");
-  }
-
-  function getTagState(kind, label) {
-    const value = normalizeLabel(kind, label);
-
-    if (isExcluded(kind, value)) return "exclude";
-    if (window.FilterState.isTagIncluded(kind, value)) return "include";
-
-    return "none";
-  }
-
-  function syncFilterControls() {
-    if (typeof renderCategoryTags === "function" && Array.isArray(allVideos)) {
-      renderCategoryTags([...new Set(allVideos.map(video => video["カテゴリ"]).filter(Boolean))].sort());
-    }
-    if (typeof renderPlatformTags === "function") renderPlatformTags();
-    if (typeof renderDateTags === "function") renderDateTags();
-    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
-  }
-
-  function cycleTagState(kind, label) {
-    const value = normalizeLabel(kind, label);
-    const state = getTagState(kind, value);
-
-    if (state === "none") {
-      setInclude(kind, value);
-    } else if (state === "include") {
-      window.FilterState.setTagState(kind, value, "exclude");
-    } else {
-      window.FilterState.setTagState(kind, value, "none");
-    }
-
-    syncFilterControls();
-    applyFiltersWithExclusions();
   }
 
   function refreshKnownTags(root = document) {
@@ -267,27 +213,6 @@
     });
   }
 
-  function applyFiltersWithExclusions() {
-    if (typeof window.applyFilters === "function") {
-      window.applyFilters();
-    }
-    requestSync();
-  }
-
-  function handleTagClick(event) {
-    const button = event.target.closest("button");
-    if (!button) return;
-    if (!button.matches(tagClickButtonSelector) || button.closest("#activeTagChips")) return;
-
-    refreshKnownTags();
-    const info = findButtonInfo(button);
-    if (!info) return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    cycleTagState(info.kind, info.label);
-  }
-
   function handleResetClick(event) {
     const button = event.target.closest("#resetFilters, #modalResetBtn, #resetModalFilters");
     if (!button) return;
@@ -297,9 +222,9 @@
   }
 
   function setup() {
-    document.addEventListener("click", handleTagClick, true);
     document.addEventListener("click", handleResetClick, true);
     window.addEventListener("videoListRendered", requestSync);
+    window.addEventListener("tagFilterStateChanged", requestSync);
     requestSync();
   }
 

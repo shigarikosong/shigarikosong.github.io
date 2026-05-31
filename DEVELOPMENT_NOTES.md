@@ -39,8 +39,8 @@
 - ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
 - リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
-- モバイルフィルター内タグの3状態クリックは、まだ `tag-exclusion.js` が補っている
-- `tag-exclusion.js` はリスト内タグやPCフィルター内タグのクリックを横取りしない。除外スタイル同期は引き続き行う
+- モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
+- `tag-exclusion.js` はタグクリックを横取りしない。除外スタイル同期とリセット補助だけを行う
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
 

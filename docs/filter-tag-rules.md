@@ -65,7 +65,7 @@ Clicking a chip should clear only that condition:
 - Data normalization
 - Base `include` filter state
 - Applying exclusion conditions to the visible list before rendering
-- Three-state click handling for shared desktop Category / Platform / Time filter tags
+- Three-state click handling for shared Category / Platform / Time filter tags
 - `applyFilters()`
 - `renderVideoList()`
 - `renderActiveTagChips()`
@@ -83,19 +83,19 @@ Clicking a chip should clear only that condition:
 
 - Mobile filter modal UI generation
 - Tag button rendering
+- Three-state click handling for mobile Format / Riko Part / Collab filter tags
 - Result count display inside the modal
 - Reset/apply behavior inside the modal
 - Applying modal search/sort values to the main filter state
 - The mobile filter modal is immediate-apply; bottom actions are `リセット` and `閉じる`, where `閉じる` is not a cancel action.
 - Mobile modal search input is also immediate-apply and should update the modal result count while typing.
-- Mobile filter tag clicks are still upgraded to the three-state cycle by `tag-exclusion.js`.
 
 ### `tag-exclusion.js`
 
-- `none` / `include` / `exclude` state detection
-- Three-state click support for mobile filter tags
-- Does not intercept clicks on tags inside the video list or desktop filter panel
+- `exclude` state detection for style sync
+- Does not intercept tag clicks
 - Exclusion button style and label sync
+- Reset button exclusion cleanup
 - Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
 
 ### `loading-status.js`
