@@ -14,7 +14,6 @@
   const collabUnitTagsContainer = document.getElementById("modalCollabUnitTags");
   const resultTotal = document.getElementById("modalResultTotal");
   const resultVisible = document.getElementById("modalResultVisible");
-  const songCountElement = document.getElementById("songCount");
 
   if (!modal || !applyButton) return;
 
@@ -22,7 +21,6 @@
 
   let sortButtonGroup = null;
   let lockedScrollY = 0;
-  let isWatchingSongCount = false;
   let shouldCorrectScrollAfterUnlock = false;
 
   function sortByPreferredOrder(values, preferredOrder) {
@@ -56,14 +54,6 @@
   function updateModalResultCount() {
     if (!resultTotal || !resultVisible) return;
 
-    const match = songCountElement?.textContent.match(/(\d+)\D+(\d+)/);
-
-    if (match) {
-      resultTotal.textContent = match[1];
-      resultVisible.textContent = match[2];
-      return;
-    }
-
     resultTotal.textContent = String(allVideos.length || 0);
     resultVisible.textContent = String(currentFilteredVideos.length || 0);
   }
@@ -75,17 +65,6 @@
     if (document.body.dataset.filterScrollLocked === "true") {
       shouldCorrectScrollAfterUnlock = true;
     }
-  }
-
-  function watchSongCount() {
-    if (!songCountElement || isWatchingSongCount) return;
-
-    isWatchingSongCount = true;
-    new MutationObserver(updateModalResultCount).observe(songCountElement, {
-      childList: true,
-      characterData: true,
-      subtree: true
-    });
   }
 
   function configureSortButtons() {
@@ -426,7 +405,6 @@
     configureRoleButtons();
     configureResetButton();
     observeCategoryTags();
-    watchSongCount();
     syncModalControls();
   });
 
