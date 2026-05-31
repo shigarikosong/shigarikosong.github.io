@@ -395,9 +395,11 @@
 
   function requestResultTopScrollAfterUnlock() {
     const scrollToResults = () => {
-      window.ScrollUtils?.scrollToResultCountOrListTop({ behavior: "smooth" });
+      window.ScrollUtils?.scrollToResultCountOrListTop({ behavior: "auto" });
     };
 
+    scrollToResults();
+    requestAnimationFrame(scrollToResults);
     requestAnimationFrame(() => requestAnimationFrame(scrollToResults));
     window.setTimeout(scrollToResults, 120);
     window.setTimeout(scrollToResults, 320);
