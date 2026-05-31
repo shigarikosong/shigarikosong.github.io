@@ -52,6 +52,12 @@
     return button;
   }
 
+  function handleDesktopTagClick(group, value) {
+    window.FilterState.toggleTag(group, value);
+    applyFilters();
+    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+  }
+
   function appendWrap(container, index, breakAfterIndex) {
     if (index !== breakAfterIndex) return;
 
@@ -141,9 +147,7 @@
     values.forEach((value, index) => {
       if (value === "3D") {
         const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
-          window.FilterState.setTagState("format", value, window.FilterState.isTagIncluded("format", value) ? "none" : "include");
-          applyFilters();
-          renderFormatTags();
+          handleDesktopTagClick("format", value);
         });
 
         button.dataset.filterGroup = "format";
@@ -152,9 +156,7 @@
         formatTags.appendChild(button);
       } else if (value === "Shorts") {
         const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
-          window.FilterState.setTagState("format", value, window.FilterState.isTagIncluded("format", value) ? "none" : "include");
-          applyFilters();
-          renderFormatTags();
+          handleDesktopTagClick("format", value);
         });
 
         button.dataset.filterGroup = "format";
@@ -163,9 +165,7 @@
         formatTags.appendChild(button);
       } else {
         const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
-          window.FilterState.setTagState("format", value, window.FilterState.isTagIncluded("format", value) ? "none" : "include");
-          applyFilters();
-          renderFormatTags();
+          handleDesktopTagClick("format", value);
         });
 
         button.dataset.filterGroup = "format";
@@ -186,9 +186,7 @@
 
     values.forEach((value, index) => {
       const button = createButton(value, window.FilterState.isTagIncluded("role", value), "role", () => {
-        window.FilterState.setTagState("role", value, window.FilterState.isTagIncluded("role", value) ? "none" : "include");
-        applyFilters();
-        renderRoleTags();
+        handleDesktopTagClick("role", value);
       });
 
       button.dataset.filterGroup = "role";
@@ -206,9 +204,7 @@
     container.innerHTML = "";
     sortCollabValues(values).forEach(value => {
       const button = createButton(value, window.FilterState.isTagIncluded("collab", value), kind, () => {
-        window.FilterState.setTagState("collab", value, window.FilterState.isTagIncluded("collab", value) ? "none" : "include");
-        applyFilters();
-        renderCollabTags();
+        handleDesktopTagClick("collab", value);
       });
 
       button.dataset.filterGroup = "collab";

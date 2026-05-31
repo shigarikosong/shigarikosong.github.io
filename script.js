@@ -1304,6 +1304,17 @@ if (mobileRandomPlayButton) {
       }
 
 // ===== タグボタンの描画 =====
+function isDesktopFilterContainer(container) {
+  return container?.id?.startsWith("desktop");
+}
+
+function applyDesktopFilterTagClick(group, value, renderUpdatedTags) {
+  window.FilterState.toggleTag(group, value);
+  if (typeof renderUpdatedTags === "function") renderUpdatedTags();
+  applyFilters();
+  window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+}
+
 function renderPlatformTags() {
   const containers = [
     document.getElementById('modalPlatformTags'),
@@ -1324,6 +1335,11 @@ function renderPlatformTags() {
         btn.dataset.filterValue = p;
 
       btn.onclick = () => {
+        if (isDesktopFilterContainer(container)) {
+          applyDesktopFilterTagClick("platform", p, renderPlatformTags);
+          return;
+        }
+
         window.FilterState.setTagState("platform", p, isActive ? "none" : "include");
         renderPlatformTags();
         applyFilters();
@@ -1354,10 +1370,15 @@ function renderPlatformTags() {
         btn.dataset.filterValue = category;
 
       btn.onclick = () => {
-        window.FilterState.setTagState("category", category, isActive ? "none" : "include");
-
         const modalCategoryFilter = document.getElementById('modalCategoryFilter');
         if (modalCategoryFilter) modalCategoryFilter.value = "";
+
+        if (isDesktopFilterContainer(container)) {
+          applyDesktopFilterTagClick("category", category, () => renderCategoryTags(categories));
+          return;
+        }
+
+        window.FilterState.setTagState("category", category, isActive ? "none" : "include");
 
         renderCategoryTags(categories);
         applyFilters();
@@ -1394,10 +1415,15 @@ function renderDateTags() {
         btn.dataset.filterValue = opt.value;
 
       btn.onclick = () => {
-        window.FilterState.setTagState("date", opt.value, isActive ? "none" : "include");
-
         const modalDate = document.getElementById('modalDateFilter');
         if (modalDate) modalDate.value = "";
+
+        if (isDesktopFilterContainer(container)) {
+          applyDesktopFilterTagClick("date", opt.value, renderDateTags);
+          return;
+        }
+
+        window.FilterState.setTagState("date", opt.value, isActive ? "none" : "include");
 
         renderDateTags();
         applyFilters();
