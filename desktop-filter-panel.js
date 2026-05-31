@@ -238,22 +238,36 @@
     });
   }
 
+  function requestCloseTargetJumpAfterClose() {
+    const scrollToCloseTarget = () => {
+      window.ScrollUtils?.scrollToPlayingOrResultCountOrListTop({ behavior: "auto" });
+    };
+
+    scrollToCloseTarget();
+    requestAnimationFrame(scrollToCloseTarget);
+    requestAnimationFrame(() => requestAnimationFrame(scrollToCloseTarget));
+    window.setTimeout(scrollToCloseTarget, 120);
+    window.setTimeout(scrollToCloseTarget, 320);
+  }
+
   function openPanel() {
     panel.classList.remove("hidden");
     renderDesktopPanel();
     syncPanelState(true);
   }
 
-  function closePanel() {
+  function closePanel(options = {}) {
+    const { scrollToResults = false } = options;
     panel.classList.add("hidden");
     syncPanelState(false);
+    if (scrollToResults) requestCloseTargetJumpAfterClose();
   }
 
   function togglePanel() {
     if (panel.classList.contains("hidden")) {
       openPanel();
     } else {
-      closePanel();
+      closePanel({ scrollToResults: true });
     }
   }
 
