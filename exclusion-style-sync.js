@@ -3,31 +3,9 @@
   const EXCLUDE_BUTTON_CLASS = "exclusion-style-active";
   const EXCLUDE_CHIP_CLASS = "exclusion-style-chip";
   const filterGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
-  const filterControlIds = [
-    "modalCategoryTags",
-    "desktopCategoryTags",
-    "modalPlatformTags",
-    "desktopPlatformTags",
-    "modalDateTags",
-    "desktopDateTags",
-    "modalFormatTags",
-    "desktopFormatTags",
-    "modalRoleTags",
-    "desktopRoleTags",
-    "modalCollabLiverTags",
-    "desktopCollabLiverTags",
-    "modalCollabUnitTags",
-    "desktopCollabUnitTags"
-  ];
-  const filterControlRootSelector = filterControlIds.map(id => `#${id}`).join(",");
+  const syncRootSelector = "#filterModal, #desktopFilterPanel, #videoList";
   const filterDataButtonSelector = "button[data-filter-group][data-filter-value]";
-  const filterControlButtonSelector = filterControlIds
-    .map(id => `#${id} ${filterDataButtonSelector}`)
-    .join(",");
-  const tagSyncButtonSelector = [
-    filterControlButtonSelector,
-    `#videoList ${filterDataButtonSelector}`
-  ].join(",");
+  const tagSyncButtonSelector = `${syncRootSelector} ${filterDataButtonSelector}`;
   let syncFrame = null;
 
   function normalizeFilterGroup(group) {
@@ -49,11 +27,7 @@
       return [...document.querySelectorAll(tagSyncButtonSelector)];
     }
 
-    if (root.matches?.(filterControlRootSelector)) {
-      return [...root.querySelectorAll(filterDataButtonSelector)];
-    }
-
-    if (root.matches?.("#videoList")) {
+    if (root.matches?.(syncRootSelector)) {
       return [...root.querySelectorAll(filterDataButtonSelector)];
     }
 
