@@ -1553,7 +1553,6 @@ function updateResultCounts(totalCount, visibleCount) {
   if (desktopResultCount && desktopResultTotal && desktopResultVisible) {
     desktopResultTotal.textContent = String(totalCount);
     desktopResultVisible.textContent = String(visibleCount);
-    desktopResultCount.classList.remove('hidden');
   }
 }
 
