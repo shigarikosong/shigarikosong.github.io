@@ -34,13 +34,13 @@
 
 - `filter-state.js` は `window.FilterState` として、include / exclude のタグ状態、アクティブチップ用データ、除外判定を持つ
 - `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
-- `renderVideoList()` は `script.js` が持つ。`tag-exclusion.js` から上書きしない
+- `renderVideoList()` は `script.js` が持つ。補助スクリプトから上書きしない
 - `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
 - ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
 - リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
 - モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
-- `tag-exclusion.js` はタグクリックを横取りしない。除外スタイル同期とリセット補助だけを行う
+- `exclusion-style-sync.js` はタグクリックを横取りしない。除外スタイル同期とリセット補助だけを行う
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
 
@@ -67,11 +67,11 @@
 
 - `mobile-filter-modal.js`
 - `desktop-filter-panel.js`
-- `tag-exclusion.js`
+- `exclusion-style-sync.js`
 - `playing-scroll-position.js`
 - `filter-scroll-position.js`
 
-特に `tag-exclusion.js` は、タグ状態や見た目を後から補正しているため、今後も本体のフィルター処理へ少しずつ統合していきたい。
+特に `exclusion-style-sync.js` は、除外状態の見た目を後から同期しているため、今後も本体のフィルター処理へ少しずつ統合していきたい。
 
 `time-tag-active.js` は削除済み。復活させる前に、`script.js` の `renderDateTags()` と `renderActiveTagChips()`、`filter-state.js` のdate状態で対応できないか確認する。
 

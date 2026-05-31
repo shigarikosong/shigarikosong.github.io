@@ -247,11 +247,11 @@ When there is a now playing state, a `♪` floating button can appear only while
 
 Now playing behavior can interact with scroll-position adjustment logic, so check those scripts when changing it.
 
-## 13. Relationship With `tag-exclusion.js`
+## 13. Relationship With `exclusion-style-sync.js`
 
 `script.js` applies exclusion conditions before rendering the list and updating `currentFilteredVideos`.
 
-`tag-exclusion.js` handles the 3-state tag click flow and exclusion style sync, but should not wrap `renderVideoList()`.
+`exclusion-style-sync.js` only syncs exclusion styles and reset cleanup after tag owners update `FilterState`. It should not handle tag clicks or wrap `renderVideoList()`.
 
 When changing player behavior, keep `currentFilteredVideos` aligned with the actual visible list.
 
