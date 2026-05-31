@@ -95,7 +95,7 @@ Clicking a chip should clear only that condition:
 - `exclude` state detection for style sync
 - Does not intercept tag clicks
 - Exclusion button style and label sync
-- Reset button exclusion cleanup
+- Does not intercept reset clicks
 - Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
 - Exclusion style sync depends on `data-filter-group` and `data-filter-value`; new tag buttons should provide both.
 
@@ -177,7 +177,7 @@ Reset should clear both `include` and `exclude` conditions.
 
 Search text, sort order, and modal field values may also need to be reset depending on the reset button.
 
-When adding another reset button, make sure `exclusion-style-sync.js` also treats it as an exclusion reset trigger.
+When adding another reset button, make sure it calls `FilterState.resetState()` or otherwise clears both `include` and `exclude` conditions.
 
 ## 10. Checklist For Adding Tags
 

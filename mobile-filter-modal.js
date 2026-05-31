@@ -338,6 +338,7 @@
     renderMobileTagSections();
     updateSortButtons();
     applyFiltersAndUpdateCount();
+    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
   }
 
   function configureResetButton() {

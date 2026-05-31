@@ -251,7 +251,7 @@ Now playing behavior can interact with scroll-position adjustment logic, so chec
 
 `script.js` applies exclusion conditions before rendering the list and updating `currentFilteredVideos`.
 
-`exclusion-style-sync.js` only syncs exclusion styles and reset cleanup after tag owners update `FilterState`. It should not handle tag clicks or wrap `renderVideoList()`.
+`exclusion-style-sync.js` only syncs exclusion styles after tag owners update `FilterState`. It should not handle tag clicks, reset clicks, or wrap `renderVideoList()`.
 
 When changing player behavior, keep `currentFilteredVideos` aligned with the actual visible list.
 
