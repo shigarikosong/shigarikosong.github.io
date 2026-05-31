@@ -69,8 +69,15 @@
     return rect.bottom > topOffset && rect.top < viewportHeight - bottomReserved;
   }
 
+  function getVisibleResultCountElement() {
+    return [
+      document.getElementById('songCount'),
+      document.getElementById('desktopResultCount')
+    ].find(element => getVisibleElementHeight(element) > 0);
+  }
+
   function scrollToResultCountOrListTop(options = {}) {
-    const countElement = document.getElementById('songCount');
+    const countElement = getVisibleResultCountElement();
     const videoList = document.getElementById('videoList');
     scrollElementIntoComfortView(countElement || videoList, options);
   }
@@ -80,6 +87,7 @@
     getStickyTopOffset,
     getPlayerBottomOffset,
     getBottomReservedHeight,
+    getVisibleResultCountElement,
     scrollElementIntoComfortView,
     isElementComfortablyVisible,
     scrollToResultCountOrListTop
