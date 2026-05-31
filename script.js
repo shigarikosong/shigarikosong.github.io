@@ -1308,7 +1308,18 @@ function isDesktopFilterContainer(container) {
   return container?.id?.startsWith("desktop");
 }
 
+function isMobileFilterContainer(container) {
+  return container?.id?.startsWith("modal");
+}
+
 function applyDesktopFilterTagClick(group, value, renderUpdatedTags) {
+  window.FilterState.toggleTag(group, value);
+  if (typeof renderUpdatedTags === "function") renderUpdatedTags();
+  applyFilters();
+  window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+}
+
+function applyMobileFilterTagClick(group, value, renderUpdatedTags) {
   window.FilterState.toggleTag(group, value);
   if (typeof renderUpdatedTags === "function") renderUpdatedTags();
   applyFilters();
@@ -1337,6 +1348,11 @@ function renderPlatformTags() {
       btn.onclick = () => {
         if (isDesktopFilterContainer(container)) {
           applyDesktopFilterTagClick("platform", p, renderPlatformTags);
+          return;
+        }
+
+        if (isMobileFilterContainer(container)) {
+          applyMobileFilterTagClick("platform", p, renderPlatformTags);
           return;
         }
 
@@ -1375,6 +1391,11 @@ function renderPlatformTags() {
 
         if (isDesktopFilterContainer(container)) {
           applyDesktopFilterTagClick("category", category, () => renderCategoryTags(categories));
+          return;
+        }
+
+        if (isMobileFilterContainer(container)) {
+          applyMobileFilterTagClick("category", category, () => renderCategoryTags(categories));
           return;
         }
 
@@ -1420,6 +1441,11 @@ function renderDateTags() {
 
         if (isDesktopFilterContainer(container)) {
           applyDesktopFilterTagClick("date", opt.value, renderDateTags);
+          return;
+        }
+
+        if (isMobileFilterContainer(container)) {
+          applyMobileFilterTagClick("date", opt.value, renderDateTags);
           return;
         }
 

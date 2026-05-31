@@ -183,6 +183,14 @@
     return getTagButtonClass("tag-format", isActive, { size: "tag-sm" });
   }
 
+  function handleMobileTagClick(group, value, renderUpdatedTags, clearSelect) {
+    window.FilterState.toggleTag(group, value);
+    if (typeof clearSelect === "function") clearSelect();
+    if (typeof renderUpdatedTags === "function") renderUpdatedTags();
+    applyFiltersAndUpdateCount();
+    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+  }
+
   function renderFormatTags() {
     if (!formatTagsContainer) return;
 
@@ -199,11 +207,9 @@
 
       button.className = getFormatButtonClass(isActive);
       button.addEventListener("click", () => {
-        window.FilterState.setTagState("format", format, isActive ? "none" : "include");
-
-        if (typeSelect) typeSelect.value = "";
-        renderFormatTags();
-        applyFiltersAndUpdateCount();
+        handleMobileTagClick("format", format, renderFormatTags, () => {
+          if (typeSelect) typeSelect.value = "";
+        });
       });
 
       formatTagsContainer.appendChild(button);
@@ -258,11 +264,9 @@
       const isActive = window.FilterState.isTagIncluded("role", role);
       button.className = getTagButtonClass("tag-role-filter", isActive, { size: "tag-sm" });
       button.addEventListener("click", () => {
-        window.FilterState.setTagState("role", role, isActive ? "none" : "include");
-
-        if (roleSelect) roleSelect.value = "";
-        renderRoleTags();
-        applyFiltersAndUpdateCount();
+        handleMobileTagClick("role", role, renderRoleTags, () => {
+          if (roleSelect) roleSelect.value = "";
+        });
       });
 
       roleTagsContainer.appendChild(button);
@@ -290,9 +294,7 @@
       const isActive = window.FilterState.isTagIncluded("collab", value);
       button.className = getCollabButtonClass(isActive);
       button.addEventListener("click", () => {
-        window.FilterState.setTagState("collab", value, isActive ? "none" : "include");
-        renderCollabTags();
-        applyFiltersAndUpdateCount();
+        handleMobileTagClick("collab", value, renderCollabTags);
       });
 
       container.appendChild(button);
