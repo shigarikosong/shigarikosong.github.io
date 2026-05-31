@@ -1,4 +1,5 @@
 (() => {
+  // Keeps exclude-state styling in sync after the actual filter owners update FilterState.
   const EXCLUDE_BUTTON_CLASS = "tag-exclusion-active";
   const EXCLUDE_CHIP_CLASS = "tag-exclusion-chip";
   const { categoryOrder, formatOrder, roleOrder, dateLabelToValue, platformValues } = window.TAG_CONFIG;

@@ -90,7 +90,7 @@ Clicking a chip should clear only that condition:
 - The mobile filter modal is immediate-apply; bottom actions are `リセット` and `閉じる`, where `閉じる` is not a cancel action.
 - Mobile modal search input is also immediate-apply and should update the modal result count while typing.
 
-### `tag-exclusion.js`
+### `exclusion-style-sync.js`
 
 - `exclude` state detection for style sync
 - Does not intercept tag clicks
@@ -176,7 +176,7 @@ Reset should clear both `include` and `exclude` conditions.
 
 Search text, sort order, and modal field values may also need to be reset depending on the reset button.
 
-When adding another reset button, make sure `tag-exclusion.js` also treats it as an exclusion reset trigger.
+When adding another reset button, make sure `exclusion-style-sync.js` also treats it as an exclusion reset trigger.
 
 ## 10. Checklist For Adding Tags
 

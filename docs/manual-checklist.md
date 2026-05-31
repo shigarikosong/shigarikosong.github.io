@@ -117,7 +117,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 - [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
-- [ ] `tag-exclusion.js` が `renderVideoList()` を上書きしていない。
+- [ ] `exclusion-style-sync.js` が `renderVideoList()` を上書きしていない。
 - [ ] `time-tag-active.js` など削除済み補助スクリプトへの参照が残っていない。
 
 ## 13. Pre-Merge Diff Check
