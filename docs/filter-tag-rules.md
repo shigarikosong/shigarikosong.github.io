@@ -97,6 +97,7 @@ Clicking a chip should clear only that condition:
 - Exclusion button style and label sync
 - Reset button exclusion cleanup
 - Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
+- Exclusion style sync depends on `data-filter-group` and `data-filter-value`; new tag buttons should provide both.
 
 ### `loading-status.js`
 
@@ -127,7 +128,7 @@ Do not determine tag type or state from visual classes alone.
 
 - Do not depend on classes such as `text-white`.
 - Prefer `data-filter-group` and `data-filter-value`.
-- Only infer from `knownTags` or container IDs when data attributes are unavailable.
+- Add data attributes to new tag buttons instead of inferring from labels or container IDs.
 
 ## 7. Labels And Internal Values
 

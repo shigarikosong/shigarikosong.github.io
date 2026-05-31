@@ -2,44 +2,37 @@
   // Keeps exclude-state styling in sync after the actual filter owners update FilterState.
   const EXCLUDE_BUTTON_CLASS = "exclusion-style-active";
   const EXCLUDE_CHIP_CLASS = "exclusion-style-chip";
-  const { categoryOrder, formatOrder, roleOrder, dateLabelToValue, platformValues } = window.TAG_CONFIG;
+  const { dateLabelToValue } = window.TAG_CONFIG;
   const dateValueToLabel = Object.fromEntries(
     Object.entries(dateLabelToValue).map(([label, value]) => [value, label])
   );
   const filterGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
-  const knownTags = {
-    category: new Set(categoryOrder),
-    platform: new Set(platformValues),
-    date: new Set(Object.values(dateLabelToValue)),
-    format: new Set(),
-    role: new Set(roleOrder),
-    collab: new Set(),
-    flag: new Set(formatOrder.filter(tag => tag === "3D" || tag === "Shorts"))
-  };
-  const containerKindMap = {
-    modalCategoryTags: "category",
-    desktopCategoryTags: "category",
-    modalPlatformTags: "platform",
-    desktopPlatformTags: "platform",
-    modalDateTags: "date",
-    desktopDateTags: "date",
-    modalFormatTags: "format",
-    desktopFormatTags: "format",
-    modalRoleTags: "role",
-    desktopRoleTags: "role",
-    modalCollabLiverTags: "collab",
-    desktopCollabLiverTags: "collab",
-    modalCollabUnitTags: "collab",
-    desktopCollabUnitTags: "collab"
-  };
-  const filterControlRootSelector = Object.keys(containerKindMap).map(id => `#${id}`).join(",");
-  const filterControlButtonSelector = Object.keys(containerKindMap).map(id => `#${id} button`).join(",");
+  const filterControlIds = [
+    "modalCategoryTags",
+    "desktopCategoryTags",
+    "modalPlatformTags",
+    "desktopPlatformTags",
+    "modalDateTags",
+    "desktopDateTags",
+    "modalFormatTags",
+    "desktopFormatTags",
+    "modalRoleTags",
+    "desktopRoleTags",
+    "modalCollabLiverTags",
+    "desktopCollabLiverTags",
+    "modalCollabUnitTags",
+    "desktopCollabUnitTags"
+  ];
+  const filterControlRootSelector = filterControlIds.map(id => `#${id}`).join(",");
+  const filterDataButtonSelector = "button[data-filter-group][data-filter-value]";
+  const filterControlButtonSelector = filterControlIds
+    .map(id => `#${id} ${filterDataButtonSelector}`)
+    .join(",");
   const tagSyncButtonSelector = [
     filterControlButtonSelector,
-    "#videoList [data-filter-group]"
+    `#videoList ${filterDataButtonSelector}`
   ].join(",");
   let syncFrame = null;
-  let knownVideosSource = null;
 
   const style = document.createElement("style");
   style.textContent = `
@@ -86,67 +79,23 @@
     return window.FilterState.isTagExcluded(kind, label);
   }
 
-  function refreshKnownTags(root = document) {
-    if (Array.isArray(allVideos) && knownVideosSource !== allVideos) {
-      allVideos.forEach(video => {
-        if (video?.["カテゴリ"]) knownTags.category.add(String(video["カテゴリ"]).trim());
-        if (video?._platform) knownTags.platform.add(String(video._platform).trim());
-        (video?._types || []).forEach(tag => knownTags.format.add(tag));
-        (video?._roles || []).forEach(tag => knownTags.role.add(tag));
-        [
-          ...(video?._collabLivers || []),
-          ...(video?._collabUnits || [])
-        ].forEach(tag => knownTags.collab.add(tag));
-      });
-      knownVideosSource = allVideos;
-    }
-
-    const entries = root === document
-      ? Object.entries(containerKindMap)
-      : Object.entries(containerKindMap).filter(([id]) => root?.id === id || root?.querySelector?.(`#${id}`));
-
-    entries.forEach(([id, kind]) => {
-      const container = document.getElementById(id);
-      if (!container) return;
-
-      container.querySelectorAll("button").forEach(button => {
-        const label = normalizeLabel(kind, getRawButtonLabel(button));
-        if (label) knownTags[kind].add(label);
-      });
-    });
-  }
-
   function getSyncButtons(root = document) {
     if (!root || root === document) {
       return [...document.querySelectorAll(tagSyncButtonSelector)];
     }
 
     if (root.matches?.(filterControlRootSelector)) {
-      return [...root.querySelectorAll("button")];
+      return [...root.querySelectorAll(filterDataButtonSelector)];
     }
 
     if (root.matches?.("#videoList")) {
-      return [...root.querySelectorAll("[data-filter-group]")];
+      return [...root.querySelectorAll(filterDataButtonSelector)];
     }
 
     const buttons = [];
     if (root.matches?.(tagSyncButtonSelector)) buttons.push(root);
     root.querySelectorAll?.(tagSyncButtonSelector).forEach(button => buttons.push(button));
     return buttons;
-  }
-
-  function inferKnownTagInfo(label) {
-    const lowerLabel = label.toLowerCase();
-
-    if (knownTags.flag.has(label)) return { kind: "flag", label };
-    if (knownTags.category.has(label)) return { kind: "category", label };
-    if (knownTags.platform.has(lowerLabel)) return { kind: "platform", label: lowerLabel };
-    if (knownTags.date.has(dateLabelToValue[label] || label)) return { kind: "date", label: dateLabelToValue[label] || label };
-    if (knownTags.role.has(label)) return { kind: "role", label };
-    if (knownTags.format.has(label)) return { kind: "format", label };
-    if (knownTags.collab.has(label)) return { kind: "collab", label };
-
-    return null;
   }
 
   function findButtonInfo(button) {
@@ -160,13 +109,7 @@
       return { kind: dataKind, label: normalizeLabel(dataKind, dataValue) };
     }
 
-    const container = button.closest(Object.keys(containerKindMap).map(id => `#${id}`).join(","));
-    if (container) {
-      const kind = containerKindMap[container.id];
-      return { kind, label: normalizeLabel(kind, label) };
-    }
-
-    return inferKnownTagInfo(label);
+    return null;
   }
 
   function syncExcludedButtonLabel(button, info, active) {
@@ -200,7 +143,6 @@
 
   function syncExcludeButtonStyles(roots = [document]) {
     roots.forEach(root => {
-      refreshKnownTags(root);
       getSyncButtons(root).forEach(syncExcludeButton);
     });
   }

@@ -785,7 +785,7 @@ function syncFilterControlsAfterListTagClick() {
 }
 
 function captureListTagScrollSource(event) {
-  const button = event.target.closest('#videoList button[data-filter-group]');
+  const button = event.target.closest('#videoList button[data-filter-group][data-filter-value]');
   if (!button) return;
 
   const sourceCard = button.closest('[data-video-key]');
