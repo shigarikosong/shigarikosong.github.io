@@ -47,6 +47,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 除外チップを押すと、その `exclude` 条件だけ解除される。
 - [ ] リセットで `include` と `exclude` の両方が解除される。
 - [ ] 除外条件の追加・解除後、PC/モバイル/リスト内タグの赤い除外表示が一致する。
+- [ ] 除外表示は `exclusion-style-sync.js` が同期し、タグクリック自体は各UIの担当ファイルで処理されている。
 
 ## 5. Desktop Filter Panel
 
@@ -69,6 +70,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 ## 7. Video List Tag Clicks
 
 - [ ] リスト内カードのStyle / Platform / Format / Role / Collabタグを押すと絞り込みできる。
+- [ ] リスト内タグに `data-filter-group` と `data-filter-value` が付いている。
 - [ ] リスト内タグクリック後、元カードが残る場合はそのカード付近へ戻る。
 - [ ] 元カードが非表示になる場合は、noticeまたはリスト上部へ移動する。
 - [ ] リスト内タグの選択状態がPC/モバイルフィルターと矛盾しない。
@@ -118,6 +120,8 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
 - [ ] `exclusion-style-sync.js` が `renderVideoList()` を上書きしていない。
+- [ ] `exclusion-style-sync.js` がタグクリックを処理していない。
+- [ ] 旧 `tag-exclusion.js` への読み込み・参照が残っていない。
 - [ ] `time-tag-active.js` など削除済み補助スクリプトへの参照が残っていない。
 
 ## 13. Pre-Merge Diff Check
