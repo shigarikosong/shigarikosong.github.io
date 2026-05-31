@@ -16,7 +16,7 @@
 
   window.TAG_CONFIG = Object.freeze({
     categoryOrder: Object.freeze(["ソロ", "コラボ", "あやかき"]),
-    formatOrder: Object.freeze(["3D", "Shorts", "歌枠", "ライブ", "Full", "ハイライト", "アカペラ", "企画", "比較"]),
+    formatOrder: Object.freeze(["3D", "Shorts", "歌枠", "ライブ", "Full", "ハイライト", "アカペラ", "企画", "比較", "イラスト"]),
     roleOrder: Object.freeze(["VOCAL", "DANCE", "CHORUS", "MOVIE", "ILLUSTRATION", "PIANO", "EUPHONIUM", "KALIMBA"]),
     dateLabels,
     dateLabelToValue: Object.freeze(

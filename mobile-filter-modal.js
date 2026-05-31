@@ -393,7 +393,18 @@
     document.body.style.overflow = "hidden";
   }
 
-  function unlockPageScroll() {
+  function requestResultTopScrollAfterUnlock() {
+    const scrollToResults = () => {
+      window.ScrollUtils?.scrollToResultCountOrListTop({ behavior: "smooth" });
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(scrollToResults));
+    window.setTimeout(scrollToResults, 120);
+    window.setTimeout(scrollToResults, 320);
+  }
+
+  function unlockPageScroll(options = {}) {
+    const { correctAfterUnlock = true } = options;
     if (document.body.dataset.filterScrollLocked !== "true") return;
 
     document.body.dataset.filterScrollLocked = "";
@@ -405,8 +416,10 @@
     document.body.style.overflow = "";
     window.scrollTo(0, lockedScrollY);
 
-    if (shouldCorrectScrollAfterUnlock) {
-      shouldCorrectScrollAfterUnlock = false;
+    const shouldCorrect = shouldCorrectScrollAfterUnlock;
+    shouldCorrectScrollAfterUnlock = false;
+
+    if (correctAfterUnlock && shouldCorrect) {
       window.FilterScrollPosition?.requestScrollAfterFilterUpdate({
         behavior: "smooth",
         waitForSettledLayout: true
@@ -446,7 +459,8 @@
     renderMobileTagSections();
     applyFiltersAndUpdateCount();
     modal.classList.add("hidden");
-    unlockPageScroll();
+    unlockPageScroll({ correctAfterUnlock: false });
+    requestResultTopScrollAfterUnlock();
   });
 
   window.addEventListener("collabTagOrderReady", () => {
