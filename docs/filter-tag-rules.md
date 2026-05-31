@@ -213,7 +213,7 @@ Related code:
 
 - `desktop-filter-panel.js`
 - `mobile-filter-modal.js`
-- `scroll-utils.js`
+- `scroll-utils.js` (`requestFilterCloseTargetJump()`)
 - `filter-scroll-position.js`
 
 ## 12. Checklist For Adding Tags

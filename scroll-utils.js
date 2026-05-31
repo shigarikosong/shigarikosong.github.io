@@ -100,6 +100,36 @@
     scrollToResultCountOrListTop(options);
   }
 
+  function forceListTopIfNoPlaying(options = {}) {
+    if (document.querySelector('#videoList .playing')) return;
+
+    const videoList = document.getElementById('videoList');
+    if (!videoList) return;
+
+    const topOffset = options.topOffset ?? getStickyTopOffset();
+    const targetY = window.scrollY + videoList.getBoundingClientRect().top - topOffset;
+    const nextTop = Math.max(0, Math.round(targetY));
+    window.scrollTo(0, nextTop);
+    document.documentElement.scrollTop = nextTop;
+    document.body.scrollTop = nextTop;
+  }
+
+  function requestFilterCloseTargetJump(options = {}) {
+    const scrollToCloseTarget = () => {
+      scrollToPlayingOrResultCountOrListTop({ behavior: 'auto', ...options });
+    };
+    const scrollAndForceListTop = () => {
+      scrollToCloseTarget();
+      forceListTopIfNoPlaying(options);
+    };
+
+    scrollToCloseTarget();
+    requestAnimationFrame(scrollToCloseTarget);
+    requestAnimationFrame(() => requestAnimationFrame(scrollAndForceListTop));
+    window.setTimeout(scrollAndForceListTop, 120);
+    window.setTimeout(scrollAndForceListTop, 320);
+  }
+
   window.ScrollUtils = Object.freeze({
     getVisibleElementHeight,
     getStickyTopOffset,
@@ -109,6 +139,7 @@
     scrollElementIntoComfortView,
     isElementComfortablyVisible,
     scrollToResultCountOrListTop,
-    scrollToPlayingOrResultCountOrListTop
+    scrollToPlayingOrResultCountOrListTop,
+    requestFilterCloseTargetJump
   });
 })();

@@ -238,40 +238,6 @@
     });
   }
 
-  function requestCloseTargetJumpAfterClose() {
-    const scrollToCloseTarget = () => {
-      window.ScrollUtils?.scrollToPlayingOrResultCountOrListTop({ behavior: "auto" });
-    };
-    const jumpToListTopIfNoPlaying = () => {
-      if (document.querySelector("#videoList .playing")) return;
-
-      const videoList = document.getElementById("videoList");
-      if (!videoList) return;
-
-      const topOffset = window.ScrollUtils?.getStickyTopOffset?.() || 0;
-      const targetY = window.scrollY + videoList.getBoundingClientRect().top - topOffset;
-      const nextTop = Math.max(0, Math.round(targetY));
-      window.scrollTo(0, nextTop);
-      document.documentElement.scrollTop = nextTop;
-      document.body.scrollTop = nextTop;
-    };
-
-    scrollToCloseTarget();
-    requestAnimationFrame(scrollToCloseTarget);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      scrollToCloseTarget();
-      jumpToListTopIfNoPlaying();
-    }));
-    window.setTimeout(() => {
-      scrollToCloseTarget();
-      jumpToListTopIfNoPlaying();
-    }, 120);
-    window.setTimeout(() => {
-      scrollToCloseTarget();
-      jumpToListTopIfNoPlaying();
-    }, 320);
-  }
-
   function openPanel() {
     panel.classList.remove("hidden");
     renderDesktopPanel();
@@ -282,7 +248,7 @@
     const { scrollToResults = false } = options;
     panel.classList.add("hidden");
     syncPanelState(false);
-    if (scrollToResults) requestCloseTargetJumpAfterClose();
+    if (scrollToResults) window.ScrollUtils?.requestFilterCloseTargetJump();
   }
 
   function togglePanel() {
