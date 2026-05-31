@@ -105,7 +105,25 @@ Clicking a chip should clear only that condition:
 - Fetch guards
 - Back-to-top button
 
-## 6. Data Attribute Rules
+## 6. `FilterState` API
+
+Use `window.FilterState` as the shared entrance for reading and updating filter state.
+
+- `getState()`: returns current search, sort, `include`, and `exclude` state.
+- `setState(partialState)`: updates selected parts of the state.
+- `resetState(options)`: clears filter state. By default it also resets search and sort.
+- `toggleTag(group, value)`: moves one tag through `none -> include -> exclude -> none`.
+- `setTagState(group, value, state)`: sets one tag to `include`, `exclude`, or `none`.
+- `isTagIncluded(group, value)` / `isTagExcluded(group, value)`: checks one normalized tag state.
+- `getExcludedValues(group)` / `hasExclusions()`: reads exclusion state for matching.
+- `getActiveChips(options)`: returns include/exclude chip data for rendering.
+- `passesExclusion(video)` / `filterExcludedVideos(videos)`: applies exclusion matching to videos.
+- `getDisplayLabel(group, value)`: returns UI labels for internal values such as platform/date.
+- `normalizeValue(group, value)`: normalizes values such as platform/date before comparing state.
+
+Prefer these APIs over reading or updating legacy globals directly, unless the surrounding code has not migrated yet.
+
+## 7. Data Attribute Rules
 
 Tag definitions, display order, platform values, and date labels are centralized in `tag-config.js` as `window.TAG_CONFIG`.
 
@@ -130,7 +148,7 @@ Do not determine tag type or state from visual classes alone.
 - Prefer `data-filter-group` and `data-filter-value`.
 - Add data attributes to new tag buttons instead of inferring from labels or container IDs.
 
-## 7. Labels And Internal Values
+## 8. Labels And Internal Values
 
 Platform values are normalized to lowercase internally:
 
@@ -158,7 +176,7 @@ Collab values combine both columns into the `collab` group:
 
 Video list Collab tags should prefer the same collab tag definition order as the filter UI. Tags missing from the definition should stay after known tags while preserving their local order as much as possible.
 
-## 8. Random And Continuous Playback
+## 9. Random And Continuous Playback
 
 The visible list should reflect the result after both `include` and `exclude` filtering.
 
@@ -171,7 +189,7 @@ When changing tag behavior, check consistency between:
 - `currentFilteredVideos`
 - `randomPlayQueue`
 
-## 9. Reset Rules
+## 10. Reset Rules
 
 Reset should clear both `include` and `exclude` conditions.
 
@@ -179,7 +197,7 @@ Search text, sort order, and modal field values may also need to be reset depend
 
 When adding another reset button, make sure it calls `FilterState.resetState()` or otherwise clears both `include` and `exclude` conditions.
 
-## 10. Checklist For Adding Tags
+## 11. Checklist For Adding Tags
 
 Before merging a new or changed tag behavior, check:
 
@@ -197,7 +215,7 @@ Before merging a new or changed tag behavior, check:
 - It works when combined with search text.
 - Random playback still targets the correct visible list.
 
-## 11. Out Of Scope For This Document Branch
+## 12. Out Of Scope For This Document Branch
 
 This documentation branch should not change:
 
