@@ -197,7 +197,26 @@ Search text, sort order, and modal field values may also need to be reset depend
 
 When adding another reset button, make sure it calls `FilterState.resetState()` or otherwise clears both `include` and `exclude` conditions.
 
-## 11. Checklist For Adding Tags
+## 11. Filter Close Scroll Rules
+
+Desktop filter panel and mobile filter modal tag changes are immediate-apply.
+
+While the user is still choosing tags inside the desktop panel or mobile modal, the page should not scroll just because the list rerendered.
+
+When the user explicitly closes the filter UI:
+
+- If the now playing card is still in the visible list, jump to that card.
+- If there is no now playing card, or it is no longer in the visible list, jump near the visible result count or the top of the video list.
+- This close action should use an immediate jump, not smooth scrolling, because it happens after layout changes and scroll locking/unlocking.
+
+Related code:
+
+- `desktop-filter-panel.js`
+- `mobile-filter-modal.js`
+- `scroll-utils.js`
+- `filter-scroll-position.js`
+
+## 12. Checklist For Adding Tags
 
 Before merging a new or changed tag behavior, check:
 
@@ -215,7 +234,7 @@ Before merging a new or changed tag behavior, check:
 - It works when combined with search text.
 - Random playback still targets the correct visible list.
 
-## 12. Out Of Scope For This Document Branch
+## 13. Out Of Scope For This Document Branch
 
 This documentation branch should not change:
 
