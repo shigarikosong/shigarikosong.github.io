@@ -2,7 +2,6 @@
   // Keeps exclude-state styling in sync after the actual filter owners update FilterState.
   const EXCLUDE_BUTTON_CLASS = "exclusion-style-active";
   const EXCLUDE_CHIP_CLASS = "exclusion-style-chip";
-  const { dateLabelToValue } = window.TAG_CONFIG;
   const filterGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
   const filterControlIds = [
     "modalCategoryTags",
@@ -30,13 +29,6 @@
     `#videoList ${filterDataButtonSelector}`
   ].join(",");
   let syncFrame = null;
-
-  function normalizeLabel(kind, label) {
-    const value = String(label || "").trim();
-    if (kind === "platform") return value.toLowerCase();
-    if (kind === "date") return dateLabelToValue[value] || value;
-    return value;
-  }
 
   function normalizeFilterGroup(group) {
     return group === "time" ? "date" : group;
@@ -79,7 +71,7 @@
     const dataKind = normalizeFilterGroup(button.dataset.filterGroup);
     const dataValue = button.dataset.filterValue;
     if (dataKind && dataValue && filterGroups.includes(dataKind)) {
-      return { kind: dataKind, label: normalizeLabel(dataKind, dataValue) };
+      return { kind: dataKind, label: window.FilterState.normalizeValue(dataKind, dataValue) };
     }
 
     return null;
