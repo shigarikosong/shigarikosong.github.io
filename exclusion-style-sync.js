@@ -138,16 +138,7 @@
     });
   }
 
-  function handleResetClick(event) {
-    const button = event.target.closest("#resetFilters, #modalResetBtn, #resetModalFilters");
-    if (!button) return;
-
-    window.FilterState.setState({ exclude: {} });
-    requestSync();
-  }
-
   function setup() {
-    document.addEventListener("click", handleResetClick, true);
     window.addEventListener("videoListRendered", requestSync);
     window.addEventListener("tagFilterStateChanged", requestSync);
     requestSync();

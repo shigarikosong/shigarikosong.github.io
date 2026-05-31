@@ -1300,6 +1300,7 @@ if (mobileRandomPlayButton) {
   document.getElementById('modalSearchInput').value = "";
   document.getElementById('modalSortOrder').value = "desc";
   applyFilters();
+  window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
 });
       }
 

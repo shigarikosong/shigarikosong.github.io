@@ -40,7 +40,7 @@
 - リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
 - モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
-- `exclusion-style-sync.js` はタグクリックを横取りしない。除外スタイル同期とリセット補助だけを行う
+- `exclusion-style-sync.js` はタグクリックやリセットを横取りしない。除外スタイル同期だけを行う
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
 

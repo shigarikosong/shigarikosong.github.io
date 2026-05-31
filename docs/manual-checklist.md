@@ -121,6 +121,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
 - [ ] `exclusion-style-sync.js` が `renderVideoList()` を上書きしていない。
 - [ ] `exclusion-style-sync.js` がタグクリックを処理していない。
+- [ ] `exclusion-style-sync.js` がリセットクリックを処理していない。
 - [ ] 旧 `tag-exclusion.js` への読み込み・参照が残っていない。
 - [ ] `time-tag-active.js` など削除済み補助スクリプトへの参照が残っていない。
 
