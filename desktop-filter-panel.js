@@ -239,8 +239,16 @@
   }
 
   function requestResultTopJumpAfterClose() {
+    const videoList = document.getElementById("videoList");
     const scrollToResults = () => {
-      window.ScrollUtils?.scrollToResultCountOrListTop({ behavior: "auto" });
+      if (!videoList) return;
+
+      const topOffset = window.ScrollUtils?.getStickyTopOffset?.() || 0;
+      const targetY = window.scrollY + videoList.getBoundingClientRect().top - topOffset;
+      window.scrollTo({
+        top: Math.max(0, Math.round(targetY)),
+        behavior: "auto"
+      });
     };
 
     scrollToResults();

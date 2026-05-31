@@ -66,9 +66,14 @@
     }
 
     if (
-      event.target.closest("#videoList button") ||
       event.target.closest("#desktopFilterPanel button") ||
-      event.target.closest("#filterModal button") ||
+      event.target.closest("#filterModal button")
+    ) {
+      return;
+    }
+
+    if (
+      event.target.closest("#videoList button") ||
       event.target.closest("#activeTagChips button") ||
       event.target.closest("#resetFilters")
     ) {
