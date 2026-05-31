@@ -277,16 +277,11 @@
     observer.observe(categoryTags, { childList: true });
   }
 
-  const songCount = document.getElementById("songCount");
-  if (songCount) {
-    const observer = new MutationObserver(() => {
-      if (!panel.classList.contains("hidden")) renderDesktopPanel();
-    });
-    observer.observe(songCount, { childList: true, characterData: true, subtree: true });
-  }
-
   window.addEventListener("collabTagOrderReady", () => {
     renderCollabTags();
   });
   window.addEventListener("tagFilterStateChanged", renderDesktopPanel);
+  window.addEventListener("videoListRendered", () => {
+    if (!panel.classList.contains("hidden")) renderDesktopPanel();
+  });
 })();
