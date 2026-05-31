@@ -238,24 +238,16 @@
     });
   }
 
-  function requestResultTopJumpAfterClose() {
-    const videoList = document.getElementById("videoList");
-    const scrollToResults = () => {
-      if (!videoList) return;
-
-      const topOffset = window.ScrollUtils?.getStickyTopOffset?.() || 0;
-      const targetY = window.scrollY + videoList.getBoundingClientRect().top - topOffset;
-      window.scrollTo({
-        top: Math.max(0, Math.round(targetY)),
-        behavior: "auto"
-      });
+  function requestCloseTargetJumpAfterClose() {
+    const scrollToCloseTarget = () => {
+      window.ScrollUtils?.scrollToPlayingOrResultCountOrListTop({ behavior: "auto" });
     };
 
-    scrollToResults();
-    requestAnimationFrame(scrollToResults);
-    requestAnimationFrame(() => requestAnimationFrame(scrollToResults));
-    window.setTimeout(scrollToResults, 120);
-    window.setTimeout(scrollToResults, 320);
+    scrollToCloseTarget();
+    requestAnimationFrame(scrollToCloseTarget);
+    requestAnimationFrame(() => requestAnimationFrame(scrollToCloseTarget));
+    window.setTimeout(scrollToCloseTarget, 120);
+    window.setTimeout(scrollToCloseTarget, 320);
   }
 
   function openPanel() {
@@ -268,7 +260,7 @@
     const { scrollToResults = false } = options;
     panel.classList.add("hidden");
     syncPanelState(false);
-    if (scrollToResults) requestResultTopJumpAfterClose();
+    if (scrollToResults) requestCloseTargetJumpAfterClose();
   }
 
   function togglePanel() {

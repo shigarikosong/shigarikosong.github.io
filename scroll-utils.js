@@ -82,6 +82,16 @@
     scrollElementIntoComfortView(countElement || videoList, options);
   }
 
+  function scrollToPlayingOrResultCountOrListTop(options = {}) {
+    const playingItem = document.querySelector('#videoList .playing');
+    if (playingItem) {
+      scrollElementIntoComfortView(playingItem, options);
+      return;
+    }
+
+    scrollToResultCountOrListTop(options);
+  }
+
   window.ScrollUtils = Object.freeze({
     getVisibleElementHeight,
     getStickyTopOffset,
@@ -90,6 +100,7 @@
     getVisibleResultCountElement,
     scrollElementIntoComfortView,
     isElementComfortablyVisible,
-    scrollToResultCountOrListTop
+    scrollToResultCountOrListTop,
+    scrollToPlayingOrResultCountOrListTop
   });
 })();

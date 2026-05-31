@@ -393,16 +393,16 @@
     document.body.style.overflow = "hidden";
   }
 
-  function requestResultTopScrollAfterUnlock() {
-    const scrollToResults = () => {
-      window.ScrollUtils?.scrollToResultCountOrListTop({ behavior: "auto" });
+  function requestCloseTargetScrollAfterUnlock() {
+    const scrollToCloseTarget = () => {
+      window.ScrollUtils?.scrollToPlayingOrResultCountOrListTop({ behavior: "auto" });
     };
 
-    scrollToResults();
-    requestAnimationFrame(scrollToResults);
-    requestAnimationFrame(() => requestAnimationFrame(scrollToResults));
-    window.setTimeout(scrollToResults, 120);
-    window.setTimeout(scrollToResults, 320);
+    scrollToCloseTarget();
+    requestAnimationFrame(scrollToCloseTarget);
+    requestAnimationFrame(() => requestAnimationFrame(scrollToCloseTarget));
+    window.setTimeout(scrollToCloseTarget, 120);
+    window.setTimeout(scrollToCloseTarget, 320);
   }
 
   function unlockPageScroll(options = {}) {
@@ -462,7 +462,7 @@
     applyFiltersAndUpdateCount();
     modal.classList.add("hidden");
     unlockPageScroll({ correctAfterUnlock: false });
-    requestResultTopScrollAfterUnlock();
+    requestCloseTargetScrollAfterUnlock();
   });
 
   window.addEventListener("collabTagOrderReady", () => {
