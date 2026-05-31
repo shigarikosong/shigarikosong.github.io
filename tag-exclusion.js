@@ -35,19 +35,12 @@
   const filterControlButtonSelector = Object.keys(containerKindMap).map(id => `#${id} button`).join(",");
   const tagClickButtonSelector = [
     "#modalCategoryTags button",
-    "#desktopCategoryTags button",
     "#modalPlatformTags button",
-    "#desktopPlatformTags button",
     "#modalDateTags button",
-    "#desktopDateTags button",
     "#modalFormatTags button",
-    "#desktopFormatTags button",
     "#modalRoleTags button",
-    "#desktopRoleTags button",
     "#modalCollabLiverTags button",
-    "#desktopCollabLiverTags button",
-    "#modalCollabUnitTags button",
-    "#desktopCollabUnitTags button"
+    "#modalCollabUnitTags button"
   ].join(",");
   const tagSyncButtonSelector = [
     filterControlButtonSelector,
