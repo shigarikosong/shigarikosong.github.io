@@ -49,9 +49,17 @@
     const rect = element.getBoundingClientRect();
     const pageTop = window.scrollY + rect.top;
     const targetY = pageTop - topOffset - marginTop;
+    const nextTop = Math.max(0, Math.round(targetY));
+
+    if (behavior === 'auto') {
+      window.scrollTo(0, nextTop);
+      document.documentElement.scrollTop = nextTop;
+      document.body.scrollTop = nextTop;
+      return;
+    }
 
     window.scrollTo({
-      top: Math.max(0, Math.round(targetY)),
+      top: nextTop,
       behavior
     });
   }
