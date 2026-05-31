@@ -393,18 +393,6 @@
     document.body.style.overflow = "hidden";
   }
 
-  function requestCloseTargetScrollAfterUnlock() {
-    const scrollToCloseTarget = () => {
-      window.ScrollUtils?.scrollToPlayingOrResultCountOrListTop({ behavior: "auto" });
-    };
-
-    scrollToCloseTarget();
-    requestAnimationFrame(scrollToCloseTarget);
-    requestAnimationFrame(() => requestAnimationFrame(scrollToCloseTarget));
-    window.setTimeout(scrollToCloseTarget, 120);
-    window.setTimeout(scrollToCloseTarget, 320);
-  }
-
   function unlockPageScroll(options = {}) {
     const { correctAfterUnlock = true } = options;
     if (document.body.dataset.filterScrollLocked !== "true") return;
@@ -462,7 +450,7 @@
     applyFiltersAndUpdateCount();
     modal.classList.add("hidden");
     unlockPageScroll({ correctAfterUnlock: false });
-    requestCloseTargetScrollAfterUnlock();
+    window.ScrollUtils?.requestFilterCloseTargetJump();
   });
 
   window.addEventListener("collabTagOrderReady", () => {
