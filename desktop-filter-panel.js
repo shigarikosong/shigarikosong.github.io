@@ -238,22 +238,36 @@
     });
   }
 
+  function requestResultTopJumpAfterClose() {
+    const scrollToResults = () => {
+      window.ScrollUtils?.scrollToResultCountOrListTop({ behavior: "auto" });
+    };
+
+    scrollToResults();
+    requestAnimationFrame(scrollToResults);
+    requestAnimationFrame(() => requestAnimationFrame(scrollToResults));
+    window.setTimeout(scrollToResults, 120);
+    window.setTimeout(scrollToResults, 320);
+  }
+
   function openPanel() {
     panel.classList.remove("hidden");
     renderDesktopPanel();
     syncPanelState(true);
   }
 
-  function closePanel() {
+  function closePanel(options = {}) {
+    const { scrollToResults = false } = options;
     panel.classList.add("hidden");
     syncPanelState(false);
+    if (scrollToResults) requestResultTopJumpAfterClose();
   }
 
   function togglePanel() {
     if (panel.classList.contains("hidden")) {
       openPanel();
     } else {
-      closePanel();
+      closePanel({ scrollToResults: true });
     }
   }
 
