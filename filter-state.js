@@ -371,6 +371,7 @@
     getExcludedValues,
     hasExclusions,
     getDisplayLabel,
+    normalizeValue,
     getActiveChips,
     passesExclusion,
     filterExcludedVideos,
