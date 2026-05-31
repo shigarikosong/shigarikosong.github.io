@@ -3,9 +3,12 @@
   const EXCLUDE_BUTTON_CLASS = "exclusion-style-active";
   const EXCLUDE_CHIP_CLASS = "exclusion-style-chip";
   const filterGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
-  const syncRootSelector = "#filterModal, #desktopFilterPanel, #videoList";
+  const syncRootSelectors = ["#filterModal", "#desktopFilterPanel", "#videoList"];
+  const syncRootSelector = syncRootSelectors.join(", ");
   const filterDataButtonSelector = "button[data-filter-group][data-filter-value]";
-  const tagSyncButtonSelector = `${syncRootSelector} ${filterDataButtonSelector}`;
+  const tagSyncButtonSelector = syncRootSelectors
+    .map(selector => `${selector} ${filterDataButtonSelector}`)
+    .join(", ");
   let syncFrame = null;
 
   function normalizeFilterGroup(group) {
