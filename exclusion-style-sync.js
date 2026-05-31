@@ -3,9 +3,6 @@
   const EXCLUDE_BUTTON_CLASS = "exclusion-style-active";
   const EXCLUDE_CHIP_CLASS = "exclusion-style-chip";
   const { dateLabelToValue } = window.TAG_CONFIG;
-  const dateValueToLabel = Object.fromEntries(
-    Object.entries(dateLabelToValue).map(([label, value]) => [value, label])
-  );
   const filterGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
   const filterControlIds = [
     "modalCategoryTags",
@@ -38,12 +35,6 @@
     const value = String(label || "").trim();
     if (kind === "platform") return value.toLowerCase();
     if (kind === "date") return dateLabelToValue[value] || value;
-    return value;
-  }
-
-  function getDisplayLabel(kind, value) {
-    if (kind === "date") return dateValueToLabel[value] || value;
-    if (kind === "platform") return window.TAG_CONFIG.getPlatformLabel(value);
     return value;
   }
 
@@ -103,7 +94,7 @@
     }
 
     if (active) {
-      button.textContent = `- ${getDisplayLabel(info.kind, info.label)}`;
+      button.textContent = `- ${window.FilterState.getDisplayLabel(info.kind, info.label)}`;
       return;
     }
 
@@ -119,7 +110,7 @@
     button.classList.toggle(EXCLUDE_BUTTON_CLASS, active);
     syncExcludedButtonLabel(button, info, active);
     if (active) {
-      button.setAttribute("aria-label", `${getDisplayLabel(info.kind, info.label)}を除外中`);
+      button.setAttribute("aria-label", `${window.FilterState.getDisplayLabel(info.kind, info.label)}を除外中`);
     }
   }
 

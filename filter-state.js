@@ -370,6 +370,7 @@
     isTagExcluded,
     getExcludedValues,
     hasExclusions,
+    getDisplayLabel,
     getActiveChips,
     passesExclusion,
     filterExcludedVideos,
