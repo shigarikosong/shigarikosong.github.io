@@ -97,6 +97,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 除外条件適用後のランダム再生対象が現在の表示リストになっている。
 - [ ] 除外条件適用後、Next / Previous とランダム再生が非表示カードを選ばない。
 - [ ] Next / Previous が現在の表示リストに沿って動く。
+- [ ] Random ON のPreviousは直前に再生していた曲へ戻る。
 - [ ] Random OFF のNextは順番通りに動く。
 - [ ] Random ON のNextはランダムキューに沿って動く。
 - [ ] Repeat OFF / 1曲リピート / 全曲リピートの表示と動作が大きく崩れていない。

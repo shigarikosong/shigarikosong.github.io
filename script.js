@@ -103,7 +103,8 @@ function getAutoPlayableVideos() {
 }
 
 function getCurrentVideo() {
-  return getCurrentPlaybackList().find(video => getVideoKey(video) === nowPlayingKey) || null;
+  return getCurrentPlaybackList().find(video => getVideoKey(video) === nowPlayingKey) ||
+    (currentPlayingVideo && getVideoKey(currentPlayingVideo) === nowPlayingKey ? currentPlayingVideo : null);
 }
 
 function showPlaybackUnavailableNotice(message) {
@@ -149,6 +150,38 @@ const END_SEEK_JUMP_THRESHOLD_SECONDS = 2.5;
 function resetRandomPlayQueue() {
   randomPlayQueue = [];
   randomPlayQueueSignature = "";
+}
+
+function pushPlaybackHistory(video) {
+  if (!video) return;
+
+  const videoKey = getVideoKey(video);
+  const lastVideo = playbackHistory[playbackHistory.length - 1];
+  if (lastVideo && getVideoKey(lastVideo) === videoKey) return;
+
+  playbackHistory.push(video);
+  if (playbackHistory.length > 100) playbackHistory.shift();
+}
+
+function recordPlaybackHistoryForNext(video) {
+  if (isRestoringPlaybackHistory || !currentPlayingVideo || !video) return;
+  if (getVideoKey(currentPlayingVideo) === getVideoKey(video)) return;
+
+  pushPlaybackHistory(currentPlayingVideo);
+}
+
+function playPreviousFromHistory() {
+  while (playbackHistory.length) {
+    const previousVideo = playbackHistory.pop();
+    if (!previousVideo || getVideoKey(previousVideo) === nowPlayingKey) continue;
+
+    isRestoringPlaybackHistory = true;
+    loadVideo(previousVideo, null);
+    isRestoringPlaybackHistory = false;
+    return true;
+  }
+
+  return false;
 }
 
 function shuffleVideos(videos) {
@@ -500,6 +533,9 @@ document.getElementById('modalSortOrder').value = "desc";
     var allVideos = [];
     var currentFilteredVideos = [];
     var nowPlayingKey = null;
+    var currentPlayingVideo = null;
+    var playbackHistory = [];
+    var isRestoringPlaybackHistory = false;
     var selectedCategoryTag = "";
     var selectedDateTag = "";
     var selectedCollabTag = "";
@@ -1937,6 +1973,8 @@ function updateNowPlayingHighlight() {
 
 function clearNowPlayingState() {
   nowPlayingKey = null;
+  currentPlayingVideo = null;
+  playbackHistory = [];
   updateNowPlayingHighlight();
   updateNowPlayingFilteredOutNotice();
   requestNowPlayingFloatingButtonUpdate();
@@ -1948,6 +1986,7 @@ function updateNowPlaying(video) {
   nowPlayingTitle.textContent = label;
   nowPlayingTitle.title = label;
   nowPlayingKey = getVideoKey(video);
+  currentPlayingVideo = video;
   updateNowPlayingHighlight();
   updateNowPlayingFilteredOutNotice();
   requestNowPlayingFloatingButtonUpdate();
@@ -2041,6 +2080,7 @@ if (ytEl) ytEl.classList.add('hidden');
 
   
 
+  recordPlaybackHistoryForNext(video);
   updateNowPlaying(video);
 }
 
@@ -2095,12 +2135,18 @@ function playNextVideo() {
   }
 }
 
+function playPreviousVideo() {
+  if (isRandomModeEnabled() && playPreviousFromHistory()) return;
+
+  playAdjacentVideo(-1);
+}
+
 if (prevVideoBtn) {
   prevVideoBtn.setAttribute('aria-label', '前の曲（Shift + A）');
   prevVideoBtn.title = '前の曲（Shift + A）';
 
   prevVideoBtn.addEventListener('click', () => {
-    playAdjacentVideo(-1);
+    playPreviousVideo();
   });
 }
 
