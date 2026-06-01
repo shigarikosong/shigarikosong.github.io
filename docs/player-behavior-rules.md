@@ -239,6 +239,10 @@ The same label should also be set on the `title` attribute.
 
 The Now Playing row should stay one line and keep the fixed player height stable. If the label overflows, it may scroll horizontally after an idle delay; labels that fit should remain static with the usual ellipsis behavior.
 
+The Now Playing text area may have its own dark-blue rounded background, but the fixed player background and control layout should remain unchanged. Keep the background on the outer text area so only the text moves during marquee scrolling.
+
+On desktop, browser resizing should not re-check the Now Playing overflow state every frame. Wait until resizing settles, then re-check after about 1000ms and restart the scroll from the beginning only if the label still overflows.
+
 If there is a notice for the case where the currently playing video is no longer in the visible list, do not break that behavior.
 
 The currently playing card should receive the `playing` class.

@@ -105,7 +105,12 @@
     }
 
     #nowPlaying {
-      padding: 2px 12px !important;
+      box-sizing: border-box;
+      overflow: hidden;
+      padding: 3px 12px !important;
+      border-radius: 999px;
+      background: rgba(31, 63, 122, 0.92);
+      color: #ffffff;
       font-size: 13px;
       line-height: 1.25;
     }
@@ -148,7 +153,6 @@
       #nowPlaying {
         min-width: 0;
         max-width: min(56vw, 680px);
-        padding: 0 !important;
         font-weight: 700;
         text-align: right;
       }
@@ -173,12 +177,20 @@
   const MARQUEE_IDLE_MS = 8000;
   const MARQUEE_SPEED_PX_PER_SECOND = 24;
   const MARQUEE_MIN_SCROLL_MS = 10000;
+  const MARQUEE_RESIZE_SETTLE_MS = 1000;
+  const DESKTOP_NOW_PLAYING_QUERY = "(min-width: 769px)";
   let marqueeAnimation = null;
   let marqueeTimer = null;
   let marqueeRefreshFrame = null;
+  let marqueeResizeTimer = null;
   let lastMeasuredTitleWidth = 0;
 
   function cancelNowPlayingMarquee() {
+    if (marqueeResizeTimer !== null) {
+      clearTimeout(marqueeResizeTimer);
+      marqueeResizeTimer = null;
+    }
+
     if (marqueeTimer !== null) {
       clearTimeout(marqueeTimer);
       marqueeTimer = null;
@@ -236,6 +248,19 @@
     };
 
     runCycle();
+  }
+
+  function isDesktopNowPlayingLayout() {
+    return window.matchMedia?.(DESKTOP_NOW_PLAYING_QUERY).matches ?? window.innerWidth >= 769;
+  }
+
+  function scheduleNowPlayingMarqueeRefreshAfterResize() {
+    if (marqueeResizeTimer !== null) clearTimeout(marqueeResizeTimer);
+
+    marqueeResizeTimer = window.setTimeout(() => {
+      marqueeResizeTimer = null;
+      refreshNowPlayingMarquee();
+    }, MARQUEE_RESIZE_SETTLE_MS);
   }
 
   function refreshNowPlayingMarquee(fallbackLabel) {
@@ -398,14 +423,22 @@
 
   window.addEventListener("resize", () => {
     if (isCollapsed()) setMiniBarPadding();
-    refreshNowPlayingMarquee();
+    if (isDesktopNowPlayingLayout()) {
+      scheduleNowPlayingMarqueeRefreshAfterResize();
+    } else {
+      refreshNowPlayingMarquee();
+    }
   });
 
   if ("ResizeObserver" in window) {
     const titleResizeObserver = new ResizeObserver(() => {
       const currentWidth = nowPlayingTitle.clientWidth;
       if (Math.abs(currentWidth - lastMeasuredTitleWidth) < 1) return;
-      refreshNowPlayingMarquee();
+      if (isDesktopNowPlayingLayout()) {
+        scheduleNowPlayingMarqueeRefreshAfterResize();
+      } else {
+        refreshNowPlayingMarquee();
+      }
     });
     titleResizeObserver.observe(nowPlayingTitle);
   }
