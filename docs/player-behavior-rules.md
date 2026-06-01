@@ -98,6 +98,7 @@ Previous / next should move through the current visible list.
 - Random ON next: use the random queue.
 - Random OFF previous: move to the previous video in the visible list.
 - Random ON previous: return to the previously played video from playback history when available.
+- If random history returns to a video outside the current visible list, keep playback and scroll to the filtered-out notice.
 - At the list edge, keep the current looping behavior.
 
 Button handling and keyboard shortcut handling should not diverge. Keyboard shortcuts should call the same button behavior or shared functions.

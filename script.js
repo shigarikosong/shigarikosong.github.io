@@ -174,6 +174,7 @@ function playPreviousFromHistory() {
   while (playbackHistory.length) {
     const previousVideo = playbackHistory.pop();
     if (!previousVideo || getVideoKey(previousVideo) === nowPlayingKey) continue;
+    const shouldScrollToFilteredOutNotice = !isVideoVisibleInCurrentFilters(previousVideo);
 
     isRestoringPlaybackHistory = true;
     try {
@@ -181,10 +182,18 @@ function playPreviousFromHistory() {
     } finally {
       isRestoringPlaybackHistory = false;
     }
+    if (shouldScrollToFilteredOutNotice) {
+      requestAnimationFrame(scrollToNowPlayingCard);
+    }
     return true;
   }
 
   return false;
+}
+
+function isVideoVisibleInCurrentFilters(video) {
+  const videoKey = getVideoKey(video);
+  return currentFilteredVideos.some(filteredVideo => getVideoKey(filteredVideo) === videoKey);
 }
 
 function shuffleVideos(videos) {
