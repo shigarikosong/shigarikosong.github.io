@@ -172,6 +172,14 @@
         padding-top: 3px;
         padding-bottom: 4px;
       }
+
+      #nowPlaying {
+        width: fit-content;
+        max-width: min(96vw, 100%);
+        margin: 0 auto;
+        font-weight: 700;
+        text-align: center;
+      }
     }
   `;
   document.head.appendChild(style);
