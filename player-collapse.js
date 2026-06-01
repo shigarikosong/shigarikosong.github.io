@@ -151,10 +151,12 @@
       }
 
       #nowPlaying {
+        flex: 0 1 auto;
+        width: fit-content;
         min-width: 0;
         max-width: min(56vw, 680px);
         font-weight: 700;
-        text-align: right;
+        text-align: center;
       }
 
       #playerControls {
