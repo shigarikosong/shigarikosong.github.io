@@ -237,6 +237,8 @@ When changing player height behavior, also check fixed-player bottom offsets and
 
 The same label should also be set on the `title` attribute.
 
+The Now Playing row should stay one line and keep the fixed player height stable. If the label overflows, it may scroll horizontally after an idle delay; labels that fit should remain static with the usual ellipsis behavior.
+
 If there is a notice for the case where the currently playing video is no longer in the visible list, do not break that behavior.
 
 The currently playing card should receive the `playing` class.
