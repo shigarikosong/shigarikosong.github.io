@@ -241,7 +241,7 @@ The Now Playing row should stay one line and keep the fixed player height stable
 
 The Now Playing text area may have its own dark-blue rounded background, but the fixed player background and control layout should remain unchanged. Keep the background on the outer text area so only the text moves during marquee scrolling.
 
-On desktop, the Now Playing text area should not stretch across the available width for short labels. It should fit the label up to its maximum width, then use ellipsis or marquee for overflow.
+The Now Playing text area should not stretch across the available width for short labels. It should fit the label up to its maximum width, then use ellipsis or marquee for overflow.
 
 On desktop, browser resizing should not re-check the Now Playing overflow state every frame. Wait until resizing settles, then re-check after about 1000ms and restart the scroll from the beginning only if the label still overflows.
 
