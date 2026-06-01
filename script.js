@@ -1997,6 +1997,7 @@ function updateNowPlaying(video) {
   const label = `${video["title"]} - ${video["artist"]}`;
   nowPlayingTitle.textContent = label;
   nowPlayingTitle.title = label;
+  window.NowPlayingMarquee?.refresh(label);
   nowPlayingKey = getVideoKey(video);
   currentPlayingVideo = video;
   updateNowPlayingHighlight();

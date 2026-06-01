@@ -105,7 +105,12 @@
     }
 
     #nowPlaying {
-      padding: 2px 12px !important;
+      box-sizing: border-box;
+      overflow: hidden;
+      padding: 3px 12px !important;
+      border-radius: 999px;
+      background: rgba(31, 63, 122, 0.92);
+      color: #ffffff;
       font-size: 13px;
       line-height: 1.25;
     }
@@ -115,6 +120,21 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    #nowPlayingTitle.now-playing-marquee {
+      text-overflow: clip;
+    }
+
+    .now-playing-marquee-track {
+      display: inline-flex;
+      max-width: none;
+      white-space: nowrap;
+      will-change: transform;
+    }
+
+    .now-playing-marquee-text {
+      flex: 0 0 auto;
     }
 
     #playerControls {
@@ -133,7 +153,6 @@
       #nowPlaying {
         min-width: 0;
         max-width: min(56vw, 680px);
-        padding: 0 !important;
         font-weight: 700;
         text-align: right;
       }
@@ -154,6 +173,145 @@
     }
   `;
   document.head.appendChild(style);
+
+  const MARQUEE_IDLE_MS = 8000;
+  const MARQUEE_SPEED_PX_PER_SECOND = 24;
+  const MARQUEE_MIN_SCROLL_MS = 10000;
+  const MARQUEE_RESIZE_SETTLE_MS = 1000;
+  const DESKTOP_NOW_PLAYING_QUERY = "(min-width: 769px)";
+  let marqueeAnimation = null;
+  let marqueeTimer = null;
+  let marqueeRefreshFrame = null;
+  let marqueeResizeTimer = null;
+  let lastMeasuredTitleWidth = 0;
+
+  function cancelNowPlayingMarquee() {
+    if (marqueeResizeTimer !== null) {
+      clearTimeout(marqueeResizeTimer);
+      marqueeResizeTimer = null;
+    }
+
+    if (marqueeTimer !== null) {
+      clearTimeout(marqueeTimer);
+      marqueeTimer = null;
+    }
+
+    if (marqueeAnimation) {
+      marqueeAnimation.cancel();
+      marqueeAnimation = null;
+    }
+  }
+
+  function getNowPlayingLabel(fallbackLabel) {
+    return String(
+      fallbackLabel ??
+      nowPlayingTitle.dataset.nowPlayingMarqueeLabel ??
+      nowPlayingTitle.title ??
+      nowPlayingTitle.textContent ??
+      ""
+    );
+  }
+
+  function renderPlainNowPlayingLabel(label) {
+    cancelNowPlayingMarquee();
+    nowPlayingTitle.classList.remove("now-playing-marquee");
+    nowPlayingTitle.textContent = label;
+  }
+
+  function startNowPlayingMarquee(track, distance) {
+    const scrollDuration = Math.max(
+      MARQUEE_MIN_SCROLL_MS,
+      Math.round((distance / MARQUEE_SPEED_PX_PER_SECOND) * 1000)
+    );
+
+    const runCycle = () => {
+      marqueeTimer = window.setTimeout(() => {
+        marqueeTimer = null;
+        track.style.transform = "translateX(0px)";
+        marqueeAnimation = track.animate(
+          [
+            { transform: "translateX(0px)" },
+            { transform: `translateX(-${distance}px)` }
+          ],
+          {
+            duration: scrollDuration,
+            easing: "linear",
+            fill: "forwards"
+          }
+        );
+        marqueeAnimation.onfinish = () => {
+          marqueeAnimation = null;
+          track.style.transform = "translateX(0px)";
+          runCycle();
+        };
+      }, MARQUEE_IDLE_MS);
+    };
+
+    runCycle();
+  }
+
+  function isDesktopNowPlayingLayout() {
+    return window.matchMedia?.(DESKTOP_NOW_PLAYING_QUERY).matches ?? window.innerWidth >= 769;
+  }
+
+  function scheduleNowPlayingMarqueeRefreshAfterResize() {
+    if (marqueeResizeTimer !== null) clearTimeout(marqueeResizeTimer);
+
+    marqueeResizeTimer = window.setTimeout(() => {
+      marqueeResizeTimer = null;
+      refreshNowPlayingMarquee();
+    }, MARQUEE_RESIZE_SETTLE_MS);
+  }
+
+  function refreshNowPlayingMarquee(fallbackLabel) {
+    if (marqueeRefreshFrame !== null) {
+      cancelAnimationFrame(marqueeRefreshFrame);
+      marqueeRefreshFrame = null;
+    }
+
+    const label = getNowPlayingLabel(fallbackLabel);
+    nowPlayingTitle.dataset.nowPlayingMarqueeLabel = label;
+    renderPlainNowPlayingLabel(label);
+
+    marqueeRefreshFrame = requestAnimationFrame(() => {
+      marqueeRefreshFrame = null;
+
+      const availableWidth = nowPlayingTitle.clientWidth;
+      const textWidth = nowPlayingTitle.scrollWidth;
+      lastMeasuredTitleWidth = availableWidth;
+
+      if (!availableWidth || textWidth <= availableWidth + 1) return;
+      if (typeof nowPlayingTitle.animate !== "function") return;
+
+      const gap = Math.max(48, Math.round(availableWidth * 0.18));
+      const track = document.createElement("span");
+      const firstText = document.createElement("span");
+      const secondText = document.createElement("span");
+
+      firstText.className = "now-playing-marquee-text";
+      secondText.className = "now-playing-marquee-text";
+      firstText.textContent = label;
+      secondText.textContent = label;
+      secondText.setAttribute("aria-hidden", "true");
+
+      track.className = "now-playing-marquee-track";
+      track.style.columnGap = `${gap}px`;
+      track.append(firstText, secondText);
+
+      nowPlayingTitle.textContent = "";
+      nowPlayingTitle.classList.add("now-playing-marquee");
+      nowPlayingTitle.appendChild(track);
+
+      requestAnimationFrame(() => {
+        const distance = Math.ceil(firstText.getBoundingClientRect().width + gap);
+        if (distance > 0) startNowPlayingMarquee(track, distance);
+      });
+    });
+  }
+
+  window.NowPlayingMarquee = Object.freeze({
+    refresh: refreshNowPlayingMarquee
+  });
 
   const actions = document.createElement("div");
   actions.className = "player-window-actions";
@@ -210,6 +368,7 @@
     if (!isPlayerVisible()) return;
 
     nowPlayingWrapper.classList.remove("hidden");
+    refreshNowPlayingMarquee();
 
     if (isCollapsed()) {
       setMiniBarPadding();
@@ -225,12 +384,14 @@
 
     nowPlayingWrapper.classList.remove("hidden");
     fixedPlayer.classList.add("is-collapsed");
+    refreshNowPlayingMarquee();
     syncButtons();
     setMiniBarPadding();
   }
 
   function restorePlayer() {
     fixedPlayer.classList.remove("is-collapsed");
+    refreshNowPlayingMarquee();
     syncButtons();
     readjustExpandedPlayer();
   }
@@ -244,6 +405,7 @@
   }
 
   function hideMiniBar() {
+    cancelNowPlayingMarquee();
     fixedPlayer.classList.remove("is-collapsed");
     nowPlayingWrapper.classList.add("hidden");
     document.body.style.paddingBottom = "0px";
@@ -261,7 +423,26 @@
 
   window.addEventListener("resize", () => {
     if (isCollapsed()) setMiniBarPadding();
+    if (isDesktopNowPlayingLayout()) {
+      scheduleNowPlayingMarqueeRefreshAfterResize();
+    } else {
+      refreshNowPlayingMarquee();
+    }
   });
 
+  if ("ResizeObserver" in window) {
+    const titleResizeObserver = new ResizeObserver(() => {
+      const currentWidth = nowPlayingTitle.clientWidth;
+      if (Math.abs(currentWidth - lastMeasuredTitleWidth) < 1) return;
+      if (isDesktopNowPlayingLayout()) {
+        scheduleNowPlayingMarqueeRefreshAfterResize();
+      } else {
+        refreshNowPlayingMarquee();
+      }
+    });
+    titleResizeObserver.observe(nowPlayingTitle);
+  }
+
   syncButtons();
+  refreshNowPlayingMarquee();
 })();
