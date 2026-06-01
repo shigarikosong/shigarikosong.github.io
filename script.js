@@ -176,8 +176,11 @@ function playPreviousFromHistory() {
     if (!previousVideo || getVideoKey(previousVideo) === nowPlayingKey) continue;
 
     isRestoringPlaybackHistory = true;
-    loadVideo(previousVideo, null);
-    isRestoringPlaybackHistory = false;
+    try {
+      loadVideo(previousVideo, null);
+    } finally {
+      isRestoringPlaybackHistory = false;
+    }
     return true;
   }
 
