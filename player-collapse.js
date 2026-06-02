@@ -151,8 +151,8 @@
       }
 
       #nowPlaying {
-        flex: 0 1 auto;
-        width: fit-content;
+        flex: 0 1 min(56vw, 680px);
+        width: min(56vw, 680px);
         min-width: 0;
         max-width: min(56vw, 680px);
         font-weight: 700;
@@ -174,8 +174,8 @@
       }
 
       #nowPlaying {
-        width: fit-content;
-        max-width: min(96vw, 100%);
+        width: 100%;
+        max-width: 100%;
         margin: 0 auto;
         font-weight: 700;
         text-align: center;
