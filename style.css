@@ -839,19 +839,22 @@ body.player-visible #desktopFilterPanel {
 }
 
 /* ===== Player end countdown ===== */
-.end-countdown-controls {
+.end-countdown-controls,
+.full-version-prompt-controls {
   display: flex;
   align-items: center;
   gap: 6px;
   max-width: min(68vw, 360px);
 }
 
-.end-countdown-controls.hidden {
+.end-countdown-controls.hidden,
+.full-version-prompt-controls.hidden {
   display: none;
 }
 
 .end-countdown-next,
-.end-countdown-keep {
+.end-countdown-keep,
+.full-version-prompt-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -877,8 +880,14 @@ body.player-visible #desktopFilterPanel {
   padding: 0 9px;
 }
 
+.full-version-prompt-button {
+  min-height: 28px;
+  padding: 0 12px;
+}
+
 .end-countdown-next:hover,
-.end-countdown-keep:hover {
+.end-countdown-keep:hover,
+.full-version-prompt-button:hover {
   background: #ffffff;
   color: #2563eb;
 }
@@ -892,7 +901,8 @@ body.player-visible #desktopFilterPanel {
 }
 
 @media (max-width: 480px) {
-  .end-countdown-controls {
+  .end-countdown-controls,
+  .full-version-prompt-controls {
     gap: 4px;
     max-width: calc(100vw - 96px);
   }
@@ -912,7 +922,8 @@ body.player-visible #desktopFilterPanel {
     font-size: 13px;
   }
 
-  .end-countdown-keep {
+  .end-countdown-keep,
+  .full-version-prompt-button {
     min-height: 30px;
     padding: 0 8px;
   }

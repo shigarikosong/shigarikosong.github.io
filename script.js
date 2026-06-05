@@ -68,6 +68,10 @@ function parseTimeToSeconds(value, fallback = null) {
 
 window.parseTimeToSeconds = parseTimeToSeconds;
 
+function normalizeVideoNumber(value) {
+  return String(value ?? "").trim();
+}
+
 function getVideoKey(video) {
   return `${video?.["videoId"]}__${video?._startSeconds ?? parseTimeToSeconds(video?.["start"], 0)}`;
 }
@@ -144,8 +148,11 @@ let endOverrunGraceVideoKey = null;
 let lastEndCountdownTime = null;
 let skipEndAutoAdvanceKey = null;
 let isEndAutoAdvancing = false;
+let fullVersionPromptTimer = null;
+let fullVersionPromptVideoKey = null;
 const END_OVERRUN_GRACE_SECONDS = 10;
 const END_SEEK_JUMP_THRESHOLD_SECONDS = 2.5;
+const FULL_VERSION_PROMPT_SECONDS = 10;
 
 function resetRandomPlayQueue() {
   randomPlayQueue = [];
@@ -263,6 +270,7 @@ function handleVideoEnded() {
   const repeatMode = getRepeatMode();
 
   stopEndCountdownMonitor();
+  stopFullVersionPromptMonitor();
 
   if (repeatMode === REPEAT_MODE_OFF) return;
 
@@ -328,6 +336,8 @@ function formatCountdownTime(seconds) {
 }
 
 function showEndCountdownUi(remainingSeconds) {
+  hideFullVersionPromptUi();
+
   const wrapper = getEndCountdownUi();
   const time = document.getElementById("endCountdownTime");
   const nextButton = document.getElementById("endCountdownNextBtn");
@@ -478,6 +488,172 @@ function startEndCountdownMonitor(video) {
   endCountdownTimer = setInterval(() => checkEndCountdown(video), 500);
 }
 
+// ===== ハイライトShortsからフル版への誘導 =====
+function isHighlightShortsVideo(video) {
+  return Boolean(video?._isShorts && video._types?.includes("ハイライト"));
+}
+
+function getFullVersionTargetVideo(video) {
+  if (!isHighlightShortsVideo(video) || !video._fullNumber) return null;
+
+  return allVideos.find(candidate => candidate._number && candidate._number === video._fullNumber) || null;
+}
+
+function getPlayerWindowActions() {
+  let actions = document.querySelector(".player-window-actions");
+  if (actions) return actions;
+
+  const fixedPlayerInner = fixedPlayerEl?.firstElementChild;
+  if (!fixedPlayerInner) return null;
+
+  actions = document.createElement("div");
+  actions.className = "player-window-actions";
+  fixedPlayerInner.prepend(actions);
+  return actions;
+}
+
+function getFullVersionPromptUi() {
+  let wrapper = document.getElementById("fullVersionPromptControls");
+  if (wrapper) return wrapper;
+
+  const actions = getPlayerWindowActions();
+  if (!actions) return null;
+
+  wrapper = document.createElement("div");
+  wrapper.id = "fullVersionPromptControls";
+  wrapper.className = "full-version-prompt-controls hidden";
+
+  const button = document.createElement("button");
+  button.id = "fullVersionPromptButton";
+  button.type = "button";
+  button.className = "full-version-prompt-button";
+  button.textContent = "フル版を再生";
+  button.addEventListener("click", playFullVersionFromPrompt);
+
+  wrapper.append(button);
+  actions.insertBefore(wrapper, actions.firstElementChild);
+
+  return wrapper;
+}
+
+function isEndCountdownUiVisible() {
+  const wrapper = document.getElementById("endCountdownControls");
+  return Boolean(wrapper && !wrapper.classList.contains("hidden"));
+}
+
+function showFullVersionPromptUi(video) {
+  if (isEndCountdownUiVisible()) {
+    hideFullVersionPromptUi();
+    return;
+  }
+
+  const targetVideo = getFullVersionTargetVideo(video);
+  if (!targetVideo) {
+    hideFullVersionPromptUi();
+    return;
+  }
+
+  const wrapper = getFullVersionPromptUi();
+  const button = document.getElementById("fullVersionPromptButton");
+  if (!wrapper || !button) return;
+
+  button.title = `${targetVideo["title"]} - ${targetVideo["artist"]}`;
+  button.setAttribute("aria-label", `フル版を再生: ${targetVideo["title"]} - ${targetVideo["artist"]}`);
+  wrapper.classList.remove("hidden");
+}
+
+function hideFullVersionPromptUi() {
+  document.getElementById("fullVersionPromptControls")?.classList.add("hidden");
+}
+
+function stopFullVersionPromptMonitor() {
+  if (fullVersionPromptTimer) {
+    clearInterval(fullVersionPromptTimer);
+    fullVersionPromptTimer = null;
+  }
+  hideFullVersionPromptUi();
+  fullVersionPromptVideoKey = null;
+}
+
+function resetFullVersionPromptForVideo(video) {
+  stopFullVersionPromptMonitor();
+  fullVersionPromptVideoKey = getVideoKey(video);
+}
+
+function getFullVersionPromptRemainingSeconds(video) {
+  if (!ytPlayer || typeof ytPlayer.getCurrentTime !== "function") return null;
+
+  let currentTime;
+  try {
+    currentTime = ytPlayer.getCurrentTime();
+  } catch {
+    return null;
+  }
+
+  if (!Number.isFinite(currentTime)) return null;
+
+  if (video._endSeconds !== null && video._endSeconds !== undefined) {
+    return video._endSeconds - currentTime;
+  }
+
+  if (typeof ytPlayer.getDuration !== "function") return null;
+
+  let duration;
+  try {
+    duration = ytPlayer.getDuration();
+  } catch {
+    return null;
+  }
+
+  if (!Number.isFinite(duration) || duration <= 0) return null;
+  return duration - currentTime;
+}
+
+function checkFullVersionPrompt(video) {
+  if (fullVersionPromptVideoKey !== getVideoKey(video)) return;
+
+  if (!getFullVersionTargetVideo(video)) {
+    hideFullVersionPromptUi();
+    return;
+  }
+
+  if (isTikTokVideo(video)) {
+    showFullVersionPromptUi(video);
+    return;
+  }
+
+  const remainingSeconds = getFullVersionPromptRemainingSeconds(video);
+  if (remainingSeconds !== null && remainingSeconds <= FULL_VERSION_PROMPT_SECONDS) {
+    showFullVersionPromptUi(video);
+  } else {
+    hideFullVersionPromptUi();
+  }
+}
+
+function startFullVersionPromptMonitor(video) {
+  fullVersionPromptVideoKey = getVideoKey(video);
+
+  if (!getFullVersionTargetVideo(video)) return;
+
+  checkFullVersionPrompt(video);
+  if (!isTikTokVideo(video)) {
+    fullVersionPromptTimer = setInterval(() => checkFullVersionPrompt(video), 500);
+  }
+}
+
+function playFullVersionFromPrompt() {
+  const targetVideo = getFullVersionTargetVideo(currentPlayingVideo);
+  if (!targetVideo) {
+    hideFullVersionPromptUi();
+    showPlaybackUnavailableNotice("フル版が見つかりません");
+    return;
+  }
+
+  stopFullVersionPromptMonitor();
+  loadVideo(targetVideo, null);
+  requestAnimationFrame(scrollToNowPlayingCard);
+}
+
 // ===== プレイヤーボタンUI =====
 function setPlayerControlIcon(button, src) {
   const icon = button?.querySelector('.player-control-icon');
@@ -575,6 +751,8 @@ function normalizeVideos(data) {
     const collabLivers = parseCommaTags(video["コラボライバー"]);
     const collabUnits = parseCommaTags(video["コラボユニット"]);
     const platform = String(video["platform"] || "").trim().toLowerCase();
+    const number = normalizeVideoNumber(video["number"]);
+    const fullNumber = normalizeVideoNumber(video["full_number"]);
     const startSeconds = parseTimeToSeconds(video["start"], 0);
     const parsedEndSeconds = parseTimeToSeconds(video["end"], null);
     const endSeconds = parsedEndSeconds !== null && parsedEndSeconds > startSeconds
@@ -587,6 +765,8 @@ function normalizeVideos(data) {
     video._collabUnits = collabUnits;
     video._collabTags = [...collabLivers, ...collabUnits];
     video._platform = platform;
+    video._number = number;
+    video._fullNumber = fullNumber;
     video._is3D = video["3D"] === "TRUE";
     video._isShorts = video["Shorts"] === "TRUE";
     video._startSeconds = startSeconds;
@@ -2008,6 +2188,7 @@ function updateNowPlaying(video) {
 // ===== 動画の再生処理 =====
 function loadVideo(video, item) {
   resetEndCountdownForVideo(video);
+  resetFullVersionPromptForVideo(video);
   const start = video._startSeconds ?? parseTimeToSeconds(video["start"], 0);
   let videoId = video["videoId"];
   let platform = video._platform || (video["platform"] || "").toLowerCase();
@@ -2052,6 +2233,7 @@ function loadVideo(video, item) {
   }
 
   startEndCountdownMonitor(video);
+  startFullVersionPromptMonitor(video);
 
   } else if (platform === "tiktok") {
   if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
@@ -2085,6 +2267,7 @@ if (ytEl) ytEl.classList.add('hidden');
 });
     
   stopEndCountdownMonitor();
+  startFullVersionPromptMonitor(video);
 
   } else {
     alert(`未対応の platform: ${platform}`);
@@ -2101,6 +2284,7 @@ if (ytEl) ytEl.classList.add('hidden');
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
     stopEndCountdownMonitor();
+    stopFullVersionPromptMonitor();
     document.body.style.paddingBottom =
       `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
 

@@ -203,7 +203,30 @@ Changing repeat mode away from `all`, closing the player, or switching videos sh
 
 TikTok is not controlled by `end` and should not show the countdown UI.
 
-## 10. YouTube / TikTok Rules
+## 10. Highlight Shorts Full-Version Prompt
+
+Highlight Shorts can link to an existing full-version row through `full_number`.
+
+Normalize spreadsheet / JSON `number` and `full_number` as trimmed strings, exposed internally as `_number` and `_fullNumber`.
+
+A video is eligible only when:
+
+- `_isShorts` is true.
+- `_types` includes `ハイライト`.
+- `_fullNumber` is not empty.
+- `allVideos` contains a row whose `_number` matches `_fullNumber`.
+
+When the prompt is clicked, play the matched existing row with `loadVideo(targetVideo, null)`. Use that row's own `videoId`, `start`, `end`, title, artist, and platform data. Do not add the full-version row to the visible list or clear filters automatically.
+
+For YouTube, show the prompt when 10 seconds remain. Prefer the current video's `_endSeconds` when it exists; otherwise use the YouTube duration when available. If duration cannot be read, do not show the prompt.
+
+For TikTok, show the prompt immediately for eligible videos because reliable current-time / duration monitoring is not available.
+
+The full-version prompt is separate from the end-countdown auto-advance UI. If the end-countdown UI is visible, hide the full-version prompt.
+
+After playing the full version, reuse the existing now-playing scroll behavior: scroll to the playing card when it is visible in the filtered list, otherwise scroll to the filtered-out notice / result area.
+
+## 11. YouTube / TikTok Rules
 
 YouTube uses the YouTube iframe API or YouTube embed.
 
@@ -217,7 +240,7 @@ TikTok can still be selected and played manually.
 
 When adding another platform, explicitly decide whether it can be used for automatic continuous playback.
 
-## 11. Player Display And Height Rules
+## 12. Player Display And Height Rules
 
 The fixed player height is stored in localStorage.
 
@@ -231,7 +254,7 @@ During touch interaction, prevent accidental page scrolling where needed.
 
 When changing player height behavior, also check fixed-player bottom offsets and scroll-position adjustments.
 
-## 12. Now Playing Display Rules
+## 13. Now Playing Display Rules
 
 `nowPlayingWrapper` / `nowPlayingTitle` display the current song label.
 
@@ -257,7 +280,7 @@ When there is a now playing state, a `♪` floating button can appear only while
 
 Now playing behavior can interact with scroll-position adjustment logic, so check those scripts when changing it.
 
-## 13. Relationship With `exclusion-style-sync.js`
+## 14. Relationship With `exclusion-style-sync.js`
 
 `script.js` applies exclusion conditions before rendering the list and updating `currentFilteredVideos`.
 
@@ -269,7 +292,7 @@ Random playback, previous/next, and automatic continuous playback should not dri
 
 Also see [Filter Tag Rules](filter-tag-rules.md).
 
-## 14. Checklist For Player Changes
+## 15. Checklist For Player Changes
 
 Before merging player-related behavior changes, check:
 
@@ -293,7 +316,7 @@ Before merging player-related behavior changes, check:
 - Now playing display and the `playing` class stay in sync.
 - Behavior does not contradict [Filter Tag Rules](filter-tag-rules.md).
 
-## 15. Out Of Scope For This Document Branch
+## 16. Out Of Scope For This Document Branch
 
 This documentation branch should not change:
 
