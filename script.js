@@ -488,13 +488,9 @@ function startEndCountdownMonitor(video) {
   endCountdownTimer = setInterval(() => checkEndCountdown(video), 500);
 }
 
-// ===== ハイライトShortsからフル版への誘導 =====
-function isHighlightShortsVideo(video) {
-  return Boolean(video?._isShorts && video._types?.includes("ハイライト"));
-}
-
+// ===== full_numberからフル版への誘導 =====
 function getFullVersionTargetVideo(video) {
-  if (!isHighlightShortsVideo(video) || !video._fullNumber) return null;
+  if (!video?._fullNumber) return null;
 
   return allVideos.find(candidate => candidate._number && candidate._number === video._fullNumber) || null;
 }

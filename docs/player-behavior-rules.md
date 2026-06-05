@@ -203,16 +203,16 @@ Changing repeat mode away from `all`, closing the player, or switching videos sh
 
 TikTok is not controlled by `end` and should not show the countdown UI.
 
-## 10. Highlight Shorts Full-Version Prompt
+## 10. Full-Version Prompt
 
-Highlight Shorts can link to an existing full-version row through `full_number`.
+Any row can link to an existing full-version row through `full_number`.
+
+Treat `full_number` as the explicit flag for showing the prompt. Only put `full_number` on rows where the full-version prompt should be available.
 
 Normalize spreadsheet / JSON `number` and `full_number` as trimmed strings, exposed internally as `_number` and `_fullNumber`.
 
 A video is eligible only when:
 
-- `_isShorts` is true.
-- `_types` includes `ハイライト`.
 - `_fullNumber` is not empty.
 - `allVideos` contains a row whose `_number` matches `_fullNumber`.
 
