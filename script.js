@@ -631,14 +631,29 @@ function checkFullVersionPrompt(video) {
 }
 
 function startFullVersionPromptMonitor(video) {
+  if (fullVersionPromptTimer) {
+    clearInterval(fullVersionPromptTimer);
+    fullVersionPromptTimer = null;
+  }
+
   fullVersionPromptVideoKey = getVideoKey(video);
 
-  if (!getFullVersionTargetVideo(video)) return;
+  if (!getFullVersionTargetVideo(video)) {
+    hideFullVersionPromptUi();
+    return;
+  }
 
   checkFullVersionPrompt(video);
   if (!isTikTokVideo(video)) {
     fullVersionPromptTimer = setInterval(() => checkFullVersionPrompt(video), 500);
   }
+}
+
+function refreshFullVersionPromptForCurrentVideo() {
+  const currentVideo = getCurrentVideo();
+  if (!currentVideo || getVideoKey(currentVideo) !== nowPlayingKey) return;
+
+  startFullVersionPromptMonitor(currentVideo);
 }
 
 function playFullVersionFromPrompt() {
@@ -1089,6 +1104,10 @@ function tryInitYtPlayer() {
       onStateChange: (e) => {
         console.log('YouTube state:', e.data, 'repeatMode:', getRepeatMode(), 'randomMode:', isRandomModeEnabled());
 
+        if (e.data === YT.PlayerState.PLAYING) {
+          refreshFullVersionPromptForCurrentVideo();
+        }
+
         if (e.data === YT.PlayerState.ENDED) {
           handleVideoEnded();
         }
@@ -1139,6 +1158,7 @@ if (repeatModeBtn) {
     } else {
       stopEndCountdownMonitor();
     }
+    refreshFullVersionPromptForCurrentVideo();
     requestNowPlayingFloatingButtonUpdate();
   });
 }
