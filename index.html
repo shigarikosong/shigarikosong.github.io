@@ -37,30 +37,72 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=41">
+  <link rel="stylesheet" href="./style.css?v=42">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
   
   <!-- ヘッダー -->
   <header class="relative border-b z-10 bg-white/90 backdrop-blur px-4 py-3 shadow-sm">
-  <h1 class="text-left text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
+  <h1 class="text-left text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight pr-36 sm:pr-44">
   しがりこのうた、おどり。<br class="sm:hidden"><span class="text-sm sm:text-base">｜司賀りこ非公式ファンサイト</span>
 </h1>
 
  <!-- SNSリンク --> 
-  <div class="absolute right-4 top-1/2 -translate-y-1/2 flex space-x-4 items-center">
+  <div class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex gap-2 sm:gap-4 items-center">
     <a href="https://www.youtube.com/@ShigaRiko" target="_blank" rel="noopener" aria-label="YouTube">
-      <img src="./YT_icon.svg" alt="YouTube" class="w-8 h-8" />
+      <img src="./YT_icon.svg" alt="YouTube" class="w-7 h-7 sm:w-8 sm:h-8" />
     </a>
     <a href="https://www.tiktok.com/@riko14218" target="_blank" rel="noopener" aria-label="TikTok">
-      <img src="./TT_icon.svg" alt="TikTok" class="w-8 h-8" />
+      <img src="./TT_icon.svg" alt="TikTok" class="w-7 h-7 sm:w-8 sm:h-8" />
     </a>
     <a href="https://x.com/Shigariko_" target="_blank" rel="noopener" aria-label="X">
-      <img src="./X_icon.svg" alt="X" class="w-8 h-8" />
+      <img src="./X_icon.svg" alt="X" class="w-7 h-7 sm:w-8 sm:h-8" />
     </a>
+    <button id="openSiteInfoModal" type="button" class="site-info-icon-button" aria-label="このサイトについて">
+      <img src="./info_icon.png" alt="" class="w-7 h-7 sm:w-8 sm:h-8" aria-hidden="true" />
+    </button>
   </div>
 </header>
+
+<!-- サイト情報モーダル -->
+<div id="siteInfoModal" class="site-info-modal hidden" role="dialog" aria-modal="true" aria-labelledby="siteInfoTitle">
+  <div class="site-info-modal__panel" tabindex="-1">
+    <button id="closeSiteInfoModal" type="button" class="site-info-modal__close" aria-label="このサイトについてを閉じる">×</button>
+
+    <div class="site-info-modal__body">
+      <h2 id="siteInfoTitle">このサイトについて</h2>
+      <p>「しがりこのうた、おどり。」は、にじさんじ所属・司賀りこさんの歌、ダンス、演奏、3D関連動画などをまとめた非公式ファンアーカイブです。</p>
+
+      <p>曲名・アーティスト名・タグなどで検索できます。検索欄では、一部の検索指定も使えます。</p>
+      <ul>
+        <li>空白で区切ると、すべての言葉を含むものを検索できます<br><span>例：VOCAL 3D</span></li>
+        <li>OR を入れると、どちらかを含むものを検索できます<br><span>例：VOCAL OR DANCE</span></li>
+        <li>言葉の前に - をつけると、その言葉を含むものを除外できます<br><span>例：VOCAL -Shorts</span></li>
+      </ul>
+
+      <h3>絞り込みについて</h3>
+      <p>絞り込みボタンの中、または各動画カード内のタグから、表示する動画を絞り込めます。</p>
+      <p>VOCAL / DANCE / PIANO などの担当別、Shorts / Full / 3D / 歌枠 / ライブなどの種類別、YouTube / TikTok などのプラットフォーム別に探せます。</p>
+      <p>タグはクリックするたびに、表示する → 表示しない → 指定なし の順に切り替わります。</p>
+      <p>現在指定している条件は、画面上部にタグとして表示されます。「表示しない」にしている条件は、マイナス付きの表示になります。</p>
+
+      <h3>再生について</h3>
+      <p>ランダム再生に対応しています。また、再生画面のボタンから連続再生をONにすると、現在の絞り込み条件に合う動画を続けて再生できます。</p>
+
+      <h3>TikTok動画について</h3>
+      <p>動画はYouTube / TikTokの埋め込み機能を利用しています。</p>
+      <p>TikTokの埋め込みは再生が不安定になることがあるため、連続再生の対象外です。TikTok動画を再生する場合は、表示された埋め込み上で再生操作が必要になることがあります。</p>
+
+      <h3>ご注意</h3>
+      <p>このサイトはファンによる非公式サイトです。ANYCOLOR株式会社・にじさんじ公式とは関係ありません。掲載内容は公式情報ではありません。</p>
+    </div>
+
+    <div class="site-info-modal__footer">
+      <button id="closeSiteInfoModalBottom" type="button" class="site-info-modal__button" aria-label="このサイトについてを閉じる">閉じる</button>
+    </div>
+  </div>
+</div>
 
   <!-- サイト説明 -->
   <div class="max-w-4xl mx-auto px-4 mt-2 text-center text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -335,6 +377,7 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./ui-polish.js?v=29"></script>
   <script src="./player-collapse.js?v=29"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
+  <script src="./site-info-modal.js?v=1"></script>
   <script src="./youtube-stability.js?v=24"></script>
 
 </body>
