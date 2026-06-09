@@ -37,30 +37,74 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=41">
+  <link rel="stylesheet" href="./style.css?v=42">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
   
   <!-- ヘッダー -->
   <header class="relative border-b z-10 bg-white/90 backdrop-blur px-4 py-3 shadow-sm">
-  <h1 class="text-left text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
+  <h1 class="text-left text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight pr-36 sm:pr-44">
   しがりこのうた、おどり。<br class="sm:hidden"><span class="text-sm sm:text-base">｜司賀りこ非公式ファンサイト</span>
 </h1>
 
  <!-- SNSリンク --> 
-  <div class="absolute right-4 top-1/2 -translate-y-1/2 flex space-x-4 items-center">
+  <div class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex gap-2 sm:gap-4 items-center">
     <a href="https://www.youtube.com/@ShigaRiko" target="_blank" rel="noopener" aria-label="YouTube">
-      <img src="./YT_icon.svg" alt="YouTube" class="w-8 h-8" />
+      <img src="./YT_icon.svg" alt="YouTube" class="w-7 h-7 sm:w-8 sm:h-8" />
     </a>
     <a href="https://www.tiktok.com/@riko14218" target="_blank" rel="noopener" aria-label="TikTok">
-      <img src="./TT_icon.svg" alt="TikTok" class="w-8 h-8" />
+      <img src="./TT_icon.svg" alt="TikTok" class="w-7 h-7 sm:w-8 sm:h-8" />
     </a>
     <a href="https://x.com/Shigariko_" target="_blank" rel="noopener" aria-label="X">
-      <img src="./X_icon.svg" alt="X" class="w-8 h-8" />
+      <img src="./X_icon.svg" alt="X" class="w-7 h-7 sm:w-8 sm:h-8" />
     </a>
+    <button id="openSiteInfoModal" type="button" class="site-info-icon-button" aria-label="このサイトについて">
+      <img src="./info_icon.png" alt="" class="w-7 h-7 sm:w-8 sm:h-8" aria-hidden="true" />
+    </button>
   </div>
 </header>
+
+<!-- サイト情報モーダル -->
+<div id="siteInfoModal" class="site-info-modal hidden" role="dialog" aria-modal="true" aria-labelledby="siteInfoTitle">
+  <div class="site-info-modal__panel" tabindex="-1">
+    <button id="closeSiteInfoModal" type="button" class="site-info-modal__close" aria-label="このサイトについてを閉じる">×</button>
+
+    <div class="site-info-modal__body">
+      <h2 id="siteInfoTitle">このサイトについて</h2>
+      <p class="site-info-modal__lead">にじさんじ所属 司賀りこさんの歌ってみたや踊ってみた等をまとめたサイトです。</p>
+
+      <h3>探す</h3>
+      <p>曲名・アーティスト名・タグで検索できます。タグを押すと、表示する / 表示しない / 指定なし を切り替えられます。</p>
+
+      <h3>聴く・見る</h3>
+      <p>ランダム再生や連続再生に対応しています。TikTok動画は埋め込みの都合上、連続再生の対象外です。</p>
+
+      <h3>検索のコツ</h3>
+      <dl class="site-info-search-tips">
+        <div>
+          <dt><code>VOCAL 3D</code></dt>
+          <dd>両方を含むものを検索</dd>
+        </div>
+        <div>
+          <dt><code>VOCAL OR DANCE</code></dt>
+          <dd>どちらかを含むものを検索</dd>
+        </div>
+        <div>
+          <dt><code>VOCAL -Shorts</code></dt>
+          <dd>Shortsを含むものを除外</dd>
+        </div>
+      </dl>
+
+      <h3>ご注意</h3>
+      <p>このサイトはファンによる非公式サイトです。ANYCOLOR株式会社・にじさんじ公式とは関係ありません。</p>
+    </div>
+
+    <div class="site-info-modal__footer">
+      <button id="closeSiteInfoModalBottom" type="button" class="site-info-modal__button" aria-label="このサイトについてを閉じる">閉じる</button>
+    </div>
+  </div>
+</div>
 
   <!-- サイト説明 -->
   <div class="max-w-4xl mx-auto px-4 mt-2 text-center text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -335,6 +379,7 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./ui-polish.js?v=29"></script>
   <script src="./player-collapse.js?v=29"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
+  <script src="./site-info-modal.js?v=1"></script>
   <script src="./youtube-stability.js?v=24"></script>
 
 </body>
