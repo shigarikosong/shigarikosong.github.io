@@ -54,7 +54,7 @@
 
   function handleDesktopTagClick(group, value) {
     window.FilterState.toggleTag(group, value);
-    applyFilters();
+    applyFilters({ scrollAfterUpdate: false });
     window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
   }
 
@@ -114,7 +114,7 @@
 
       sortButtons.appendChild(createButton(sortLabels[value] || option.textContent, isActive, "sort", () => {
         sortSelect.value = value;
-        applyFilters();
+        applyFilters({ scrollAfterUpdate: false });
         renderSortButtons();
       }));
     });

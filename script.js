@@ -829,14 +829,15 @@ function sortCollabTagsForDisplay(values) {
   return [...tags];
 }
 
-function clearDateTag() {
+function clearDateTag(options = {}) {
+  const { scrollAfterUpdate = true } = options;
   window.FilterState.setState({ date: "" });
 
   const modalDateFilter = document.getElementById('modalDateFilter');
   if (modalDateFilter) modalDateFilter.value = "";
 
   renderDateTags();
-  applyFilters();
+  applyFilters({ scrollAfterUpdate });
 }
 
     function updateActiveTagChipsPosition() {
@@ -1119,7 +1120,7 @@ fetch(sheetJsonUrl)
   .then(data => {
     allVideos = normalizeVideos(data);
     populateFilters(allVideos);
-    applyFilters();
+    applyFilters({ scrollAfterUpdate: false });
     requestAnimationFrame(() => {
       adjustFixedPlayerBottom();
       updateActiveTagChipsPosition();
@@ -1560,14 +1561,14 @@ function isMobileFilterContainer(container) {
 function applyDesktopFilterTagClick(group, value, renderUpdatedTags) {
   window.FilterState.toggleTag(group, value);
   if (typeof renderUpdatedTags === "function") renderUpdatedTags();
-  applyFilters();
+  applyFilters({ scrollAfterUpdate: false });
   window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
 }
 
 function applyMobileFilterTagClick(group, value, renderUpdatedTags) {
   window.FilterState.toggleTag(group, value);
   if (typeof renderUpdatedTags === "function") renderUpdatedTags();
-  applyFilters();
+  applyFilters({ scrollAfterUpdate: false });
   window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
 }
 
@@ -1717,7 +1718,60 @@ function renderDateTags() {
 
 
 // ===== 検索・絞り込み処理 =====
-      function applyFilters() {
+function findVideoListItemByKey(videoKey) {
+  if (!videoKey) return null;
+
+  return [...videoList.querySelectorAll('[data-video-key]')]
+    .find(item => item.dataset.videoKey === videoKey) || null;
+}
+
+function getFilterScrollTarget(sourceVideoKey) {
+  if (sourceVideoKey) {
+    return {
+      element: findVideoListItemByKey(sourceVideoKey),
+      fallbackToListTop: true
+    };
+  }
+
+  const playingElement = getNowPlayingCardElement();
+  if (playingElement) return { element: playingElement };
+
+  const filteredOutNotice = document.getElementById('nowPlayingFilteredOutNotice');
+  if (filteredOutNotice) return { element: filteredOutNotice };
+
+  return { fallbackToListTop: true };
+}
+
+function scrollToSettledFilterTarget(options = {}) {
+  const { sourceVideoKey = null, behavior = "smooth" } = options;
+  const target = getFilterScrollTarget(sourceVideoKey);
+
+  if (target.element) {
+    window.ScrollUtils.scrollElementIntoComfortView(target.element, { behavior });
+    scheduleNowPlayingFloatingButtonSettledUpdate();
+    return;
+  }
+
+  window.ScrollUtils.scrollToResultCountOrListTop({ behavior });
+  scheduleNowPlayingFloatingButtonSettledUpdate();
+}
+
+function requestSettledFilterScroll(options = {}) {
+  const { sourceVideoKey = null, behavior = "smooth" } = options;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      scrollToSettledFilterTarget({ sourceVideoKey, behavior });
+    });
+  });
+}
+
+window.requestSettledFilterScroll = requestSettledFilterScroll;
+
+      function applyFilters(options = {}) {
+        const { scrollAfterUpdate = true } = options;
+        const listTagScrollVideoKey = pendingListTagScrollVideoKey;
+        pendingListTagScrollVideoKey = null;
         const searchQuery = searchInput.value;
         const now = new Date();
         const filterState = window.FilterState.getState();
@@ -1774,6 +1828,12 @@ const visibleVideos = getVisibleFilteredVideos(filtered);
 resetRandomPlayQueue();
 renderVideoList(visibleVideos);
 renderActiveTagChips();
+updateActiveTagChipsPosition();
+updateNowPlayingFilteredOutNotice();
+requestNowPlayingFloatingButtonUpdate();
+if (scrollAfterUpdate) {
+  requestSettledFilterScroll({ sourceVideoKey: listTagScrollVideoKey });
+}
       }
 
 
@@ -1820,8 +1880,6 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
   countElement.insertAdjacentElement('afterend', notice);
 }
 
-  let playingElement = null;
-
   videos.forEach(video => {
     const item = document.createElement('div');
     item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
@@ -1831,7 +1889,6 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
 
     if (key === nowPlayingKey) {
       item.classList.add('playing');
-      playingElement = item;
     }
 
     
@@ -2025,38 +2082,15 @@ if (tagRow) item.appendChild(tagRow);
 videoList.appendChild(item);
       });
 
-  const handledListTagScroll = scrollToListTagFilterSource(pendingListTagScrollVideoKey);
-  pendingListTagScrollVideoKey = null;
-
-  // スクロール実行
-  if (!handledListTagScroll && playingElement) {
-    window.ScrollUtils.scrollElementIntoComfortView(playingElement);
-  }
-
-  updateNowPlayingFilteredOutNotice({ scroll: !handledListTagScroll && !playingElement });
-  requestNowPlayingFloatingButtonUpdate();
   window.dispatchEvent(new CustomEvent("videoListRendered"));
 }
 
 window.addEventListener("collabTagOrderReady", () => {
   if (!Array.isArray(currentFilteredVideos) || !currentFilteredVideos.length) return;
   window.renderVideoList(currentFilteredVideos);
+  updateNowPlayingFilteredOutNotice();
+  requestNowPlayingFloatingButtonUpdate();
 });
-
-function scrollToListTagFilterSource(sourceVideoKey) {
-  if (!sourceVideoKey) return false;
-
-  const sourceElement = [...videoList.querySelectorAll('[data-video-key]')]
-    .find(item => item.dataset.videoKey === sourceVideoKey);
-
-  if (sourceElement) {
-    window.ScrollUtils.scrollElementIntoComfortView(sourceElement);
-    return true;
-  }
-
-  window.ScrollUtils.scrollToResultCountOrListTop();
-  return true;
-}
 
 function getNowPlayingCardElement() {
   if (!nowPlayingKey) return null;
