@@ -59,7 +59,7 @@
   }
 
   function applyFiltersAndUpdateCount() {
-    applyFilters();
+    applyFilters({ scrollAfterUpdate: false });
     updateModalResultCount();
 
     if (document.body.dataset.filterScrollLocked === "true") {

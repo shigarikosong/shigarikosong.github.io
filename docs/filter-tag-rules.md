@@ -203,6 +203,8 @@ Desktop filter panel and mobile filter modal tag changes are immediate-apply.
 
 While the user is still choosing tags inside the desktop panel or mobile modal, the page should not scroll just because the list rerendered.
 
+For ordinary filter updates outside the open desktop panel / mobile modal, `applyFilters()` owns the post-filter scroll decision after `renderVideoList()`, `renderActiveTagChips()`, and active-chip positioning have settled. `renderVideoList()` should render list DOM only and should not directly scroll.
+
 When the user explicitly closes the filter UI:
 
 - If the now playing card is still in the visible list, jump to that card.
@@ -213,8 +215,9 @@ Related code:
 
 - `desktop-filter-panel.js`
 - `mobile-filter-modal.js`
+- `script.js` (`applyFilters()` / `requestSettledFilterScroll()`)
 - `scroll-utils.js` (`requestFilterCloseTargetJump()`)
-- `filter-scroll-position.js`
+- `filter-scroll-position.js` (compatibility wrapper; no list `MutationObserver`)
 
 ## 12. Checklist For Adding Tags
 
