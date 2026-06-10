@@ -1121,6 +1121,21 @@ body.player-visible #desktopFilterPanel {
   margin-bottom: 4px;
 }
 
+.manual-play-test-notice {
+  position: fixed;
+  right: 1rem;
+  bottom: 5.75rem;
+  z-index: 60;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(31, 63, 122, 0.94);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+  pointer-events: none;
+}
+
 /* ===== TikTok player embed ===== */
 #tiktokPlayer {
   align-items: flex-start;

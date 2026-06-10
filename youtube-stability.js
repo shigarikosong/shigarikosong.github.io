@@ -2,7 +2,7 @@
   let pendingYouTubeVideo = null;
   let retryTimer = null;
 
-  function getYouTubeVideoData(video) {
+  function getYouTubeVideoData(video, options = {}) {
     let videoId = video?.["videoId"];
     const platform = String(video?.["platform"] || "").toLowerCase();
 
@@ -15,7 +15,12 @@
       videoId,
       start: typeof window.parseTimeToSeconds === "function"
         ? window.parseTimeToSeconds(video?.["start"], 0)
-        : parseInt(video?.["start"] || "0", 10)
+        : parseInt(video?.["start"] || "0", 10),
+      autoplay: options.autoplay === true ||
+        (
+          options.autoplay !== false &&
+          !window.isManualPlayTestModeEnabled?.()
+        )
     };
   }
 
@@ -42,10 +47,17 @@
         tryInitYtPlayer();
       }
 
-      if (typeof ytPlayer !== "undefined" && ytPlayer && typeof ytPlayer.loadVideoById === "function") {
-        const { videoId, start } = pendingYouTubeVideo;
+      if (typeof ytPlayer !== "undefined" && ytPlayer) {
+        const { videoId, start, autoplay } = pendingYouTubeVideo;
         pendingYouTubeVideo = null;
-        ytPlayer.loadVideoById({ videoId, startSeconds: start });
+
+        if (!autoplay && typeof ytPlayer.cueVideoById === "function") {
+          ytPlayer.cueVideoById({ videoId, startSeconds: start });
+        } else if (typeof ytPlayer.loadVideoById === "function") {
+          ytPlayer.loadVideoById({ videoId, startSeconds: start });
+        } else if (typeof ytPlayer.cueVideoById === "function") {
+          ytPlayer.cueVideoById({ videoId, startSeconds: start });
+        }
         return;
       }
 
@@ -60,15 +72,15 @@
 
   const originalLoadVideo = loadVideo;
 
-  loadVideo = function (video, item) {
-    const youtubeVideo = getYouTubeVideoData(video);
+  loadVideo = function (video, item, options = {}) {
+    const youtubeVideo = getYouTubeVideoData(video, options);
     if (youtubeVideo) {
       pendingYouTubeVideo = youtubeVideo;
     } else {
       pendingYouTubeVideo = null;
     }
 
-    originalLoadVideo(video, item);
+    originalLoadVideo(video, item, options);
     playWhenReady();
   };
 
