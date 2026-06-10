@@ -45,6 +45,10 @@ function setRandomModeEnabled(on) {
   localStorage.setItem(RANDOM_MODE_KEY, on ? '1' : '0');
 }
 
+function getRepeatAwareLoadVideoOptions() {
+  return getRepeatMode() === REPEAT_MODE_OFF ? { autoplay: false } : {};
+}
+
 function parseTimeToSeconds(value, fallback = null) {
   if (value === null || value === undefined || value === "") return fallback;
   if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
@@ -135,7 +139,7 @@ function playRandomVideoFromCurrentList() {
   const randomVideo = list[Math.floor(Math.random() * list.length)];
   if (!randomVideo) return;
 
-  loadVideo(randomVideo, null);
+  loadVideo(randomVideo, null, getRepeatAwareLoadVideoOptions());
 }
 
 // ===== ランダムキュー =====
@@ -185,7 +189,7 @@ function playPreviousFromHistory() {
 
     isRestoringPlaybackHistory = true;
     try {
-      loadVideo(previousVideo, null);
+      loadVideo(previousVideo, null, getRepeatAwareLoadVideoOptions());
     } finally {
       isRestoringPlaybackHistory = false;
     }
@@ -255,7 +259,7 @@ function playRandomNextVideo(options = {}) {
   }
 
   const nextVideo = randomPlayQueue.shift();
-  if (nextVideo) loadVideo(nextVideo, null);
+  if (nextVideo) loadVideo(nextVideo, null, options.loadVideoOptions || {});
 }
 
 // ===== リピート終了時処理 =====
@@ -1902,7 +1906,7 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
     title.textContent = video["title"];
     title.onclick = e => {
       e.preventDefault();
-      loadVideo(video, item);
+      loadVideo(video, item, getRepeatAwareLoadVideoOptions());
     };
 
     const slash = document.createElement('span');
@@ -2236,7 +2240,7 @@ function updateNowPlaying(video) {
 }
 
 // ===== 動画の再生処理 =====
-function loadVideo(video, item) {
+function loadVideo(video, item, options = {}) {
   resetEndCountdownForVideo(video);
   resetFullVersionPromptForVideo(video);
   const start = video._startSeconds ?? parseTimeToSeconds(video["start"], 0);
@@ -2277,8 +2281,16 @@ function loadVideo(video, item) {
   if (ytApiReady) {
     tryInitYtPlayer();
 
-    if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+    if (
+      options.autoplay === false &&
+      ytPlayer &&
+      typeof ytPlayer.cueVideoById === 'function'
+    ) {
+      ytPlayer.cueVideoById({ videoId, startSeconds: start });
+    } else if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
       ytPlayer.loadVideoById({ videoId, startSeconds: start });
+    } else if (ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
+      ytPlayer.cueVideoById({ videoId, startSeconds: start });
     }
   }
 
@@ -2371,12 +2383,12 @@ function playAdjacentVideo(direction) {
   const currentIndex = list.findIndex(v => getVideoKey(v) === nowPlayingKey);
   const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
   const newIndex = (safeCurrentIndex + direction + list.length) % list.length;
-  loadVideo(list[newIndex], null);
+  loadVideo(list[newIndex], null, getRepeatAwareLoadVideoOptions());
 }
 
 function playNextVideo() {
   if (isRandomModeEnabled()) {
-    playRandomNextVideo();
+    playRandomNextVideo({ loadVideoOptions: getRepeatAwareLoadVideoOptions() });
   } else {
     playAdjacentVideo(1);
   }

@@ -172,6 +172,8 @@ On video end:
 
 TikTok must remain excluded from automatic continuous playback.
 
+When repeat mode is `off`, manual YouTube selection through list titles, previous / next, and manual random playback should cue the selected video without starting playback automatically. The user should start playback with the native YouTube player button. Repeat modes `all` and `one`, plus automatic continuous playback, should keep the existing autoplay behavior.
+
 ## 9.1 `start` / `end` Time Rules
 
 `start` and `end` values in the JSON can use either plain seconds or timestamp text:

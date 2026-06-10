@@ -81,7 +81,8 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 8. Playback
 
-- [ ] 曲名クリックで再生できる。
+- [ ] 曲名クリックで固定プレイヤーが表示される。
+- [ ] Repeat OFF のYouTube曲名クリックでは、動画が表示され、プレイヤー内の再生ボタンを押すまで再生開始しない。
 - [ ] YouTube動画が再生できる。
 - [ ] YouTube の開始秒 `start` が反映される。
 - [ ] TikTok埋め込みが表示される。
@@ -104,9 +105,12 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 除外条件適用後のランダム再生対象が現在の表示リストになっている。
 - [ ] 除外条件適用後、Next / Previous とランダム再生が非表示カードを選ばない。
 - [ ] Next / Previous が現在の表示リストに沿って動く。
+- [ ] Repeat OFF のYouTube Next / Previous は動画を表示するが自動再生しない。
 - [ ] Random ON のPreviousは直前に再生していた曲へ戻る。
 - [ ] Random OFF のNextは順番通りに動く。
 - [ ] Random ON のNextはランダムキューに沿って動く。
+- [ ] Repeat OFF のYouTubeランダム再生は動画を表示するが自動再生しない。
+- [ ] 全曲リピート / 1曲リピート時のYouTube Next / Previous / ランダム再生は従来どおり自動再生する。
 - [ ] Repeat OFF / 1曲リピート / 全曲リピートの表示と動作が大きく崩れていない。
 - [ ] 全曲リピート + Random ON でTikTokが自動連続再生対象から外れる。
 
