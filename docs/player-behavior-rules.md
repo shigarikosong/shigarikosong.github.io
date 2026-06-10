@@ -172,7 +172,9 @@ On video end:
 
 TikTok must remain excluded from automatic continuous playback.
 
-When repeat mode is `off`, manual YouTube selection through list titles, previous / next, and manual random playback should cue the selected video without starting playback automatically. The user should start playback with the native YouTube player button. Repeat modes `all` and `one`, plus automatic continuous playback, should keep the existing autoplay behavior.
+YouTube should autoplay for normal list title selection, previous / next, and manual random playback regardless of repeat mode.
+
+For embed behavior testing, `manualPlayTestMode` can be enabled through `?manualPlay=1` or the hidden `Ctrl + Alt/Option + Shift + M` shortcut. In that mode, manual YouTube selection should cue the selected video without starting playback automatically. The user should start playback with the native YouTube player button. Automatic continuous playback should keep autoplay behavior.
 
 ## 9.1 `start` / `end` Time Rules
 

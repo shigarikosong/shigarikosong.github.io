@@ -16,7 +16,11 @@
       start: typeof window.parseTimeToSeconds === "function"
         ? window.parseTimeToSeconds(video?.["start"], 0)
         : parseInt(video?.["start"] || "0", 10),
-      autoplay: options.autoplay !== false
+      autoplay: options.autoplay === true ||
+        (
+          options.autoplay !== false &&
+          !window.isManualPlayTestModeEnabled?.()
+        )
     };
   }
 
