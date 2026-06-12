@@ -51,10 +51,15 @@ function isManualPlayTestModeEnabled() {
 }
 
 function setManualPlayTestModeEnabled(on) {
-  localStorage.setItem(MANUAL_PLAY_TEST_KEY, on ? '1' : '0');
+  const enabled = Boolean(on);
+  localStorage.setItem(MANUAL_PLAY_TEST_KEY, enabled ? '1' : '0');
+  window.dispatchEvent(new CustomEvent('manualPlayTestModeChange', {
+    detail: { enabled }
+  }));
 }
 
 window.isManualPlayTestModeEnabled = isManualPlayTestModeEnabled;
+window.setManualPlayTestModeEnabled = setManualPlayTestModeEnabled;
 
 function shouldCueYouTubeVideo(options = {}) {
   if (options.autoplay === false) return true;
@@ -151,13 +156,15 @@ function showManualPlayTestModeNotice(enabled) {
   notice.className = 'manual-play-test-notice';
   notice.textContent = enabled
     ? '検証モード: YouTube手動再生'
-    : '検証モード: YouTube自動再生';
+    : '検証モード: YouTube通常再生';
   document.body.appendChild(notice);
 
   window.setTimeout(() => {
     notice.remove();
   }, 2400);
 }
+
+window.showManualPlayTestModeNotice = showManualPlayTestModeNotice;
 
 function applyManualPlayTestModeFromUrl() {
   const manualPlay = new URLSearchParams(location.search).get('manualPlay');

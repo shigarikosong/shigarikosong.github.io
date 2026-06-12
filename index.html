@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=43">
+  <link rel="stylesheet" href="./style.css?v=44">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -117,6 +117,13 @@
 
       <h3>アクセス解析について</h3>
       <p>当サイトでは、より使いやすいサイトにするため、Google Analytics 4を使用しています。取得される情報はアクセス数やサイトの利用状況に関する統計データであり、個人を特定する目的では利用していません。</p>
+
+      <h3>視聴履歴について</h3>
+      <div class="site-info-manual-play">
+        <p>通常の再生でYouTubeの視聴履歴に残らない場合は、手動再生モードもお試しください。手動再生モードをONにすると、動画カードを選んだあと、YouTubeプレイヤー上の再生ボタンから再生できます。</p>
+        <p class="site-info-manual-play__note">※視聴履歴への反映は、YouTube側の仕様や利用環境によって異なる場合があります。</p>
+        <button id="manualPlayToggleButton" type="button" class="site-info-manual-play__button">手動再生モードをONにする</button>
+      </div>
 
       <h3>ご注意</h3>
       <p>このサイトはファンによる非公式サイトです。ANYCOLOR株式会社・にじさんじ公式とは関係ありません。</p>
@@ -393,7 +400,7 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./scroll-utils.js?v=1"></script>
   <script src="./loading-status.js?v=7"></script>
   <script src="./playing-scroll-position.js?v=3"></script>
-  <script src="./script.js?v=42"></script>
+  <script src="./script.js?v=43"></script>
   <script src="./exclusion-style-sync.js?v=1"></script>
   <script src="./waku-name-display.js?v=27"></script>
   <script src="./mobile-filter-modal.js?v=26"></script>
@@ -401,7 +408,7 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./ui-polish.js?v=29"></script>
   <script src="./player-collapse.js?v=29"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
-  <script src="./site-info-modal.js?v=1"></script>
+  <script src="./site-info-modal.js?v=2"></script>
   <script src="./youtube-stability.js?v=26"></script>
 
 </body>

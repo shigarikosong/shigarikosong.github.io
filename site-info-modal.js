@@ -2,6 +2,7 @@
   const openButton = document.getElementById("openSiteInfoModal");
   const modal = document.getElementById("siteInfoModal");
   const panel = modal?.querySelector(".site-info-modal__panel");
+  const manualPlayToggleButton = document.getElementById("manualPlayToggleButton");
   const closeButtons = [
     document.getElementById("closeSiteInfoModal"),
     document.getElementById("closeSiteInfoModalBottom")
@@ -11,6 +12,20 @@
 
   let lastFocusedElement = null;
   let previousBodyOverflow = "";
+
+  function isManualPlayEnabled() {
+    return Boolean(window.isManualPlayTestModeEnabled?.());
+  }
+
+  function updateManualPlayToggleButton() {
+    if (!manualPlayToggleButton) return;
+
+    const enabled = isManualPlayEnabled();
+    manualPlayToggleButton.textContent = enabled
+      ? "手動再生モードをOFFにする"
+      : "手動再生モードをONにする";
+    manualPlayToggleButton.setAttribute("aria-pressed", String(enabled));
+  }
 
   function closeFilterModalIfOpen() {
     const filterModal = document.getElementById("filterModal");
@@ -26,6 +41,7 @@
     document.body.style.overflow = "hidden";
     document.body.classList.add("site-info-modal-open");
     modal.classList.remove("hidden");
+    updateManualPlayToggleButton();
     panel.focus();
   }
 
@@ -47,6 +63,16 @@
   closeButtons.forEach(button => {
     button.addEventListener("click", closeModal);
   });
+
+  manualPlayToggleButton?.addEventListener("click", () => {
+    const enabled = !isManualPlayEnabled();
+    window.setManualPlayTestModeEnabled?.(enabled);
+    window.showManualPlayTestModeNotice?.(enabled);
+    updateManualPlayToggleButton();
+  });
+
+  window.addEventListener("manualPlayTestModeChange", updateManualPlayToggleButton);
+  updateManualPlayToggleButton();
 
   modal.addEventListener("click", event => {
     if (event.target === modal) closeModal();
