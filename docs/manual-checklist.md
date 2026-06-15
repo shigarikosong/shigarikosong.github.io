@@ -32,6 +32,8 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] Format タグで絞り込みできる。
 - [ ] `3D` と `Shorts` がFormat UI上で従来通り動く。
 - [ ] Riko Part / role タグで絞り込みできる。
+- [ ] Riko Partのincludeタグを複数選ぶと、Riko Part内はOR条件で絞り込まれる。
+- [ ] Riko Partのinclude複数選択と他グループの条件を組み合わせると、グループ間はAND条件になる。
 - [ ] Collab タグで絞り込みできる。
 - [ ] Collabのincludeタグを複数選ぶと、Collab内はOR条件で絞り込まれる。
 - [ ] Collabのinclude複数選択と他グループの条件を組み合わせると、グループ間はAND条件になる。
@@ -44,8 +46,10 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 対象タグが `none -> include -> exclude -> none` の順で切り替わる。
 - [ ] `include` と `exclude` が同じタグで同時に有効にならない。
 - [ ] `include` 条件がアクティブタグチップに表示される。
+- [ ] Riko Partのinclude条件を複数選ぶと、アクティブタグチップも複数表示される。
 - [ ] Collabのinclude条件を複数選ぶと、アクティブタグチップも複数表示される。
 - [ ] `exclude` 条件が `- Shorts` のような除外チップで表示される。
+- [ ] Riko Partのexclude条件を複数選ぶと、どれか1つでも含む動画が除外される。
 - [ ] Collabのexclude条件を複数選ぶと、どれか1つでも含む動画が除外される。
 - [ ] アクティブタグチップを押すと、その `include` 条件だけ解除される。
 - [ ] 除外チップを押すと、その `exclude` 条件だけ解除される。

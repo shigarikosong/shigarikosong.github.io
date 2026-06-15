@@ -40,8 +40,23 @@
     return window.selectedCollabTags;
   }
 
+  function getRoleIncludeTags() {
+    if (!(window.selectedRoleTags instanceof Set)) {
+      window.selectedRoleTags = new Set();
+
+      const legacyValue = normalizeValue("role", window.selectedRoleTag);
+      if (legacyValue) window.selectedRoleTags.add(legacyValue);
+    }
+
+    return window.selectedRoleTags;
+  }
+
   function syncLegacySelectedCollabTag() {
     window.selectedCollabTag = [...getCollabIncludeTags()][0] || "";
+  }
+
+  function syncLegacySelectedRoleTag() {
+    window.selectedRoleTag = [...getRoleIncludeTags()][0] || "";
   }
 
   function getExcludeState() {
@@ -77,8 +92,9 @@
       window.selectedPlatformTag = "";
     } else if (normalizedGroup === "date" && window.selectedDateTag === normalizedValue) {
       window.selectedDateTag = "";
-    } else if (normalizedGroup === "role" && window.selectedRoleTag === normalizedValue) {
-      window.selectedRoleTag = "";
+    } else if (normalizedGroup === "role") {
+      getRoleIncludeTags().delete(normalizedValue);
+      syncLegacySelectedRoleTag();
     } else if (normalizedGroup === "collab") {
       getCollabIncludeTags().delete(normalizedValue);
       syncLegacySelectedCollabTag();
@@ -104,7 +120,8 @@
     } else if (normalizedGroup === "date") {
       window.selectedDateTag = normalizedValue;
     } else if (normalizedGroup === "role") {
-      window.selectedRoleTag = normalizedValue;
+      getRoleIncludeTags().add(normalizedValue);
+      syncLegacySelectedRoleTag();
     } else if (normalizedGroup === "collab") {
       getCollabIncludeTags().add(normalizedValue);
       syncLegacySelectedCollabTag();
@@ -143,7 +160,7 @@
         platform: window.selectedPlatformTag || "",
         date: window.selectedDateTag || "",
         format: [...getVideoTypeTags()],
-        role: window.selectedRoleTag || "",
+        role: [...getRoleIncludeTags()],
         collab: [...getCollabIncludeTags()],
         flag: [
           window.selected3DTag === "include" ? "3D" : "",
@@ -161,7 +178,17 @@
     if (Object.prototype.hasOwnProperty.call(include, "category")) window.selectedCategoryTag = include.category || "";
     if (Object.prototype.hasOwnProperty.call(include, "platform")) window.selectedPlatformTag = include.platform || "";
     if (Object.prototype.hasOwnProperty.call(include, "date")) window.selectedDateTag = include.date || "";
-    if (Object.prototype.hasOwnProperty.call(include, "role")) window.selectedRoleTag = include.role || "";
+    if (Object.prototype.hasOwnProperty.call(include, "role")) {
+      const roleValues = Array.isArray(include.role)
+        ? include.role
+        : [include.role].filter(Boolean);
+      window.selectedRoleTags = new Set(
+        roleValues
+          .map(value => normalizeValue("role", value))
+          .filter(Boolean)
+      );
+      syncLegacySelectedRoleTag();
+    }
     if (Object.prototype.hasOwnProperty.call(include, "collab")) {
       const collabValues = Array.isArray(include.collab)
         ? include.collab
@@ -207,7 +234,7 @@
         platform: "",
         date: "",
         format: [],
-        role: "",
+        role: [],
         collab: [],
         flag: []
       }
@@ -227,7 +254,7 @@
     if (normalizedGroup === "category") return state.category === normalizedValue;
     if (normalizedGroup === "platform") return state.platform === normalizedValue;
     if (normalizedGroup === "date") return state.date === normalizedValue;
-    if (normalizedGroup === "role") return state.role === normalizedValue;
+    if (normalizedGroup === "role") return state.role.includes(normalizedValue);
     if (normalizedGroup === "collab") return state.collab.includes(normalizedValue);
     if (isFlagValue(normalizedGroup, normalizedValue)) return state.flag.includes(normalizedValue);
     if (normalizedGroup === "format") return state.format.includes(normalizedValue);
@@ -311,7 +338,7 @@
 
     addChip("include", "category", include.category);
     include.collab.forEach(value => addChip("include", "collab", value));
-    addChip("include", "role", include.role);
+    include.role.forEach(value => addChip("include", "role", value));
     addChip("include", "platform", include.platform, "platform");
     addChip("include", "date", include.date, "date");
     include.flag.forEach(value => addChip("include", "format", value, "flag"));
