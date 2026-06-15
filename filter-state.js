@@ -32,10 +32,9 @@
   function getCollabIncludeTags() {
     if (!(window.selectedCollabTags instanceof Set)) {
       window.selectedCollabTags = new Set();
-    }
 
-    if (window.selectedCollabTag && window.selectedCollabTags.size === 0) {
-      window.selectedCollabTags.add(String(window.selectedCollabTag).trim());
+      const legacyValue = normalizeValue("collab", window.selectedCollabTag);
+      if (legacyValue) window.selectedCollabTags.add(legacyValue);
     }
 
     return window.selectedCollabTags;
