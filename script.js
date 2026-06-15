@@ -795,6 +795,7 @@ document.getElementById('modalSortOrder').value = "desc";
     var selectedCollabTag = "";
     var selectedCollabTags = new Set();
     var selectedRoleTag = "";
+    var selectedRoleTags = new Set();
     var selectedPlatformTag = "";
     var selected3DTag = null;
     var selectedShortsTag = null;
@@ -1840,7 +1841,10 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
       filterState.include.collab.length === 0 ||
       filterState.include.collab.some(tag => video._collabTags.includes(tag))
     ) &&
-    (!filterState.include.role || video._roles.includes(filterState.include.role)) &&
+    (
+      filterState.include.role.length === 0 ||
+      filterState.include.role.some(tag => video._roles.includes(tag))
+    ) &&
     (!filterState.include.platform || video._platform === filterState.include.platform) &&
     window.DATE_UTILS.getDateFilterMatch(filterState.include.date, video._time, now) &&
   (

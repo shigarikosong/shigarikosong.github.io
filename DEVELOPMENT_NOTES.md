@@ -55,7 +55,7 @@
 - `selectedCategoryTag`
 - `selectedDateTag`
 - `selectedCollabTags`（Collab includeの実体。`selectedCollabTag` は互換用）
-- `selectedRoleTag`
+- `selectedRoleTags`（Riko Part includeの実体。`selectedRoleTag` は互換用）
 - `selectedPlatformTag`
 - `selected3DTag`
 - `selectedShortsTag`

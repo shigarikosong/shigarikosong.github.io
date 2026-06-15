@@ -169,6 +169,20 @@ Date labels are defined in `tag-config.js`. Date parsing and Time filter matchin
 
 `3D` and `Shorts` are flags, but they can also appear through the Format UI. Handle them carefully when changing Format or flag behavior.
 
+Riko Part / role include conditions can contain multiple values. When multiple Riko Part tags are included, they are matched as OR within the role group. Other tag groups still combine with role as AND.
+
+Example:
+
+```text
+Format: 歌枠
+Riko Part: VOCAL
+Riko Part: DANCE
+
+=> 歌枠 AND (VOCAL OR DANCE)
+```
+
+Riko Part exclude conditions remain independent per tag. If any excluded Riko Part tag is present on a video, that video should be excluded.
+
 Collab values combine both columns into the `collab` group:
 
 - `コラボライバー`
