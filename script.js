@@ -793,6 +793,7 @@ document.getElementById('modalSortOrder').value = "desc";
     var selectedCategoryTag = "";
     var selectedDateTag = "";
     var selectedCollabTag = "";
+    var selectedCollabTags = new Set();
     var selectedRoleTag = "";
     var selectedPlatformTag = "";
     var selected3DTag = null;
@@ -1835,7 +1836,10 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
     
 // フィルタ条件
     (!filterState.include.category || video["カテゴリ"] === filterState.include.category) &&
-    (!filterState.include.collab || video._collabTags.includes(filterState.include.collab)) &&
+    (
+      filterState.include.collab.length === 0 ||
+      filterState.include.collab.some(tag => video._collabTags.includes(tag))
+    ) &&
     (!filterState.include.role || video._roles.includes(filterState.include.role)) &&
     (!filterState.include.platform || video._platform === filterState.include.platform) &&
     window.DATE_UTILS.getDateFilterMatch(filterState.include.date, video._time, now) &&

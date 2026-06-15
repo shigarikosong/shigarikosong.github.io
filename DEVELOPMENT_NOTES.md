@@ -54,7 +54,7 @@
 - `loadVideo`
 - `selectedCategoryTag`
 - `selectedDateTag`
-- `selectedCollabTag`
+- `selectedCollabTags`（Collab includeの実体。`selectedCollabTag` は互換用）
 - `selectedRoleTag`
 - `selectedPlatformTag`
 - `selected3DTag`
