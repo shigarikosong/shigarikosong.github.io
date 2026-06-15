@@ -1097,12 +1097,18 @@ function parseSearchQuery(query) {
   const groups = [[]];
 
   tokens.forEach(token => {
+    const operator = token.toUpperCase();
+
     if (token.startsWith("-") && token.length > 1) {
       excludeTerms.push(token.slice(1).toLowerCase());
       return;
     }
 
-    if (token === "OR") {
+    if (operator === "AND") {
+      return;
+    }
+
+    if (operator === "OR") {
       if (groups[groups.length - 1].length) groups.push([]);
       return;
     }
