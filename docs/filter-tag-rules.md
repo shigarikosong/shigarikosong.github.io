@@ -174,6 +174,20 @@ Collab values combine both columns into the `collab` group:
 - `コラボライバー`
 - `コラボユニット`
 
+Collab include conditions can contain multiple values. When multiple Collab tags are included, they are matched as OR within the Collab group. Other tag groups still combine with Collab as AND.
+
+Example:
+
+```text
+Format: 歌枠
+Collab: 倉持めると
+Collab: 石神のぞみ
+
+=> 歌枠 AND (倉持めると OR 石神のぞみ)
+```
+
+Collab exclude conditions remain independent per tag. If any excluded Collab tag is present on a video, that video should be excluded.
+
 Video list Collab tags should prefer the same collab tag definition order as the filter UI. Tags missing from the definition should stay after known tags while preserving their local order as much as possible.
 
 ## 9. Random And Continuous Playback
