@@ -1119,7 +1119,10 @@ body.player-visible #desktopFilterPanel {
 
 .full-version-prompt-button {
   min-height: 28px;
+  max-width: min(44vw, 220px);
   padding: 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .end-countdown-next:hover,
@@ -1162,6 +1165,7 @@ body.player-visible #desktopFilterPanel {
   .end-countdown-keep,
   .full-version-prompt-button {
     min-height: 30px;
+    max-width: calc(100vw - 132px);
     padding: 0 8px;
   }
 }

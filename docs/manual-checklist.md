@@ -103,12 +103,14 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 再生中カードが非表示になる場合、filtered-out noticeが表示される。
 - [ ] プレイヤーを閉じると再生中表示が解除される。
 - [ ] プレイヤーの開閉・収納・高さ変更が壊れていない。
-- [ ] `full_number` が空欄、または誘導先 `number` が存在しない行では「フル版を再生」ボタンが表示されない。
-- [ ] `full_number` の誘導先が存在するYouTube行では、終了10秒前に「フル版を再生」ボタンが表示される。
-- [ ] `full_number` の誘導先が存在するTikTok行では、再生中に「フル版を再生」ボタンが表示される。
-- [ ] 「フル版を再生」を押すと、誘導先行の `start` / `end` を使って再生される。
+- [ ] `full_number` が空欄、または誘導先 `number` が存在しない行ではFull ver.誘導ボタンが表示されない。
+- [ ] `full_number` の誘導先が存在するYouTube行では、終了10秒前にFull ver.誘導ボタンが表示される。
+- [ ] `full_number` の誘導先が存在するTikTok行では、再生中にFull ver.誘導ボタンが表示される。
+- [ ] `full_button_text` がある行では、その文言がFull ver.誘導ボタンに表示される。
+- [ ] `full_button_text` が空欄の行では、`Full ver. を再生` が表示される。
+- [ ] Full ver.誘導ボタンを押すと、誘導先行の `start` / `end` を使って再生される。
 - [ ] 誘導先が現在の絞り込みリスト外の場合、filtered-out notice付近へ移動する。
-- [ ] 再生動画切替・プレイヤー終了時に「フル版を再生」ボタンが消える。
+- [ ] 再生動画切替・プレイヤー終了時にFull ver.誘導ボタンが消える。
 
 ## 9. Random / Previous / Next / Repeat
 

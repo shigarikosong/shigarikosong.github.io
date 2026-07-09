@@ -205,6 +205,7 @@ let fullVersionPromptVideoKey = null;
 const END_OVERRUN_GRACE_SECONDS = 10;
 const END_SEEK_JUMP_THRESHOLD_SECONDS = 2.5;
 const FULL_VERSION_PROMPT_SECONDS = 10;
+const DEFAULT_FULL_VERSION_PROMPT_TEXT = "Full ver. を再生";
 
 function resetRandomPlayQueue() {
   randomPlayQueue = [];
@@ -550,6 +551,10 @@ function getFullVersionTargetVideo(video) {
   return allVideos.find(candidate => candidate._number && candidate._number === video._fullNumber) || null;
 }
 
+function getFullVersionPromptText(video) {
+  return video?._fullButtonText || DEFAULT_FULL_VERSION_PROMPT_TEXT;
+}
+
 function getPlayerWindowActions() {
   let actions = document.querySelector(".player-window-actions");
   if (actions) return actions;
@@ -578,7 +583,7 @@ function getFullVersionPromptUi() {
   button.id = "fullVersionPromptButton";
   button.type = "button";
   button.className = "full-version-prompt-button";
-  button.textContent = "フル版を再生";
+  button.textContent = DEFAULT_FULL_VERSION_PROMPT_TEXT;
   button.addEventListener("click", playFullVersionFromPrompt);
 
   wrapper.append(button);
@@ -608,8 +613,11 @@ function showFullVersionPromptUi(video) {
   const button = document.getElementById("fullVersionPromptButton");
   if (!wrapper || !button) return;
 
-  button.title = `${targetVideo["title"]} - ${targetVideo["artist"]}`;
-  button.setAttribute("aria-label", `フル版を再生: ${targetVideo["title"]} - ${targetVideo["artist"]}`);
+  const buttonText = getFullVersionPromptText(video);
+  const targetLabel = `${targetVideo["title"]} - ${targetVideo["artist"]}`;
+  button.textContent = buttonText;
+  button.title = `${buttonText}: ${targetLabel}`;
+  button.setAttribute("aria-label", `${buttonText}: ${targetLabel}`);
   wrapper.classList.remove("hidden");
 }
 
@@ -821,6 +829,7 @@ function normalizeVideos(data) {
     const platform = String(video["platform"] || "").trim().toLowerCase();
     const number = normalizeVideoNumber(video["number"]);
     const fullNumber = normalizeVideoNumber(video["full_number"]);
+    const fullButtonText = String(video["full_button_text"] ?? "").trim();
     const startSeconds = parseTimeToSeconds(video["start"], 0);
     const parsedEndSeconds = parseTimeToSeconds(video["end"], null);
     const endSeconds = parsedEndSeconds !== null && parsedEndSeconds > startSeconds
@@ -835,6 +844,7 @@ function normalizeVideos(data) {
     video._platform = platform;
     video._number = number;
     video._fullNumber = fullNumber;
+    video._fullButtonText = fullButtonText;
     video._is3D = video["3D"] === "TRUE";
     video._isShorts = video["Shorts"] === "TRUE";
     video._startSeconds = startSeconds;
