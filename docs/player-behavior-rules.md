@@ -215,6 +215,8 @@ Treat `full_number` as the explicit flag for showing the prompt. Only put `full_
 
 Normalize spreadsheet / JSON `number` and `full_number` as trimmed strings, exposed internally as `_number` and `_fullNumber`.
 
+`full_button_text` can override the prompt button label on the source row. Normalize it as trimmed text and expose it internally as `_fullButtonText`. If it is empty, use `Full ver. を再生`.
+
 A video is eligible only when:
 
 - `_fullNumber` is not empty.
