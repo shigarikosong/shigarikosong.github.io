@@ -2105,7 +2105,7 @@ if (
   video._isShorts
 ) {
   roleTagRow = document.createElement('div');
-  roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+  roleTagRow.className = 'video-card-tag-row flex flex-wrap gap-1.5';
 
   if (category) {
     roleTagRow.appendChild(createListTagElement(
@@ -2198,7 +2198,7 @@ let tagRow = null;
 
 if (collabLivers.length || collabUnits.length) {
   tagRow = document.createElement('div');
-  tagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+  tagRow.className = 'video-card-tag-row video-card-collab-row flex flex-wrap gap-1.5';
 
   collabLivers.forEach(name => {
     const tag = document.createElement('button');
@@ -2239,11 +2239,11 @@ if (collabLivers.length || collabUnits.length) {
 
 content.appendChild(topRow);
 content.appendChild(metaRow);
-if (roleTagRow) content.appendChild(roleTagRow);
-if (tagRow) content.appendChild(tagRow);
 
 item.appendChild(playButton);
 item.appendChild(content);
+if (roleTagRow) item.appendChild(roleTagRow);
+if (tagRow) item.appendChild(tagRow);
 
 videoList.appendChild(item);
       });

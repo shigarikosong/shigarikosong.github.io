@@ -273,8 +273,11 @@
 
       if (!collabLivers.length || !collabUnits.length) return;
 
-      const cardContent = card.querySelector(".video-card-content") || card;
-      const rows = [...cardContent.children];
+      const cardContent = card.querySelector(".video-card-content");
+      const rows = [
+        ...(cardContent ? [...cardContent.children] : []),
+        ...[...card.children]
+      ];
       const collabRow = rows
         .slice()
         .reverse()

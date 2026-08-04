@@ -74,7 +74,8 @@ body {
 .video-card {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
-  gap: 0.65rem;
+  column-gap: 0.65rem;
+  row-gap: 0.45rem;
   align-items: start;
 }
 
@@ -122,6 +123,11 @@ body {
   white-space: nowrap;
 }
 
+.video-card-tag-row {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
 .meta-row {
   display: flex;
   flex-wrap: wrap;
@@ -158,8 +164,12 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
   color: #1e40af;
+  text-decoration-line: underline;
+  text-decoration-color: rgba(37, 99, 235, 0.3);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
 }
 
 .video-artist {
@@ -169,6 +179,11 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #374151;
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-color: rgba(55, 65, 81, 0.28);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
 }
 
 .video-search-action {
@@ -182,7 +197,7 @@ body {
 }
 
 .video-search-action:hover {
-  text-decoration: underline;
+  text-decoration-color: currentColor;
   text-underline-offset: 0.16em;
 }
 
