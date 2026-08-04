@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=45">
+  <link rel="stylesheet" href="./style.css?v=47">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -157,8 +157,11 @@ YouTube / TikTok の動画を掲載しています。
 
     <div class="hidden sm:block max-w-5xl mx-auto">
       <div class="flex flex-wrap md:flex-nowrap items-center gap-3">
-        <input id="searchInput" type="text" placeholder="曲名・アーティスト・タグ（AND / OR / -除外）"
-          class="min-w-0 basis-full md:basis-auto md:flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm focus:ring-blue-300 transition duration-200">
+        <div class="desktop-search-control min-w-0 basis-full md:basis-auto md:flex-1">
+          <input id="searchInput" type="text" placeholder="曲名・アーティスト・タグ（AND / OR / -除外）"
+            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:ring-blue-300 transition duration-200">
+          <button id="clearSearchInput" type="button" class="desktop-search-clear hidden" aria-label="検索語をクリア">×</button>
+        </div>
         <button id="desktopToggleFilters" type="button" aria-controls="desktopFilterPanel" aria-expanded="false"
           class="shrink-0 bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">
           絞り込み
@@ -400,12 +403,12 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./scroll-utils.js?v=1"></script>
   <script src="./loading-status.js?v=7"></script>
   <script src="./playing-scroll-position.js?v=3"></script>
-  <script src="./script.js?v=47"></script>
+  <script src="./script.js?v=48"></script>
   <script src="./exclusion-style-sync.js?v=1"></script>
   <script src="./waku-name-display.js?v=27"></script>
   <script src="./mobile-filter-modal.js?v=26"></script>
   <script src="./desktop-filter-panel.js?v=28"></script>
-  <script src="./ui-polish.js?v=29"></script>
+  <script src="./ui-polish.js?v=30"></script>
   <script src="./player-collapse.js?v=29"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
   <script src="./site-info-modal.js?v=2"></script>

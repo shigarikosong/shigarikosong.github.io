@@ -38,6 +38,7 @@
 - `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
 - ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
 - リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
+- 動画カード内の再生は左側の再生ボタンが担当する。曲名・アーティスト名は検索語の置き換えに使う
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
 - モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
 - `exclusion-style-sync.js` はタグクリックやリセットを横取りしない。除外スタイル同期だけを行う
