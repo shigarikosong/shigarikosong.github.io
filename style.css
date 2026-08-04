@@ -192,8 +192,18 @@ body {
   border-radius: 0.25rem;
   background: transparent;
   font: inherit;
+  overflow: hidden;
   padding: 0;
+  text-align: left;
   cursor: pointer;
+}
+
+.video-search-action-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .video-search-action:hover {
@@ -204,6 +214,43 @@ body {
 .video-search-action:focus-visible {
   outline: 2px solid rgba(37, 99, 235, 0.45);
   outline-offset: 2px;
+}
+
+.video-search-action.is-overflowing:hover .video-search-action-text,
+.video-search-action.is-overflowing:focus-visible .video-search-action-text {
+  max-width: none;
+  text-overflow: clip;
+  width: max-content;
+  animation: video-search-action-scroll var(--search-scroll-duration, 4s) ease-in-out 0.65s infinite alternate;
+}
+
+@keyframes video-search-action-scroll {
+  0%,
+  28% {
+    transform: translateX(0);
+  }
+
+  72%,
+  100% {
+    transform: translateX(calc(-1 * var(--search-scroll-distance, 0px)));
+  }
+}
+
+@media (max-width: 639px) {
+  .video-search-action.is-overflowing .video-search-action-text {
+    max-width: none;
+    text-overflow: clip;
+    width: max-content;
+    animation: video-search-action-scroll calc(var(--search-scroll-duration, 4s) + 5s) ease-in-out 1.2s infinite alternate;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-search-action.is-overflowing:hover .video-search-action-text,
+  .video-search-action.is-overflowing:focus-visible .video-search-action-text,
+  .video-search-action.is-overflowing .video-search-action-text {
+    animation: none;
+  }
 }
 
 .video-title-separator {

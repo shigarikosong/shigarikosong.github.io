@@ -2051,9 +2051,12 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
     const title = document.createElement('button');
     title.type = 'button';
     title.className = 'video-title video-search-action';
-    title.textContent = video["title"];
     title.title = video["title"] || "";
     title.setAttribute('aria-label', `曲名「${video["title"]}」で検索`);
+    const titleText = document.createElement('span');
+    titleText.className = 'video-search-action-text';
+    titleText.textContent = video["title"];
+    title.appendChild(titleText);
     title.addEventListener('click', () => {
       applySearchQuery(video["title"], { sourceVideoKey: key });
     });
@@ -2068,9 +2071,12 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
       const artist = document.createElement('button');
       artist.type = 'button';
       artist.className = 'video-artist video-search-action';
-      artist.textContent = video["artist"];
       artist.title = video["artist"];
       artist.setAttribute('aria-label', `アーティスト「${video["artist"]}」で検索`);
+      const artistText = document.createElement('span');
+      artistText.className = 'video-search-action-text';
+      artistText.textContent = video["artist"];
+      artist.appendChild(artistText);
       artist.addEventListener('click', () => {
         applySearchQuery(video["artist"], { sourceVideoKey: key });
       });
@@ -2248,8 +2254,33 @@ if (tagRow) item.appendChild(tagRow);
 videoList.appendChild(item);
       });
 
+  updateVideoSearchActionOverflow();
   window.dispatchEvent(new CustomEvent("videoListRendered"));
 }
+
+function updateVideoSearchActionOverflow() {
+  document.querySelectorAll('.video-search-action').forEach(button => {
+    const text = button.querySelector('.video-search-action-text');
+    if (!text) return;
+
+    button.classList.remove('is-overflowing');
+    button.style.removeProperty('--search-scroll-distance');
+    button.style.removeProperty('--search-scroll-duration');
+
+    const overflow = text.scrollWidth - button.clientWidth;
+    if (overflow <= 1) return;
+
+    button.classList.add('is-overflowing');
+    button.style.setProperty('--search-scroll-distance', `${overflow + 12}px`);
+    button.style.setProperty('--search-scroll-duration', `${Math.min(Math.max((overflow + 12) / 24, 2.8), 8)}s`);
+  });
+}
+
+let videoSearchActionOverflowResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(videoSearchActionOverflowResizeTimer);
+  videoSearchActionOverflowResizeTimer = setTimeout(updateVideoSearchActionOverflow, 200);
+});
 
 window.addEventListener("collabTagOrderReady", () => {
   if (!Array.isArray(currentFilteredVideos) || !currentFilteredVideos.length) return;
