@@ -907,6 +907,43 @@ function clearDateTag(options = {}) {
   applyFilters({ scrollAfterUpdate });
 }
 
+function getSearchInputs() {
+  return [
+    document.getElementById('searchInput'),
+    document.getElementById('modalSearchInput')
+  ].filter(Boolean);
+}
+
+function getSearchQuery() {
+  return searchInput?.value || "";
+}
+
+function syncSearchInputs(value) {
+  getSearchInputs().forEach(input => {
+    input.value = value;
+  });
+}
+
+function updateSearchClearUi() {
+  const hasSearch = Boolean(getSearchQuery().trim());
+  document.getElementById('clearSearchInput')?.classList.toggle('hidden', !hasSearch);
+}
+
+function clearSearchQuery(options = {}) {
+  const { scrollAfterUpdate = true } = options;
+  syncSearchInputs("");
+  updateSearchClearUi();
+  applyFilters({ scrollAfterUpdate });
+}
+
+function applySearchQuery(value, options = {}) {
+  const { sourceVideoKey = null, scrollAfterUpdate = true } = options;
+  syncSearchInputs(String(value || "").trim());
+  pendingListTagScrollVideoKey = sourceVideoKey;
+  updateSearchClearUi();
+  applyFilters({ scrollAfterUpdate });
+}
+
     function updateActiveTagChipsPosition() {
   if (!filterSection || !activeTagChips) return;
 
@@ -921,8 +958,9 @@ function clearDateTag(options = {}) {
   activeTagChipsInner.innerHTML = '';
 
   const activeTags = window.FilterState.getActiveChips();
+  const searchQuery = getSearchQuery().trim();
 
-  if (activeTags.length === 0) {
+  if (activeTags.length === 0 && !searchQuery) {
   activeTagChips.classList.add('hidden');
   updateActiveTagChipsPosition();
   return;
@@ -930,6 +968,20 @@ function clearDateTag(options = {}) {
 
 activeTagChips.classList.remove('hidden');
 updateActiveTagChipsPosition();
+
+if (searchQuery) {
+    const searchChip = document.createElement('button');
+    searchChip.type = 'button';
+    searchChip.className = 'search-active-chip';
+    searchChip.title = searchQuery;
+    searchChip.setAttribute('aria-label', `検索語「${searchQuery}」をクリア`);
+    searchChip.innerHTML = `<span class="search-active-chip__label">検索：</span><span class="search-active-chip__text"></span><span class="search-active-chip__close" aria-hidden="true">×</span>`;
+    searchChip.querySelector('.search-active-chip__text').textContent = searchQuery;
+    searchChip.addEventListener('click', () => {
+      clearSearchQuery();
+    });
+    activeTagChipsInner.appendChild(searchChip);
+  }
 
 activeTags.forEach(tagData => {
     const chip = document.createElement('button');
@@ -1603,6 +1655,11 @@ if (mobileRandomPlayButton) {
   el.addEventListener('input', applyFilters);
 });
 
+document.getElementById('clearSearchInput')?.addEventListener('click', () => {
+  clearSearchQuery();
+  searchInput?.focus();
+});
+
 
      // リセットボタン
   resetButton.addEventListener('click', () => {
@@ -1846,6 +1903,7 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
         const listTagScrollVideoKey = pendingListTagScrollVideoKey;
         pendingListTagScrollVideoKey = null;
         const searchQuery = searchInput.value;
+        updateSearchClearUi();
         const now = new Date();
         const filterState = window.FilterState.getState();
         let filtered = allVideos.filter(video => {
@@ -1961,7 +2019,7 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
 
   videos.forEach(video => {
     const item = document.createElement('div');
-    item.className = 'p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700 space-y-1';
+    item.className = 'video-card p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700';
 
     const key = getVideoKey(video);
     item.dataset.videoKey = key;
@@ -1970,30 +2028,56 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
       item.classList.add('playing');
     }
 
+    const playButton = document.createElement('button');
+    playButton.type = 'button';
+    playButton.className = 'video-card-play-button';
+    playButton.setAttribute('aria-label', `${video["title"] || "この動画"}を再生`);
+    playButton.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8 5.5v13l10-6.5-10-6.5z"></path>
+      </svg>
+    `;
+    playButton.addEventListener('click', () => {
+      loadVideo(video, item);
+    });
+
+    const content = document.createElement('div');
+    content.className = 'video-card-content';
     
     // 1行目：タイトル / アーティスト
     const topRow = document.createElement('div');
     topRow.className = 'video-item-row';
 
-    const title = document.createElement('a');
-    title.href = "#";
-    title.className = 'video-title hover:underline';
+    const title = document.createElement('button');
+    title.type = 'button';
+    title.className = 'video-title video-search-action';
     title.textContent = video["title"];
-    title.onclick = e => {
-      e.preventDefault();
-      loadVideo(video, item);
-    };
-
-    const slash = document.createElement('span');
-    slash.textContent = ' / ';
-
-    const artist = document.createElement('span');
-    artist.className = 'video-artist';
-    artist.textContent = video["artist"];
+    title.title = video["title"] || "";
+    title.setAttribute('aria-label', `曲名「${video["title"]}」で検索`);
+    title.addEventListener('click', () => {
+      applySearchQuery(video["title"], { sourceVideoKey: key });
+    });
 
     topRow.appendChild(title);
-    topRow.appendChild(slash);
-    topRow.appendChild(artist);
+
+    if (video["artist"]) {
+      const slash = document.createElement('span');
+      slash.className = 'video-title-separator';
+      slash.textContent = ' / ';
+
+      const artist = document.createElement('button');
+      artist.type = 'button';
+      artist.className = 'video-artist video-search-action';
+      artist.textContent = video["artist"];
+      artist.title = video["artist"];
+      artist.setAttribute('aria-label', `アーティスト「${video["artist"]}」で検索`);
+      artist.addEventListener('click', () => {
+        applySearchQuery(video["artist"], { sourceVideoKey: key });
+      });
+
+      topRow.appendChild(slash);
+      topRow.appendChild(artist);
+    }
 
     // 2行目：詳細情報
     const metaRow = document.createElement('div');
@@ -2153,10 +2237,13 @@ if (collabLivers.length || collabUnits.length) {
   });
 }
 
-item.appendChild(topRow);
-item.appendChild(metaRow);
-if (roleTagRow) item.appendChild(roleTagRow);
-if (tagRow) item.appendChild(tagRow);
+content.appendChild(topRow);
+content.appendChild(metaRow);
+if (roleTagRow) content.appendChild(roleTagRow);
+if (tagRow) content.appendChild(tagRow);
+
+item.appendChild(playButton);
+item.appendChild(content);
 
 videoList.appendChild(item);
       });
