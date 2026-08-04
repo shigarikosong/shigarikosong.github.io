@@ -273,8 +273,12 @@
 
       if (!collabLivers.length || !collabUnits.length) return;
 
-      const rows = [...card.children];
-      const collabRow = rows[rows.length - 1];
+      const cardContent = card.querySelector(".video-card-content") || card;
+      const rows = [...cardContent.children];
+      const collabRow = rows
+        .slice()
+        .reverse()
+        .find(row => row.querySelector('button[data-filter-group="collab"][data-filter-value]'));
       if (!collabRow || !collabRow.querySelector("button")) return;
 
       const memberButtons = collabLivers

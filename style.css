@@ -73,9 +73,9 @@ body {
 
 .video-card {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 0.75rem;
-  align-items: stretch;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
 }
 
 .video-card-content {
@@ -85,11 +85,13 @@ body {
 .video-card-play-button {
   display: grid;
   place-items: center;
-  align-self: stretch;
-  min-width: 48px;
-  min-height: 48px;
+  align-self: start;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid rgba(37, 99, 235, 0.26);
-  border-radius: 0.75rem;
+  border-radius: 0.7rem;
   background: rgba(255, 255, 255, 0.72);
   color: #1d4ed8;
   cursor: pointer;
@@ -97,8 +99,8 @@ body {
 }
 
 .video-card-play-button svg {
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.2rem;
+  height: 1.2rem;
   fill: currentColor;
 }
 
@@ -112,6 +114,12 @@ body {
 
 .video-card-play-button:active {
   transform: scale(0.97);
+}
+
+.collab-member-toggle {
+  flex: 0 0 auto;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 .meta-row {
