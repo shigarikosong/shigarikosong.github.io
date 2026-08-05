@@ -2259,6 +2259,8 @@ videoList.appendChild(item);
 }
 
 function updateVideoSearchActionOverflow() {
+  updateVideoTitleArtistWidths();
+
   document.querySelectorAll('.video-search-action').forEach(button => {
     const text = button.querySelector('.video-search-action-text');
     if (!text) return;
@@ -2273,6 +2275,55 @@ function updateVideoSearchActionOverflow() {
     button.classList.add('is-overflowing');
     button.style.setProperty('--search-scroll-distance', `${overflow + 12}px`);
     button.style.setProperty('--search-scroll-duration', `${Math.min(Math.max((overflow + 12) / 24, 2.8), 8)}s`);
+  });
+}
+
+function updateVideoTitleArtistWidths() {
+  document.querySelectorAll('.video-item-row').forEach(row => {
+    const title = row.querySelector('.video-title');
+    const artist = row.querySelector('.video-artist');
+    if (!title) return;
+
+    const titleText = title.querySelector('.video-search-action-text');
+    const artistText = artist?.querySelector('.video-search-action-text');
+    [title, artist].filter(Boolean).forEach(element => {
+      element.style.removeProperty('flex');
+      element.style.removeProperty('width');
+    });
+
+    if (!artist || !titleText || !artistText) return;
+
+    const separator = row.querySelector('.video-title-separator');
+    const rowStyle = window.getComputedStyle(row);
+    const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
+    const reservedWidth = (separator?.offsetWidth || 0) + (gap * 2);
+    const availableWidth = Math.max(row.clientWidth - reservedWidth, 0);
+    const titleWidth = titleText.scrollWidth;
+    const artistWidth = artistText.scrollWidth;
+
+    if (titleWidth + artistWidth <= availableWidth) {
+      title.style.flex = `0 0 ${titleWidth}px`;
+      artist.style.flex = `0 0 ${artistWidth}px`;
+      return;
+    }
+
+    const minTitleWidth = Math.min(titleWidth, Math.max(availableWidth * 0.35, 72));
+    const minArtistWidth = Math.min(artistWidth, Math.max(availableWidth * 0.28, 72));
+
+    if (titleWidth <= availableWidth - minArtistWidth) {
+      title.style.flex = `0 0 ${titleWidth}px`;
+      artist.style.flex = `0 1 ${Math.max(availableWidth - titleWidth, minArtistWidth)}px`;
+      return;
+    }
+
+    if (artistWidth <= availableWidth - minTitleWidth) {
+      title.style.flex = `0 1 ${Math.max(availableWidth - artistWidth, minTitleWidth)}px`;
+      artist.style.flex = `0 0 ${artistWidth}px`;
+      return;
+    }
+
+    title.style.flex = `0 1 ${Math.max(availableWidth * 0.6, minTitleWidth)}px`;
+    artist.style.flex = `0 1 ${Math.max(availableWidth * 0.4, minArtistWidth)}px`;
   });
 }
 
