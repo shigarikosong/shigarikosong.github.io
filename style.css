@@ -160,7 +160,6 @@ body {
 .video-title {
   flex: 0 1 auto;
   min-width: 0;
-  max-width: min(65%, 34rem);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -176,7 +175,6 @@ body {
 .video-artist {
   flex: 0 1 auto;
   min-width: 0;
-  max-width: min(40%, 24rem);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -263,16 +261,6 @@ body {
 .video-title-separator {
   flex: 0 0 auto;
   color: #6b7280;
-}
-
-@media (max-width: 639px) {
-  .video-title {
-    max-width: 58%;
-  }
-
-  .video-artist {
-    max-width: 38%;
-  }
 }
 
 .video-meta {
