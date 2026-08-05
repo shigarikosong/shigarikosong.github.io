@@ -2279,6 +2279,8 @@ function updateVideoSearchActionOverflow() {
 }
 
 function updateVideoTitleArtistWidths() {
+  const widthBuffer = 8;
+
   document.querySelectorAll('.video-item-row').forEach(row => {
     const title = row.querySelector('.video-title');
     const artist = row.querySelector('.video-artist');
@@ -2298,8 +2300,8 @@ function updateVideoTitleArtistWidths() {
     const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
     const reservedWidth = (separator?.offsetWidth || 0) + (gap * 2);
     const availableWidth = Math.max(row.clientWidth - reservedWidth, 0);
-    const titleWidth = titleText.scrollWidth;
-    const artistWidth = artistText.scrollWidth;
+    const titleWidth = titleText.scrollWidth + widthBuffer;
+    const artistWidth = artistText.scrollWidth + widthBuffer;
 
     if (titleWidth + artistWidth <= availableWidth) {
       title.style.flex = `0 0 ${titleWidth}px`;
