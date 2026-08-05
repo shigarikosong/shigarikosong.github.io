@@ -2051,9 +2051,12 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
     const title = document.createElement('button');
     title.type = 'button';
     title.className = 'video-title video-search-action';
-    title.textContent = video["title"];
     title.title = video["title"] || "";
     title.setAttribute('aria-label', `曲名「${video["title"]}」で検索`);
+    const titleText = document.createElement('span');
+    titleText.className = 'video-search-action-text';
+    titleText.textContent = video["title"];
+    title.appendChild(titleText);
     title.addEventListener('click', () => {
       applySearchQuery(video["title"], { sourceVideoKey: key });
     });
@@ -2068,9 +2071,12 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
       const artist = document.createElement('button');
       artist.type = 'button';
       artist.className = 'video-artist video-search-action';
-      artist.textContent = video["artist"];
       artist.title = video["artist"];
       artist.setAttribute('aria-label', `アーティスト「${video["artist"]}」で検索`);
+      const artistText = document.createElement('span');
+      artistText.className = 'video-search-action-text';
+      artistText.textContent = video["artist"];
+      artist.appendChild(artistText);
       artist.addEventListener('click', () => {
         applySearchQuery(video["artist"], { sourceVideoKey: key });
       });
@@ -2105,7 +2111,7 @@ if (
   video._isShorts
 ) {
   roleTagRow = document.createElement('div');
-  roleTagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+  roleTagRow.className = 'video-card-tag-row flex flex-wrap gap-1.5';
 
   if (category) {
     roleTagRow.appendChild(createListTagElement(
@@ -2198,7 +2204,7 @@ let tagRow = null;
 
 if (collabLivers.length || collabUnits.length) {
   tagRow = document.createElement('div');
-  tagRow.className = 'flex flex-wrap gap-1.5 mt-2';
+  tagRow.className = 'video-card-tag-row video-card-collab-row flex flex-wrap gap-1.5';
 
   collabLivers.forEach(name => {
     const tag = document.createElement('button');
@@ -2239,17 +2245,95 @@ if (collabLivers.length || collabUnits.length) {
 
 content.appendChild(topRow);
 content.appendChild(metaRow);
-if (roleTagRow) content.appendChild(roleTagRow);
-if (tagRow) content.appendChild(tagRow);
 
 item.appendChild(playButton);
 item.appendChild(content);
+if (roleTagRow) item.appendChild(roleTagRow);
+if (tagRow) item.appendChild(tagRow);
 
 videoList.appendChild(item);
       });
 
+  updateVideoSearchActionOverflow();
   window.dispatchEvent(new CustomEvent("videoListRendered"));
 }
+
+function updateVideoSearchActionOverflow() {
+  updateVideoTitleArtistWidths();
+
+  document.querySelectorAll('.video-search-action').forEach(button => {
+    const text = button.querySelector('.video-search-action-text');
+    if (!text) return;
+
+    button.classList.remove('is-overflowing');
+    button.style.removeProperty('--search-scroll-distance');
+    button.style.removeProperty('--search-scroll-duration');
+
+    const overflow = text.scrollWidth - button.clientWidth;
+    if (overflow <= 1) return;
+
+    button.classList.add('is-overflowing');
+    button.style.setProperty('--search-scroll-distance', `${overflow + 12}px`);
+    button.style.setProperty('--search-scroll-duration', `${Math.min(Math.max((overflow + 12) / 24, 2.8), 8)}s`);
+  });
+}
+
+function updateVideoTitleArtistWidths() {
+  const widthBuffer = 8;
+
+  document.querySelectorAll('.video-item-row').forEach(row => {
+    const title = row.querySelector('.video-title');
+    const artist = row.querySelector('.video-artist');
+    if (!title) return;
+
+    const titleText = title.querySelector('.video-search-action-text');
+    const artistText = artist?.querySelector('.video-search-action-text');
+    [title, artist].filter(Boolean).forEach(element => {
+      element.style.removeProperty('flex');
+      element.style.removeProperty('width');
+    });
+
+    if (!artist || !titleText || !artistText) return;
+
+    const separator = row.querySelector('.video-title-separator');
+    const rowStyle = window.getComputedStyle(row);
+    const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
+    const reservedWidth = (separator?.offsetWidth || 0) + (gap * 2);
+    const availableWidth = Math.max(row.clientWidth - reservedWidth, 0);
+    const titleWidth = titleText.scrollWidth + widthBuffer;
+    const artistWidth = artistText.scrollWidth + widthBuffer;
+
+    if (titleWidth + artistWidth <= availableWidth) {
+      title.style.flex = `0 0 ${titleWidth}px`;
+      artist.style.flex = `0 0 ${artistWidth}px`;
+      return;
+    }
+
+    const minTitleWidth = Math.min(titleWidth, Math.max(availableWidth * 0.35, 72));
+    const minArtistWidth = Math.min(artistWidth, Math.max(availableWidth * 0.28, 72));
+
+    if (titleWidth <= availableWidth - minArtistWidth) {
+      title.style.flex = `0 0 ${titleWidth}px`;
+      artist.style.flex = `0 1 ${Math.max(availableWidth - titleWidth, minArtistWidth)}px`;
+      return;
+    }
+
+    if (artistWidth <= availableWidth - minTitleWidth) {
+      title.style.flex = `0 1 ${Math.max(availableWidth - artistWidth, minTitleWidth)}px`;
+      artist.style.flex = `0 0 ${artistWidth}px`;
+      return;
+    }
+
+    title.style.flex = `0 1 ${Math.max(availableWidth * 0.6, minTitleWidth)}px`;
+    artist.style.flex = `0 1 ${Math.max(availableWidth * 0.4, minArtistWidth)}px`;
+  });
+}
+
+let videoSearchActionOverflowResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(videoSearchActionOverflowResizeTimer);
+  videoSearchActionOverflowResizeTimer = setTimeout(updateVideoSearchActionOverflow, 200);
+});
 
 window.addEventListener("collabTagOrderReady", () => {
   if (!Array.isArray(currentFilteredVideos) || !currentFilteredVideos.length) return;
