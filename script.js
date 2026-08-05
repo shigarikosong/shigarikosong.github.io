@@ -2266,12 +2266,14 @@ function updateVideoSearchActionOverflow() {
     button.classList.remove('is-overflowing');
     button.style.removeProperty('--search-scroll-distance');
     button.style.removeProperty('--search-scroll-duration');
+    button.style.removeProperty('--search-scroll-width');
 
     const overflow = text.scrollWidth - button.clientWidth;
     if (overflow <= 1) return;
 
     button.classList.add('is-overflowing');
     button.style.setProperty('--search-scroll-distance', `${overflow + 12}px`);
+    button.style.setProperty('--search-scroll-width', `${text.scrollWidth}px`);
     button.style.setProperty('--search-scroll-duration', `${Math.min(Math.max((overflow + 12) / 24, 2.8), 8)}s`);
   });
 }

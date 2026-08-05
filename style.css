@@ -221,18 +221,27 @@ body {
   max-width: none;
   text-overflow: clip;
   width: max-content;
-  animation: video-search-action-scroll var(--search-scroll-duration, 4s) ease-in-out 0.65s infinite alternate;
+  animation: video-search-action-scroll var(--search-scroll-duration, 4s) linear 0.65s infinite;
 }
 
 @keyframes video-search-action-scroll {
   0%,
-  28% {
+  24% {
     transform: translateX(0);
   }
 
-  72%,
-  100% {
+  66%,
+  82% {
     transform: translateX(calc(-1 * var(--search-scroll-distance, 0px)));
+  }
+
+  98% {
+    transform: translateX(calc(-1 * (var(--search-scroll-distance, 0px) + var(--search-scroll-width, 100%))));
+  }
+
+  98.01%,
+  100% {
+    transform: translateX(0);
   }
 }
 
@@ -241,7 +250,7 @@ body {
     max-width: none;
     text-overflow: clip;
     width: max-content;
-    animation: video-search-action-scroll calc(var(--search-scroll-duration, 4s) + 5s) ease-in-out 1.2s infinite alternate;
+    animation: video-search-action-scroll calc(var(--search-scroll-duration, 4s) + 5s) linear 1.2s infinite;
   }
 }
 
