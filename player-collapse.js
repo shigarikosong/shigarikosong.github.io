@@ -57,6 +57,7 @@
       left: auto;
       width: max-content;
       max-width: calc(100vw - 24px);
+      transform: none;
       pointer-events: auto;
     }
 
@@ -69,8 +70,10 @@
     .player-window-actions {
       position: absolute;
       top: 0;
-      right: max(0px, calc((100% - var(--player-stage-width, 100%)) / 2));
-      left: 0;
+      right: auto;
+      left: 50%;
+      width: var(--player-stage-width, 100%);
+      transform: translateX(calc(-50% + var(--player-stage-offset-x, 0px)));
       z-index: 8;
       display: flex;
       justify-content: flex-end;

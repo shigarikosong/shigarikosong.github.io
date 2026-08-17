@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=59">
+  <link rel="stylesheet" href="./style.css?v=60">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -390,7 +390,12 @@ YouTube / TikTok の動画を掲載しています。
       </div>
 
       <div id="playerStage" data-player-layout="landscape">
-        <div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
+        <div id="playerResizeHandle" role="separator" aria-orientation="horizontal" tabindex="0"
+          aria-label="上下でプレイヤーサイズを変更、左右でプレイヤー位置を移動">
+          <span class="player-resize-handle-arrow" aria-hidden="true">←</span>
+          <span class="player-resize-handle-bar" aria-hidden="true"></span>
+          <span class="player-resize-handle-arrow" aria-hidden="true">→</span>
+        </div>
 
         <div id="playerFrameWrapper" class="rounded-xl overflow-hidden shadow-lg">
           <div id="youtubePlayer"></div>
@@ -414,13 +419,13 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./scroll-utils.js?v=2"></script>
   <script src="./loading-status.js?v=8"></script>
   <script src="./playing-scroll-position.js?v=3"></script>
-  <script src="./script.js?v=59"></script>
+  <script src="./script.js?v=61"></script>
   <script src="./exclusion-style-sync.js?v=1"></script>
   <script src="./waku-name-display.js?v=27"></script>
   <script src="./mobile-filter-modal.js?v=26"></script>
   <script src="./desktop-filter-panel.js?v=28"></script>
   <script src="./ui-polish.js?v=31"></script>
-  <script src="./player-collapse.js?v=31"></script>
+  <script src="./player-collapse.js?v=32"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
   <script src="./site-info-modal.js?v=2"></script>
   <script src="./youtube-stability.js?v=26"></script>

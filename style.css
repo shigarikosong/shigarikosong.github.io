@@ -1102,6 +1102,7 @@ body.player-visible #desktopFilterPanel {
 
 #playerStageDock {
   --player-stage-width: 100%;
+  --player-stage-offset-x: 0px;
   position: relative;
   display: flex;
   width: 100%;
@@ -1114,6 +1115,7 @@ body.player-visible #desktopFilterPanel {
   flex: 0 0 auto;
   width: 100%;
   max-width: 100%;
+  transform: translateX(var(--player-stage-offset-x));
 }
 
 #playerFrameWrapper {
@@ -1160,26 +1162,56 @@ body.player-visible #desktopFilterPanel {
 
 #playerResizeHandle {
   position: absolute;
-  top: -10px;
+  top: -18px;
   left: 0;
   width: 100%;
-  height: 12px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   cursor: ns-resize;
   z-index: 5;
   background: transparent;
   touch-action: none;
 }
 
-#playerResizeHandle::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 4px;
-  transform: translateX(-50%);
+.player-resize-handle-bar {
+  flex: 0 0 auto;
   width: 56px;
   height: 4px;
   border-radius: 9999px;
   background: rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s ease;
+}
+
+.player-resize-handle-arrow {
+  flex: 0 0 auto;
+  color: rgba(31, 63, 122, 0.92);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+#playerResizeHandle.is-dragging .player-resize-handle-arrow {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#playerResizeHandle.is-dragging .player-resize-handle-bar,
+#playerResizeHandle:focus-visible .player-resize-handle-bar {
+  background: rgba(31, 63, 122, 0.72);
+}
+
+#playerResizeHandle[data-drag-axis="horizontal"] {
+  cursor: ew-resize;
+}
+
+#playerResizeHandle:focus-visible {
+  outline: none;
 }
 
 /* ===== Player controls ===== */

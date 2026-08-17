@@ -93,7 +93,7 @@ If this key format changes, check the impact on:
 
 ## 5.1 Play / Pause Control Rules
 
-The fixed player play / pause button controls YouTube through the YouTube IFrame Player API.
+The fixed player play / pause button controls YouTube through the YouTube IFrame Player API and TikTok through the official Embed Player messaging API.
 
 - Keep a separate playback-intent flag for whether YouTube playback has been requested.
 - `PLAYING` sets the playback intent and shows the pause icon and label.
@@ -102,7 +102,10 @@ The fixed player play / pause button controls YouTube through the YouTube IFrame
 - YouTube `onStateChange` is the source of truth, including changes made inside the embedded YouTube player.
 - The control remains available while the player window is collapsed.
 - Closing the player resets the control to its unavailable play state.
-- TikTok cannot be controlled from the fixed player. Keep the button in place but disabled, and direct playback operations to the TikTok embed.
+- TikTok keeps its own playback-intent flag. `onPlayerReady` enables the control, while `onStateChange` keeps the icon synchronized with operations performed inside the embedded player.
+- TikTok `PLAYING` shows pause, `PAUSED` / `ENDED` show play, and `BUFFERING` / `INIT` preserve the current playback intent.
+- Do not optimistically change the TikTok icon after posting a command. Some browsers require the first play action inside the TikTok embed, so only a real `onStateChange` updates the control.
+- TikTok remains excluded from automatic continuous playback; fixed-player play / pause support does not change that rule.
 - Manual play test mode still cues the selected YouTube video. The fixed player control may start it, while the native YouTube play button remains available for the intended manual-play check.
 
 ## 6. Previous / Next Rules
@@ -277,7 +280,9 @@ Calculate the final width and height from both the available viewport height and
 
 Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When the YouTube IFrame API is ready, keep `ytPlayer.setSize(width, height)` synchronized with the wrapper.
 
-The resize handle and expanded `.player-window-actions` follow the rendered player width. Actions occupy a separate row above the frame and must not cover the embedded player. Long countdown and Full ver. controls may use the viewport space to the left of a narrow vertical player but must not leave the viewport.
+The shared player handle locks to the dominant drag axis after a small movement threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging preserves its size and changes only its horizontal position. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
+
+The handle and expanded `.player-window-actions` follow the rendered player width and horizontal offset. Actions occupy a separate row above the frame and must not cover the embedded player. Long countdown and Full ver. controls remain usable within the moved player width and must not leave the viewport.
 
 Collapsed mode hides the frame and resize handle while keeping collapse/restore and close actions available.
 
