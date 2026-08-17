@@ -1329,6 +1329,11 @@ body.player-visible #desktopFilterPanel {
   cursor: default;
 }
 
+.player-control-button[data-state="awaiting-first-play"] {
+  --player-control-icon-opacity: 0.4;
+  cursor: default;
+}
+
 .player-control-icon {
   display: inline-flex;
   align-items: center;

@@ -169,21 +169,6 @@ function showManualPlayTestModeNotice(enabled) {
 
 window.showManualPlayTestModeNotice = showManualPlayTestModeNotice;
 
-function showPlayerControlNotice(message) {
-  const oldNotice = document.getElementById('playerControlNotice');
-  if (oldNotice) oldNotice.remove();
-
-  const notice = document.createElement('div');
-  notice.id = 'playerControlNotice';
-  notice.className = 'manual-play-test-notice';
-  notice.textContent = message;
-  document.body.appendChild(notice);
-
-  window.setTimeout(() => {
-    notice.remove();
-  }, 3000);
-}
-
 function applyManualPlayTestModeFromUrl() {
   const manualPlay = new URLSearchParams(location.search).get('manualPlay');
   if (manualPlay !== '1' && manualPlay !== '0') return;
@@ -888,12 +873,14 @@ function updatePlayPauseButton(playerState = null, sourcePlatform = null) {
     }
 
     if (!isTikTokPlaybackControlActivated) {
+      btn.disabled = true;
       btn.dataset.state = 'awaiting-first-play';
       setPlayerControlIcon(btn, PLAYER_CONTROL_ICONS.play);
-      setPlayerControlLabel(btn, 'TikTokは画面内から最初に再生');
+      setPlayerControlLabel(btn, 'TikTok画面内から最初に再生してください');
       return;
     }
 
+    btn.disabled = false;
     syncTikTokPlaybackIntentFromState(playerState);
     renderPlayPauseButton(btn, isTikTokPlaybackRequested);
     return;
@@ -946,11 +933,6 @@ function toggleTikTokPlayback() {
     btn.disabled ||
     (!isTikTokPlayerReady && !isTikTokPlayerFrameLoaded)
   ) return;
-
-  if (!isTikTokPlaybackControlActivated) {
-    showPlayerControlNotice('最初の再生はTikTok画面内の再生ボタンから行ってください');
-    return;
-  }
 
   if (isTikTokPlaybackRequested) {
     sendTikTokPlayerMessage('pause');
