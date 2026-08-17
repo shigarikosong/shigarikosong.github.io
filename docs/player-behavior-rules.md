@@ -254,6 +254,8 @@ After playing the full version, reuse the existing now-playing scroll behavior: 
 
 YouTube uses the YouTube iframe API or YouTube embed.
 
+Treat the YouTube player's `onReady` event, not merely creation of the `YT.Player` object, as the point when playback commands are safe. If a user selects a YouTube video before `onReady`, keep only the latest request and execute it once after readiness. Cancel that pending request when another platform is selected or the fixed player is closed.
+
 YouTube can be used for automatic continuous playback.
 
 TikTok uses the official Embed Player iframe at `https://www.tiktok.com/player/v1/{POST_ID}`.

@@ -1393,6 +1393,13 @@ function matchesSearchQuery(video, query) {
 // ===== YouTubeプレイヤーの準備 =====
     let ytPlayer = null;
 let ytApiReady = false;
+let ytPlayerReady = false;
+
+function isYouTubePlayerReady() {
+  return ytPlayerReady;
+}
+
+window.isYouTubePlayerReady = isYouTubePlayerReady;
 
 // YouTube IFrame API の準備完了コールバック
 window.onYouTubeIframeAPIReady = () => {
@@ -1415,6 +1422,8 @@ function tryInitYtPlayer() {
     },
     events: {
       onReady: () => {
+        ytPlayerReady = true;
+        window.dispatchEvent(new CustomEvent('youtubePlayerReady'));
         updatePlayPauseButton(getYouTubePlayerState(), 'youtube');
         requestAnimationFrame(applyStoredPlayerHeight);
       },
@@ -3082,11 +3091,11 @@ function loadVideo(video, item, options = {}) {
   if (ytApiReady) {
     tryInitYtPlayer();
 
-    if (cueYouTubeVideo && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
+    if (ytPlayerReady && cueYouTubeVideo && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
       ytPlayer.cueVideoById({ videoId, startSeconds: start });
-    } else if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+    } else if (ytPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
       ytPlayer.loadVideoById({ videoId, startSeconds: start });
-    } else if (ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
+    } else if (ytPlayerReady && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
       ytPlayer.cueVideoById({ videoId, startSeconds: start });
     }
   }
@@ -3136,6 +3145,7 @@ if (ytEl) ytEl.classList.add('hidden');
 // ===== プレイヤーを閉じる =====
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
+    window.clearPendingYouTubeVideoLoad?.();
     stopEndCountdownMonitor();
     stopFullVersionPromptMonitor();
     document.body.style.paddingBottom =
