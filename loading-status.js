@@ -189,6 +189,10 @@
         ? nowPlayingWrapper.getBoundingClientRect().height || 0
         : 0;
       const playerActionsHeight = windowActions
+        && (
+          !windowActions.closest('#playerStageDock') ||
+          fixedPlayer?.classList.contains('is-collapsed')
+        )
         ? (windowActions.getBoundingClientRect().height || 0) + 32
         : 0;
 

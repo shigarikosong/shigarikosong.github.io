@@ -182,12 +182,12 @@
 
 ### YouTube再生
 
-YouTube再生は `script.js` と `youtube-stability.js` が関係している。
+YouTube再生は `script.js` と `youtube-stability.js` が関係している。初回の早い再生操作は `YT.Player` の生成だけで実行せず、`onReady` 後に待機中の最新動画を1回だけ読み込む。
 開始秒 `start` の反映も関係するため、タグ整理とは別作業にする。
 
 ### TikTok再生
 
-TikTok埋め込みは `script.js` 内の `loadTikTokEmbed` 周辺が関係する。
+TikTok埋め込みは `script.js` 内の `loadTikTokEmbed` 周辺が関係し、公式Embed Playerの `player/v1/{POST_ID}` iframeを使用する。固定プレイヤーの再生／一時停止は公式の `postMessage` APIで操作し、`onPlayerReady` / `onStateChange` でボタン状態を同期する。
 PCブラウザではTikTok埋め込み自体が不安定なことがある。
 
 ### プレイヤー位置・高さ
@@ -196,10 +196,19 @@ PCブラウザではTikTok埋め込み自体が不安定なことがある。
 
 - `script.js`
 - `player-collapse.js`
+- `style.css`
+- `scroll-utils.js`
+- `loading-status.js`
 - `playing-scroll-position.js`
 - `filter-scroll-position.js`
 
 タグ整理と同時に触らない。
+
+`playerStageDock` は中央配置と将来の四隅配置、`playerStage` は動画の実幅、`playerFrameWrapper` は動画の実高さを担当する。通常YouTubeは16:9、Shorts/TikTokは9:16を基準にし、配置とサイズ計算を混在させない。YouTube行の `player_aspect` に `9:16` または `16:9` があればShorts判定より優先し、空欄・未対応値は自動判定へ戻す。TikTokは縦型を維持する。
+
+横動画と縦動画を切り替える際は、次の埋め込みを読み込む前に新しい比率のstageサイズを同期し、レイアウト確定後にも再適用する。前の動画の比率を残したまま新しい動画を読み込まないこと。
+
+`playerResizeHandle` は方向判定後、上下ドラッグでは比率を維持したサイズ変更、左右ドラッグではサイズを維持した水平移動を行う。水平位置は画面幅に対する0〜1の割合で保存し、縦横動画切替・resize・orientationchange時に再計算して画面内へクランプする。ハンドルと `.player-window-actions` はstageと同じ水平位置へ追従させる。
 
 ### スクロール挙動
 

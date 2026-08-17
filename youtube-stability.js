@@ -47,7 +47,11 @@
         tryInitYtPlayer();
       }
 
-      if (typeof ytPlayer !== "undefined" && ytPlayer) {
+      if (
+        window.isYouTubePlayerReady?.() &&
+        typeof ytPlayer !== "undefined" &&
+        ytPlayer
+      ) {
         const { videoId, start, autoplay } = pendingYouTubeVideo;
         pendingYouTubeVideo = null;
 
@@ -74,7 +78,7 @@
 
   loadVideo = function (video, item, options = {}) {
     const youtubeVideo = getYouTubeVideoData(video, options);
-    if (youtubeVideo) {
+    if (youtubeVideo && !window.isYouTubePlayerReady?.()) {
       pendingYouTubeVideo = youtubeVideo;
     } else {
       pendingYouTubeVideo = null;
@@ -83,6 +87,16 @@
     originalLoadVideo(video, item, options);
     playWhenReady();
   };
+
+  window.clearPendingYouTubeVideoLoad = function () {
+    pendingYouTubeVideo = null;
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
+  };
+
+  window.addEventListener('youtubePlayerReady', playWhenReady);
 
   const originalOnYouTubeIframeAPIReady = window.onYouTubeIframeAPIReady;
 

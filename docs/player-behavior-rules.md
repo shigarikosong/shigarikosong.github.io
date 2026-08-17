@@ -93,7 +93,7 @@ If this key format changes, check the impact on:
 
 ## 5.1 Play / Pause Control Rules
 
-The fixed player play / pause button controls YouTube through the YouTube IFrame Player API.
+The fixed player play / pause button controls YouTube through the YouTube IFrame Player API and TikTok through the official Embed Player messaging API.
 
 - Keep a separate playback-intent flag for whether YouTube playback has been requested.
 - `PLAYING` sets the playback intent and shows the pause icon and label.
@@ -102,7 +102,10 @@ The fixed player play / pause button controls YouTube through the YouTube IFrame
 - YouTube `onStateChange` is the source of truth, including changes made inside the embedded YouTube player.
 - The control remains available while the player window is collapsed.
 - Closing the player resets the control to its unavailable play state.
-- TikTok cannot be controlled from the fixed player. Keep the button in place but disabled, and direct playback operations to the TikTok embed.
+- TikTok keeps its own playback-intent flag. `onPlayerReady` enables the control, while `onStateChange` keeps the icon synchronized with operations performed inside the embedded player.
+- TikTok `PLAYING` shows pause, `PAUSED` / `ENDED` show play, and `BUFFERING` / `INIT` preserve the current playback intent.
+- Do not optimistically change the TikTok icon after posting a command. Some browsers require the first play action inside the TikTok embed, so only a real `onStateChange` updates the control.
+- TikTok remains excluded from automatic continuous playback; fixed-player play / pause support does not change that rule.
 - Manual play test mode still cues the selected YouTube video. The fixed player control may start it, while the native YouTube play button remains available for the intended manual-play check.
 
 ## 6. Previous / Next Rules
@@ -251,9 +254,11 @@ After playing the full version, reuse the existing now-playing scroll behavior: 
 
 YouTube uses the YouTube iframe API or YouTube embed.
 
+Treat the YouTube player's `onReady` event, not merely creation of the `YT.Player` object, as the point when playback commands are safe. If a user selects a YouTube video before `onReady`, keep only the latest request and execute it once after readiness. Cancel that pending request when another platform is selected or the fixed player is closed.
+
 YouTube can be used for automatic continuous playback.
 
-TikTok embeds are regenerated and `embed.js` is reloaded.
+TikTok uses the official Embed Player iframe at `https://www.tiktok.com/player/v1/{POST_ID}`.
 
 TikTok is not eligible for automatic continuous playback.
 
@@ -261,13 +266,37 @@ TikTok can still be selected and played manually.
 
 When adding another platform, explicitly decide whether it can be used for automatic continuous playback.
 
-## 12. Player Display And Height Rules
+## 12. Player Stage And Size Rules
 
-The fixed player height is stored in localStorage.
+`playerStageDock` owns the current centered placement. `playerStage` owns the actual player width, while `playerFrameWrapper` owns the matching video height. Keep sizing separate from placement so a future dock-position feature does not need to rewrite aspect-ratio logic.
 
-Player height should be clamped between the minimum and maximum allowed values.
+When switching between landscape and vertical videos, apply the new stage dimensions before loading the next embed, then reapply them after layout settles. This prevents the previous video's aspect ratio from remaining visible during the transition.
 
-Keep the heights of YouTube, TikTok, iframe, and wrapper elements aligned.
+The preferred player height is stored in localStorage. Switching between landscape and vertical media must not overwrite that preference merely because the current viewport clamps the rendered size.
+
+Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it. A YouTube row may explicitly override the automatic Shorts-based choice with `player_aspect` set to `9:16` or `16:9`; blank and unsupported values fall back to the automatic rule. TikTok remains vertical.
+
+Regular 16:9 YouTube players may be reduced to about 356 x 200 pixels. Keep the 16:9 ratio and the 200px minimum viewport dimension rather than forcing a smaller square frame.
+
+On both desktop and mobile, a vertical player may be reduced below the 200px-wide 9:16 minimum down to a 200 x 200 compact fallback. Keep the width at 200px while the height moves between 356px and 200px, accepting internal player whitespace at this deliberately compact size. Preserve that compact size when the viewport changes between narrow and wide layouts.
+
+YouTube viewports should remain at least 200 x 200 pixels when space permits. For 9:16 media this normally means a minimum rendered height of about 356 pixels. When the available viewport cannot satisfy both the ratio and minimum size, keep the player on screen and allow only the necessary ratio fallback.
+
+Calculate the final width and height from both the available viewport height and the fixed-player content width. Recalculate on window resize, `orientationchange`, and `visualViewport` resize without changing playback state.
+
+Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When the YouTube IFrame API is ready, keep `ytPlayer.setSize(width, height)` synchronized with the wrapper.
+
+The shared player handle locks to the dominant drag axis after a small movement threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging preserves its size and changes only its horizontal position. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
+
+On touch devices, keep the interactive handle area close to the visible grip and use a larger movement threshold than mouse input. A brief accidental touch must preserve the currently rendered height; viewport recalculation triggered during an active handle interaction must not reapply a different stored size.
+
+The handle and expanded `.player-window-actions` follow the rendered player width and horizontal offset. Actions occupy a separate row above the frame and must not cover the embedded player. Long countdown and Full ver. controls remain usable within the moved player width and must not leave the viewport.
+
+When the rendered player width is 300px or less, place the countdown or Full ver. controls on their own first row and keep collapse / close controls on the second row. Measure the resulting action height and reserve matching space above the frame so wrapped controls never overlap the embed.
+
+Transparent space around a narrow player must not intercept list interactions. Only the rendered stage and visible window-action controls should receive pointer input.
+
+Collapsed mode hides the frame and resize handle while keeping collapse/restore and close actions available.
 
 While resizing, temporarily disable iframe `pointer-events`.
 

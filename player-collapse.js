@@ -1,13 +1,15 @@
 (function () {
   const fixedPlayer = document.getElementById("fixedPlayer");
   const fixedPlayerInner = fixedPlayer?.firstElementChild;
+  const playerStageDock = document.getElementById("playerStageDock");
+  const playerStage = document.getElementById("playerStage");
   const playerFrameWrapper = document.getElementById("playerFrameWrapper");
   const nowPlayingWrapper = document.getElementById("nowPlayingWrapper");
   const nowPlayingTitle = document.getElementById("nowPlayingTitle");
   const playerControls = document.getElementById("playerControls");
   const closeButton = document.getElementById("closePlayerBtn");
 
-  if (!fixedPlayer || !fixedPlayerInner || !nowPlayingWrapper || !playerControls || !closeButton) return;
+  if (!fixedPlayer || !fixedPlayerInner || !playerStageDock || !playerStage || !nowPlayingWrapper || !playerControls || !closeButton) return;
 
   const style = document.createElement("style");
   style.textContent = `
@@ -18,21 +20,31 @@
       pointer-events: none;
     }
 
-    #fixedPlayer > div {
+    #fixedPlayerInner {
       padding: 8px 12px 10px !important;
-      pointer-events: auto;
+      pointer-events: none;
       transition: padding 0.22s ease;
+    }
+
+    #playerStage {
+      pointer-events: auto;
     }
 
     #fixedPlayer.is-collapsed {
       pointer-events: none;
     }
 
-    #fixedPlayer.is-collapsed > div {
+    #fixedPlayer.is-collapsed #fixedPlayerInner {
       padding: 0 12px !important;
       pointer-events: none;
     }
 
+    #fixedPlayer.is-collapsed #playerStageDock {
+      height: 0 !important;
+      padding-top: 0 !important;
+    }
+
+    #fixedPlayer.is-collapsed #playerStage,
     #fixedPlayer.is-collapsed #playerFrameWrapper {
       height: 0 !important;
       min-height: 0 !important;
@@ -45,6 +57,11 @@
 
     #fixedPlayer.is-collapsed .player-window-actions {
       top: -36px;
+      right: 0;
+      left: auto;
+      width: max-content;
+      max-width: calc(100vw - 24px);
+      transform: none;
       pointer-events: auto;
     }
 
@@ -56,17 +73,31 @@
 
     .player-window-actions {
       position: absolute;
-      top: -6px;
-      right: 8px;
+      top: 0;
+      right: auto;
+      left: 50%;
+      width: var(--player-stage-width, 100%);
+      transform: translateX(calc(-50% + var(--player-stage-offset-x, 0px)));
       z-index: 8;
       display: flex;
+      justify-content: flex-end;
       gap: 6px;
       align-items: center;
+      min-width: 0;
+      max-width: calc(100vw - 24px);
+      pointer-events: none;
+    }
+
+    .player-window-actions > *,
+    .player-window-button,
+    .player-window-icon-button {
+      pointer-events: auto;
     }
 
     .player-window-button,
     .player-window-icon-button {
       display: grid;
+      flex: 0 0 28px;
       place-items: center;
       width: 28px;
       height: 28px;
@@ -170,7 +201,7 @@
       #nowPlayingWrapper {
         display: block;
         padding-top: 3px;
-        padding-bottom: 4px;
+        padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
       }
 
       #nowPlaying {
@@ -323,8 +354,9 @@
     refresh: refreshNowPlayingMarquee
   });
 
-  const actions = document.createElement("div");
+  const actions = document.querySelector(".player-window-actions") || document.createElement("div");
   actions.className = "player-window-actions";
+  if (!actions.isConnected) playerStageDock.prepend(actions);
 
   const collapseButton = document.createElement("button");
   collapseButton.id = "collapsePlayerBtn";
@@ -335,9 +367,7 @@
   closeButton.type = "button";
   closeButton.setAttribute("aria-label", "プレイヤーを閉じる");
 
-  actions.appendChild(collapseButton);
-  actions.appendChild(closeButton);
-  fixedPlayerInner.prepend(actions);
+  actions.insertBefore(collapseButton, closeButton);
 
   if (playerFrameWrapper) {
     playerFrameWrapper.classList.remove("shadow-lg");

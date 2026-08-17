@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=58">
+  <link rel="stylesheet" href="./style.css?v=62">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -383,21 +383,32 @@ YouTube / TikTok の動画を掲載しています。
 
 <!-- 固定プレイヤー -->
 <div id="fixedPlayer" class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg z-20">
-  <div class="max-w-4xl mx-auto p-4 relative">
-    <button id="closePlayerBtn" class="absolute top-0 right-0 p-2 text-gray-700 hover:text-blue-600 font-bold">✖</button>
-    <div id="playerResizeHandle" aria-label="プレイヤーサイズ調整ハンドル"></div>
+  <div id="fixedPlayerInner" class="max-w-4xl mx-auto p-4 relative">
+    <div id="playerStageDock">
+      <div class="player-window-actions">
+        <button id="closePlayerBtn" type="button" aria-label="プレイヤーを閉じる">✖</button>
+      </div>
 
-    <div id="playerFrameWrapper" class="bg-black rounded-xl overflow-hidden shadow-lg">
-      
-     <div id="youtubePlayer" class="w-full aspect-video"></div>
-<div id="tiktokPlayer" class="hidden w-full flex justify-center bg-black"></div>
+      <div id="playerStage" data-player-layout="landscape">
+        <div id="playerResizeHandle" role="separator" aria-orientation="horizontal" tabindex="0"
+          aria-label="上下でプレイヤーサイズを変更、左右でプレイヤー位置を移動">
+          <span class="player-resize-handle-arrow" aria-hidden="true">←</span>
+          <span class="player-resize-handle-bar" aria-hidden="true"></span>
+          <span class="player-resize-handle-arrow" aria-hidden="true">→</span>
+        </div>
 
-<iframe id="playerIframe"
-  class="w-full aspect-video hidden"
-  loading="lazy"
-  src=""
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen title="動画プレイヤー"></iframe>
+        <div id="playerFrameWrapper" class="rounded-xl overflow-hidden shadow-lg">
+          <div id="youtubePlayer"></div>
+          <div id="tiktokPlayer" class="hidden w-full h-full flex justify-center"></div>
+
+          <iframe id="playerIframe"
+            class="hidden"
+            loading="lazy"
+            src=""
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen title="動画プレイヤー"></iframe>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -405,19 +416,19 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./tag-config.js?v=1"></script>
   <script src="./date-utils.js?v=1"></script>
   <script src="./filter-state.js?v=4"></script>
-  <script src="./scroll-utils.js?v=1"></script>
-  <script src="./loading-status.js?v=7"></script>
+  <script src="./scroll-utils.js?v=2"></script>
+  <script src="./loading-status.js?v=8"></script>
   <script src="./playing-scroll-position.js?v=3"></script>
-  <script src="./script.js?v=56"></script>
+  <script src="./script.js?v=67"></script>
   <script src="./exclusion-style-sync.js?v=1"></script>
   <script src="./waku-name-display.js?v=27"></script>
   <script src="./mobile-filter-modal.js?v=26"></script>
   <script src="./desktop-filter-panel.js?v=28"></script>
   <script src="./ui-polish.js?v=31"></script>
-  <script src="./player-collapse.js?v=30"></script>
+  <script src="./player-collapse.js?v=33"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
   <script src="./site-info-modal.js?v=2"></script>
-  <script src="./youtube-stability.js?v=26"></script>
+  <script src="./youtube-stability.js?v=27"></script>
 
 </body>
 </html>
