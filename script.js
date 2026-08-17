@@ -729,6 +729,14 @@ function playFullVersionFromPrompt() {
 }
 
 // ===== プレイヤーボタンUI =====
+const PLAYER_CONTROL_ICONS = Object.freeze({
+  play: './assets/icon/icon-play.png?v=2',
+  pause: './assets/icon/icon-pause.png?v=2',
+  repeat: './assets/icon/icon-repeat.png?v=2',
+  repeatOne: './assets/icon/icon-repeat-one.png?v=2',
+  shuffle: './assets/icon/icon-shuffle.png?v=2'
+});
+
 function setPlayerControlIcon(button, src) {
   const icon = button?.querySelector('.player-control-icon');
   if (!icon) return;
@@ -744,6 +752,98 @@ function setPlayerControlIcon(button, src) {
   img.src = src;
 }
 
+function setPlayerControlLabel(button, label) {
+  if (!button) return;
+
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  const text = button.querySelector('.player-control-label');
+  if (text) text.textContent = label;
+}
+
+function getCurrentPlaybackPlatform() {
+  return String(
+    currentPlayingVideo?._platform || currentPlayingVideo?.platform || ''
+  ).trim().toLowerCase();
+}
+
+function getYouTubePlayerState() {
+  if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return null;
+
+  try {
+    return ytPlayer.getPlayerState();
+  } catch (error) {
+    console.warn('YouTube player state could not be read:', error);
+    return null;
+  }
+}
+
+function updatePlayPauseButton(playerState = null) {
+  const btn = document.getElementById('playPauseBtn');
+  if (!btn) return;
+
+  const platform = getCurrentPlaybackPlatform();
+  const isYouTube = platform.includes('youtube');
+  const canControl = Boolean(
+    isYouTube &&
+    ytPlayer &&
+    typeof ytPlayer.playVideo === 'function' &&
+    typeof ytPlayer.pauseVideo === 'function'
+  );
+
+  btn.disabled = !canControl;
+
+  if (!isYouTube) {
+    const hasTikTokVideo = platform === 'tiktok';
+    const label = hasTikTokVideo
+      ? 'TikTokは動画内で再生してください'
+      : '再生する動画がありません';
+
+    btn.dataset.state = 'unavailable';
+    setPlayerControlIcon(btn, PLAYER_CONTROL_ICONS.play);
+    setPlayerControlLabel(btn, label);
+    return;
+  }
+
+  if (!canControl) {
+    btn.dataset.state = 'unavailable';
+    setPlayerControlIcon(btn, PLAYER_CONTROL_ICONS.play);
+    setPlayerControlLabel(btn, 'プレイヤーを準備しています');
+    return;
+  }
+
+  const state = playerState ?? getYouTubePlayerState();
+  const playingState = window.YT?.PlayerState?.PLAYING ?? 1;
+  const bufferingState = window.YT?.PlayerState?.BUFFERING ?? 3;
+  const isPlaying = state === playingState || state === bufferingState;
+  const label = isPlaying ? '一時停止' : '再生';
+
+  btn.dataset.state = isPlaying ? 'playing' : 'paused';
+  setPlayerControlIcon(
+    btn,
+    isPlaying ? PLAYER_CONTROL_ICONS.pause : PLAYER_CONTROL_ICONS.play
+  );
+  setPlayerControlLabel(btn, label);
+}
+
+function toggleYouTubePlayback() {
+  const btn = document.getElementById('playPauseBtn');
+  if (!btn || btn.disabled || !ytPlayer) return;
+
+  const state = getYouTubePlayerState();
+  const playingState = window.YT?.PlayerState?.PLAYING ?? 1;
+  const bufferingState = window.YT?.PlayerState?.BUFFERING ?? 3;
+  const pausedState = window.YT?.PlayerState?.PAUSED ?? 2;
+
+  if (state === playingState || state === bufferingState) {
+    ytPlayer.pauseVideo();
+    updatePlayPauseButton(pausedState);
+  } else {
+    ytPlayer.playVideo();
+    updatePlayPauseButton(bufferingState);
+  }
+}
+
 function updateRepeatModeButton() {
   const btn = document.getElementById('repeatModeBtn');
   if (!btn) return;
@@ -755,17 +855,15 @@ function updateRepeatModeButton() {
     [REPEAT_MODE_OFF]: 'リピートOFF'
   };
   const icons = {
-    [REPEAT_MODE_ALL]: './assets/icon/icon-repeat.png',
-    [REPEAT_MODE_ONE]: './assets/icon/icon-repeat-one.png',
-    [REPEAT_MODE_OFF]: './assets/icon/icon-repeat.png'
+    [REPEAT_MODE_ALL]: PLAYER_CONTROL_ICONS.repeat,
+    [REPEAT_MODE_ONE]: PLAYER_CONTROL_ICONS.repeatOne,
+    [REPEAT_MODE_OFF]: PLAYER_CONTROL_ICONS.repeat
   };
   const label = labels[mode];
 
   btn.dataset.state = mode;
-  btn.setAttribute('aria-label', label);
-  btn.title = label;
+  setPlayerControlLabel(btn, label);
   setPlayerControlIcon(btn, icons[mode]);
-  btn.querySelector('.player-control-label').textContent = label;
 }
 
 function updateRandomModeButton() {
@@ -773,13 +871,11 @@ function updateRandomModeButton() {
   if (!btn) return;
 
   const on = isRandomModeEnabled();
-  const label = on ? 'ランダムON' : 'ランダムOFF';
+  const label = on ? 'シャッフルON' : 'シャッフルOFF';
 
   btn.dataset.state = on ? 'on' : 'off';
-  btn.setAttribute('aria-label', label);
-  btn.title = label;
-  setPlayerControlIcon(btn, './assets/icon/icon-shuffle.png');
-  btn.querySelector('.player-control-label').textContent = label;
+  setPlayerControlLabel(btn, label);
+  setPlayerControlIcon(btn, PLAYER_CONTROL_ICONS.shuffle);
 }
 
     sortOrder.value = "desc";
@@ -1223,8 +1319,12 @@ function tryInitYtPlayer() {
       origin: location.origin
     },
     events: {
+      onReady: () => {
+        updatePlayPauseButton();
+      },
       onStateChange: (e) => {
         console.log('YouTube state:', e.data, 'repeatMode:', getRepeatMode(), 'randomMode:', isRandomModeEnabled());
+        updatePlayPauseButton(e.data);
 
         if (e.data === YT.PlayerState.PLAYING) {
           refreshFullVersionPromptForCurrentVideo();
@@ -1265,6 +1365,12 @@ fetch(metaSheetUrl)
 // ===== フィルターUIの操作 =====
     const repeatModeBtn = document.getElementById('repeatModeBtn');
     const randomModeBtn = document.getElementById('randomModeBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+
+if (playPauseBtn) {
+  updatePlayPauseButton();
+  playPauseBtn.addEventListener('click', toggleYouTubePlayback);
+}
 
 if (repeatModeBtn) {
   updateRepeatModeButton();
@@ -2467,6 +2573,7 @@ function clearNowPlayingState() {
   nowPlayingKey = null;
   currentPlayingVideo = null;
   playbackHistory = [];
+  updatePlayPauseButton();
   updateNowPlayingHighlight();
   updateNowPlayingFilteredOutNotice();
   requestNowPlayingFloatingButtonUpdate();
@@ -2480,6 +2587,7 @@ function updateNowPlaying(video) {
   window.NowPlayingMarquee?.refresh(label);
   nowPlayingKey = getVideoKey(video);
   currentPlayingVideo = video;
+  updatePlayPauseButton();
   updateNowPlayingHighlight();
   updateNowPlayingFilteredOutNotice();
   requestNowPlayingFloatingButtonUpdate();

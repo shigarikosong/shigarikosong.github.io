@@ -1138,9 +1138,10 @@ body.player-visible #desktopFilterPanel {
 /* ===== Player controls ===== */
 .player-controls {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   padding: 3px 10px;
 }
 
@@ -1178,13 +1179,13 @@ body.player-visible #desktopFilterPanel {
     align-items: center;
     flex-wrap: nowrap;
     justify-content: flex-end;
-    gap: 5px;
+    gap: 4px;
     padding: 0;
   }
 
   .player-control-button {
-    min-height: 34px;
-    padding: 7px 9px;
+    min-height: 44px;
+    padding: 0;
     white-space: nowrap;
   }
 
@@ -1194,65 +1195,84 @@ body.player-visible #desktopFilterPanel {
 }
 
 .player-control-button {
+  --player-control-icon-opacity: 1;
   display: inline-flex;
+  flex: 0 0 44px;
   align-items: center;
   justify-content: center;
-  min-width: 38px;
-  min-height: 36px;
-  padding: 7px 9px;
-  border: 1px solid rgba(107, 114, 128, 0.24);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.82);
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   color: #374151;
   line-height: 1;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.07);
-  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+  box-shadow: none;
+  cursor: pointer;
+  appearance: none;
+  transition: opacity 0.18s ease, transform 0.1s ease;
 }
 
-.player-control-button:hover {
-  background: #ffffff;
-  border-color: rgba(37, 99, 235, 0.35);
+.player-control-button:hover:not(:disabled) .player-control-icon img {
+  filter: brightness(0.82);
 }
 
-.player-control-button:active {
+.player-control-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.player-control-button:active:not(:disabled) {
   transform: scale(0.98);
 }
 
 .player-control-button[data-state="off"] {
-  opacity: 0.48;
-  background: rgba(255, 255, 255, 0.58);
+  --player-control-icon-opacity: 0.4;
 }
 
 .player-control-button[data-state="all"],
 .player-control-button[data-state="one"],
 .player-control-button[data-state="on"] {
-  opacity: 1;
-  border-color: rgba(22, 163, 74, 0.42);
-  background: #dcfce7;
+  --player-control-icon-opacity: 1;
 }
 
-.player-control-button[data-state="one"] {
-  border-color: rgba(37, 99, 235, 0.42);
-  background: #dbeafe;
+.player-control-button[data-state="unavailable"] {
+  --player-control-icon-opacity: 0.3;
+  cursor: default;
 }
 
 .player-control-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 32px;
+  height: 32px;
 }
 
 .player-control-icon img {
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
+  opacity: var(--player-control-icon-opacity);
+  transition: filter 0.18s ease, opacity 0.18s ease;
 }
 
-.player-control-button[data-state="off"] .player-control-icon img {
-  opacity: 0.54;
+.player-control-button-primary {
+  flex-basis: 52px;
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  min-height: 52px;
+}
+
+.player-control-button-primary .player-control-icon,
+.player-control-button-primary .player-control-icon img {
+  width: 48px;
+  height: 48px;
 }
 
 .player-control-label {
@@ -1288,16 +1308,20 @@ body.player-visible #desktopFilterPanel {
 @media (max-width: 480px) {
   .player-controls {
     display: grid;
-    grid-template-columns: repeat(4, minmax(38px, 1fr));
-    gap: 4px;
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    gap: 2px;
     padding: 3px 8px;
   }
 
   .player-control-button {
     min-width: 0;
     width: 100%;
-    min-height: 40px;
-    padding: 7px 6px;
+    min-height: 44px;
+    padding: 0;
+  }
+
+  .player-control-button-primary {
+    min-height: 52px;
   }
 }
 
