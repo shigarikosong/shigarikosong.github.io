@@ -2009,17 +2009,20 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 (function enablePlayerResize() {
   if (!resizeHandle) return;
 
-  const MOUSE_DIRECTION_LOCK_THRESHOLD = 7;
-  const TOUCH_DIRECTION_LOCK_THRESHOLD = 18;
+  const MOUSE_AXIS_ACTIVATION_THRESHOLD = 7;
+  const TOUCH_AXIS_ACTIVATION_THRESHOLD = 18;
   const KEYBOARD_MOVE_STEP = 24;
   const KEYBOARD_RESIZE_STEP = 20;
   let dragging = false;
-  let dragAxis = null;
-  let directionLockThreshold = MOUSE_DIRECTION_LOCK_THRESHOLD;
+  let horizontalDragActive = false;
+  let verticalDragActive = false;
+  let axisActivationThreshold = MOUSE_AXIS_ACTIVATION_THRESHOLD;
   let startX = 0;
   let startY = 0;
-  let startH = 0;
-  let startOffsetX = 0;
+  let horizontalAnchorX = 0;
+  let horizontalAnchorOffset = 0;
+  let verticalAnchorY = 0;
+  let verticalAnchorHeight = 0;
   let prevUserSelect = '';
   let prevCursor = '';
   let prevOverflow = '';
@@ -2046,16 +2049,40 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     document.removeEventListener('touchmove', preventScroll, { passive: false });
   };
 
-  const start = (x, y, threshold = MOUSE_DIRECTION_LOCK_THRESHOLD) => {
+  const updateDragAxisPresentation = () => {
+    const dragAxis = horizontalDragActive && verticalDragActive
+      ? 'both'
+      : horizontalDragActive
+        ? 'horizontal'
+        : verticalDragActive
+          ? 'vertical'
+          : '';
+
+    if (dragAxis) {
+      resizeHandle.dataset.dragAxis = dragAxis;
+    } else {
+      resizeHandle.removeAttribute('data-drag-axis');
+    }
+
+    document.body.style.cursor = dragAxis === 'horizontal'
+      ? 'ew-resize'
+      : dragAxis === 'vertical'
+        ? 'ns-resize'
+        : dragAxis === 'both'
+          ? 'move'
+          : 'grabbing';
+  };
+
+  const start = (x, y, threshold = MOUSE_AXIS_ACTIVATION_THRESHOLD) => {
     dragging = true;
     isPlayerHandleInteractionActive = true;
-    dragAxis = null;
-    directionLockThreshold = threshold;
+    horizontalDragActive = false;
+    verticalDragActive = false;
+    axisActivationThreshold = threshold;
     startX = x;
     startY = y;
-    startH = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
-    localStorage.setItem(PLAYER_HEIGHT_KEY, String(Math.round(startH)));
-    startOffsetX = applyPlayerHorizontalPosition();
+    verticalAnchorHeight = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
+    localStorage.setItem(PLAYER_HEIGHT_KEY, String(Math.round(verticalAnchorHeight)));
     prevUserSelect = document.body.style.userSelect;
     prevCursor = document.body.style.cursor;
     document.body.style.userSelect = 'none';
@@ -2071,29 +2098,49 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     const dx = x - startX;
     const dy = y - startY;
 
-    if (!dragAxis) {
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < directionLockThreshold) return;
-      dragAxis = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
-      resizeHandle.dataset.dragAxis = dragAxis;
-      document.body.style.cursor = dragAxis === 'horizontal' ? 'ew-resize' : 'ns-resize';
+    const wasHorizontalDragActive = horizontalDragActive;
+    const wasVerticalDragActive = verticalDragActive;
+
+    if (!horizontalDragActive && Math.abs(dx) >= axisActivationThreshold) {
+      horizontalDragActive = true;
+      horizontalAnchorX = startX + (Math.sign(dx) * axisActivationThreshold);
+      horizontalAnchorOffset = applyPlayerHorizontalPosition();
+    }
+    if (!verticalDragActive && Math.abs(dy) >= axisActivationThreshold) {
+      verticalDragActive = true;
+      verticalAnchorY = startY + (Math.sign(dy) * axisActivationThreshold);
+      verticalAnchorHeight = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
     }
 
-    if (dragAxis === 'horizontal') {
-      setPlayerHorizontalOffset(startOffsetX + dx);
-      return;
+    if (!horizontalDragActive && !verticalDragActive) return;
+
+    if (
+      wasHorizontalDragActive !== horizontalDragActive ||
+      wasVerticalDragActive !== verticalDragActive
+    ) {
+      updateDragAxisPresentation();
     }
 
-    setPlayerHeight(startH - dy);
+    const size = verticalDragActive
+      ? setPlayerHeight(verticalAnchorHeight - (y - verticalAnchorY))
+      : null;
+
+    if (horizontalDragActive) {
+      setPlayerHorizontalOffset(horizontalAnchorOffset + (x - horizontalAnchorX), {
+        stageWidth: size?.width
+      });
+    }
   };
 
   const end = () => {
     if (!dragging) return;
-    if (dragAxis === 'horizontal') {
+    if (horizontalDragActive) {
       applyPlayerHorizontalPosition({ persist: true });
     }
     dragging = false;
     isPlayerHandleInteractionActive = false;
-    dragAxis = null;
+    horizontalDragActive = false;
+    verticalDragActive = false;
     document.body.style.userSelect = prevUserSelect;
     document.body.style.cursor = prevCursor;
     resizeHandle.classList.remove('is-dragging');
@@ -2127,7 +2174,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     start(
       event.touches[0].clientX,
       event.touches[0].clientY,
-      TOUCH_DIRECTION_LOCK_THRESHOLD
+      TOUCH_AXIS_ACTIVATION_THRESHOLD
     );
   }, { passive: false });
 

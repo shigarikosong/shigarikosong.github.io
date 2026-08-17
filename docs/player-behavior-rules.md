@@ -286,7 +286,7 @@ Calculate the final width and height from both the available viewport height and
 
 Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When the YouTube IFrame API is ready, keep `ytPlayer.setSize(width, height)` synchronized with the wrapper.
 
-The shared player handle locks to the dominant drag axis after a small movement threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging preserves its size and changes only its horizontal position. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
+The shared player handle activates horizontal and vertical movement independently after a small per-axis threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging changes its horizontal position. When both axes exceed their thresholds during the same gesture, resize and horizontal movement together without requiring the user to release the handle. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
 
 On touch devices, keep the interactive handle area close to the visible grip and use a larger movement threshold than mouse input. A brief accidental touch must preserve the currently rendered height; viewport recalculation triggered during an active handle interaction must not reapply a different stored size.
 

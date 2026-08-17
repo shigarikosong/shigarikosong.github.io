@@ -1212,6 +1212,10 @@ body.player-visible #desktopFilterPanel {
   cursor: ew-resize;
 }
 
+#playerResizeHandle[data-drag-axis="both"] {
+  cursor: move;
+}
+
 #playerResizeHandle:focus-visible {
   outline: none;
 }
