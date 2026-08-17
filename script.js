@@ -740,7 +740,6 @@ const PLAYER_CONTROL_ICONS = Object.freeze({
   repeatOne: './assets/icon/icon-repeat-one.png?v=2',
   shuffle: './assets/icon/icon-shuffle.png?v=2'
 });
-const TIKTOK_PLAYER_ORIGIN = 'https://www.tiktok.com';
 const TIKTOK_PLAYER_STATES = Object.freeze({
   ended: 0,
   playing: 1,
@@ -1913,17 +1912,39 @@ function sendTikTokPlayerMessage(type) {
   return true;
 }
 
+function isTrustedTikTokPlayerOrigin(origin) {
+  try {
+    const url = new URL(origin);
+    return url.protocol === 'https:' && (
+      url.hostname === 'tiktok.com' ||
+      url.hostname.endsWith('.tiktok.com')
+    );
+  } catch {
+    return false;
+  }
+}
+
+function parseTikTokPlayerMessage(data) {
+  if (typeof data !== 'string') return data;
+
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
+
 function handleTikTokPlayerMessage(event) {
   const iframe = getTikTokPlayerIframe();
+  const fromCurrentIframe = event.source === iframe?.contentWindow;
   if (
     !iframe?.contentWindow ||
-    event.source !== iframe.contentWindow ||
-    event.origin !== TIKTOK_PLAYER_ORIGIN
+    (!fromCurrentIframe && !isTrustedTikTokPlayerOrigin(event.origin))
   ) {
     return;
   }
 
-  const message = event.data;
+  const message = parseTikTokPlayerMessage(event.data);
   if (!message || message['x-tiktok-player'] !== true) return;
 
   if (message.type === 'onPlayerReady') {
@@ -1949,11 +1970,6 @@ function loadTikTokEmbed(tiktokId) {
   iframe.loading = 'eager';
   iframe.allow = 'autoplay; encrypted-media; fullscreen';
   iframe.setAttribute('allowfullscreen', '');
-  iframe.addEventListener('load', () => {
-    if (iframe !== getTikTokPlayerIframe()) return;
-    isTikTokPlayerReady = true;
-    updatePlayPauseButton(null, 'tiktok');
-  }, { once: true });
   tiktokPlayerEl.replaceChildren(iframe);
 }
 

@@ -103,6 +103,8 @@ The fixed player play / pause button controls YouTube through the YouTube IFrame
 - The control remains available while the player window is collapsed.
 - Closing the player resets the control to its unavailable play state.
 - TikTok keeps its own playback-intent flag. `onPlayerReady` enables the control, while `onStateChange` keeps the icon synchronized with operations performed inside the embedded player.
+- An iframe `load` event is not sufficient to enable TikTok controls. Wait for the official Embed Player `onPlayerReady` message so an early play command is not silently discarded.
+- Accept player messages from the current iframe and trusted HTTPS TikTok subdomains; TikTok may relay events through an internal player frame rather than the outer iframe window.
 - TikTok `PLAYING` shows pause, `PAUSED` / `ENDED` show play, and `BUFFERING` / `INIT` preserve the current playback intent.
 - Do not optimistically change the TikTok icon after posting a command. Some browsers require the first play action inside the TikTok embed, so only a real `onStateChange` updates the control.
 - TikTok remains excluded from automatic continuous playback; fixed-player play / pause support does not change that rule.
