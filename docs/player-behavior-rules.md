@@ -274,6 +274,8 @@ The preferred player height is stored in localStorage. Switching between landsca
 
 Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it. A YouTube row may explicitly override the automatic Shorts-based choice with `player_aspect` set to `9:16` or `16:9`; blank and unsupported values fall back to the automatic rule. TikTok remains vertical.
 
+On viewports narrower than 640px, a vertical player may be reduced below the 200px-wide 9:16 minimum down to a 200 x 200 compact fallback. Keep the width at 200px while the height moves between 356px and 200px, accepting internal player whitespace at this deliberately compact size.
+
 YouTube viewports should remain at least 200 x 200 pixels when space permits. For 9:16 media this normally means a minimum rendered height of about 356 pixels. When the available viewport cannot satisfy both the ratio and minimum size, keep the player on screen and allow only the necessary ratio fallback.
 
 Calculate the final width and height from both the available viewport height and the fixed-player content width. Recalculate on window resize, `orientationchange`, and `visualViewport` resize without changing playback state.
@@ -283,6 +285,8 @@ Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When 
 The shared player handle locks to the dominant drag axis after a small movement threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging preserves its size and changes only its horizontal position. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
 
 The handle and expanded `.player-window-actions` follow the rendered player width and horizontal offset. Actions occupy a separate row above the frame and must not cover the embedded player. Long countdown and Full ver. controls remain usable within the moved player width and must not leave the viewport.
+
+Transparent space around a narrow player must not intercept list interactions. Only the rendered stage and visible window-action controls should receive pointer input.
 
 Collapsed mode hides the frame and resize handle while keeping collapse/restore and close actions available.
 

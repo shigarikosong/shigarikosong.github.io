@@ -22,8 +22,12 @@
 
     #fixedPlayerInner {
       padding: 8px 12px 10px !important;
-      pointer-events: auto;
+      pointer-events: none;
       transition: padding 0.22s ease;
+    }
+
+    #playerStage {
+      pointer-events: auto;
     }
 
     #fixedPlayer.is-collapsed {

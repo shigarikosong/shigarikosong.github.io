@@ -1542,6 +1542,7 @@ const DEFAULT_PLAYER_H = 360;
 const DEFAULT_PLAYER_HORIZONTAL_POSITION = 0.5;
 const MIN_LANDSCAPE_PLAYER_H = 240;
 const MIN_EMBED_VIEWPORT = 200;
+const COMPACT_PLAYER_MAX_VIEWPORT_WIDTH = 640;
 const PLAYER_LAYOUT_LANDSCAPE = 'landscape';
 const PLAYER_LAYOUT_SHORTS = 'shorts';
 const PLAYER_LAYOUT_TIKTOK = 'tiktok';
@@ -1680,16 +1681,27 @@ function getPreferredMinimumHeight(layout = activePlayerLayout) {
 
 function calculatePlayerSize(preferredHeight, layout = activePlayerLayout) {
   const available = getAvailablePlayerSize();
+  const viewport = getViewportSize();
   const ratio = getPlayerAspectRatio(layout);
   const requestedHeight = Number.isFinite(Number(preferredHeight))
     ? Math.max(1, Math.round(Number(preferredHeight)))
     : DEFAULT_PLAYER_H;
   const preferredMinimumHeight = getPreferredMinimumHeight(layout);
   const maxRatioHeight = Math.min(available.height, available.width / ratio);
+  const useCompactVerticalSize = (
+    ratio < 1 &&
+    viewport.width < COMPACT_PLAYER_MAX_VIEWPORT_WIDTH &&
+    requestedHeight < preferredMinimumHeight &&
+    available.width >= MIN_EMBED_VIEWPORT &&
+    available.height >= MIN_EMBED_VIEWPORT
+  );
   let width;
   let height;
 
-  if (maxRatioHeight >= preferredMinimumHeight) {
+  if (useCompactVerticalSize) {
+    height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedHeight));
+    width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, height * ratio));
+  } else if (maxRatioHeight >= preferredMinimumHeight) {
     height = Math.max(preferredMinimumHeight, Math.min(requestedHeight, maxRatioHeight));
     width = height * ratio;
   } else if (available.width >= MIN_EMBED_VIEWPORT && available.height >= MIN_EMBED_VIEWPORT) {
