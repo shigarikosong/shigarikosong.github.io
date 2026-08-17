@@ -1540,9 +1540,9 @@ const PLAYER_HEIGHT_KEY = 'playerHeightPx';
 const PLAYER_HORIZONTAL_POSITION_KEY = 'playerHorizontalPosition';
 const DEFAULT_PLAYER_H = 360;
 const DEFAULT_PLAYER_HORIZONTAL_POSITION = 0.5;
-const MIN_LANDSCAPE_PLAYER_H = 240;
+const MIN_LANDSCAPE_PLAYER_H = 200;
 const MIN_EMBED_VIEWPORT = 200;
-const COMPACT_PLAYER_MAX_VIEWPORT_WIDTH = 640;
+const COMPACT_PLAYER_ACTIONS_MAX_WIDTH = 300;
 const PLAYER_LAYOUT_LANDSCAPE = 'landscape';
 const PLAYER_LAYOUT_SHORTS = 'shorts';
 const PLAYER_LAYOUT_TIKTOK = 'tiktok';
@@ -1553,6 +1553,7 @@ const PLAYER_ASPECT_RATIOS = Object.freeze({
 });
 let activePlayerLayout = PLAYER_LAYOUT_LANDSCAPE;
 let playerHorizontalPosition = readStoredPlayerHorizontalPosition();
+let isPlayerHandleInteractionActive = false;
 
 function clampPlayerHorizontalPosition(value) {
   const number = Number(value);
@@ -1681,7 +1682,6 @@ function getPreferredMinimumHeight(layout = activePlayerLayout) {
 
 function calculatePlayerSize(preferredHeight, layout = activePlayerLayout) {
   const available = getAvailablePlayerSize();
-  const viewport = getViewportSize();
   const ratio = getPlayerAspectRatio(layout);
   const requestedHeight = Number.isFinite(Number(preferredHeight))
     ? Math.max(1, Math.round(Number(preferredHeight)))
@@ -1690,7 +1690,6 @@ function calculatePlayerSize(preferredHeight, layout = activePlayerLayout) {
   const maxRatioHeight = Math.min(available.height, available.width / ratio);
   const useCompactVerticalSize = (
     ratio < 1 &&
-    viewport.width < COMPACT_PLAYER_MAX_VIEWPORT_WIDTH &&
     requestedHeight < preferredMinimumHeight &&
     available.width >= MIN_EMBED_VIEWPORT &&
     available.height >= MIN_EMBED_VIEWPORT
@@ -1845,6 +1844,10 @@ function adjustFixedPlayerBottom() {
   }
 
   if (!fixedPlayerEl.classList.contains('is-collapsed')) {
+    if (isPlayerHandleInteractionActive) {
+      updateFixedPlayerOffsets();
+      return;
+    }
     applyStoredPlayerHeight();
   } else {
     updateFixedPlayerOffsets();
@@ -1959,14 +1962,51 @@ window.addEventListener('orientationchange', () => {
 window.visualViewport?.addEventListener('resize', adjustFixedPlayerBottom);
 window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 
+(function observePlayerWindowActionsLayout() {
+  const actions = document.querySelector('.player-window-actions');
+  if (!actions || !playerStageDock) return;
+
+  let updateFrame = null;
+  let lastActionsSpace = null;
+
+  const updateLayout = () => {
+    updateFrame = null;
+    const width = actions.getBoundingClientRect().width;
+    actions.classList.toggle('is-compact-layout', width <= COMPACT_PLAYER_ACTIONS_MAX_WIDTH);
+
+    const actionsHeight = Math.ceil(actions.getBoundingClientRect().height);
+    const actionsSpace = Math.max(40, actionsHeight + 12);
+    if (actionsSpace === lastActionsSpace) return;
+
+    lastActionsSpace = actionsSpace;
+    playerStageDock.style.setProperty('--player-window-actions-space', `${actionsSpace}px`);
+    requestAnimationFrame(adjustFixedPlayerBottom);
+  };
+
+  const scheduleUpdate = () => {
+    if (updateFrame !== null) cancelAnimationFrame(updateFrame);
+    updateFrame = requestAnimationFrame(updateLayout);
+  };
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(scheduleUpdate).observe(actions);
+  }
+
+  window.addEventListener('resize', scheduleUpdate);
+  window.visualViewport?.addEventListener('resize', scheduleUpdate);
+  scheduleUpdate();
+})();
+
 (function enablePlayerResize() {
   if (!resizeHandle) return;
 
-  const DIRECTION_LOCK_THRESHOLD = 7;
+  const MOUSE_DIRECTION_LOCK_THRESHOLD = 7;
+  const TOUCH_DIRECTION_LOCK_THRESHOLD = 18;
   const KEYBOARD_MOVE_STEP = 24;
   const KEYBOARD_RESIZE_STEP = 20;
   let dragging = false;
   let dragAxis = null;
+  let directionLockThreshold = MOUSE_DIRECTION_LOCK_THRESHOLD;
   let startX = 0;
   let startY = 0;
   let startH = 0;
@@ -1997,12 +2037,15 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     document.removeEventListener('touchmove', preventScroll, { passive: false });
   };
 
-  const start = (x, y) => {
+  const start = (x, y, threshold = MOUSE_DIRECTION_LOCK_THRESHOLD) => {
     dragging = true;
+    isPlayerHandleInteractionActive = true;
     dragAxis = null;
+    directionLockThreshold = threshold;
     startX = x;
     startY = y;
     startH = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
+    localStorage.setItem(PLAYER_HEIGHT_KEY, String(Math.round(startH)));
     startOffsetX = applyPlayerHorizontalPosition();
     prevUserSelect = document.body.style.userSelect;
     prevCursor = document.body.style.cursor;
@@ -2020,7 +2063,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     const dy = y - startY;
 
     if (!dragAxis) {
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < DIRECTION_LOCK_THRESHOLD) return;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < directionLockThreshold) return;
       dragAxis = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
       resizeHandle.dataset.dragAxis = dragAxis;
       document.body.style.cursor = dragAxis === 'horizontal' ? 'ew-resize' : 'ns-resize';
@@ -2040,6 +2083,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
       applyPlayerHorizontalPosition({ persist: true });
     }
     dragging = false;
+    isPlayerHandleInteractionActive = false;
     dragAxis = null;
     document.body.style.userSelect = prevUserSelect;
     document.body.style.cursor = prevCursor;
@@ -2071,7 +2115,11 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
   resizeHandle.addEventListener('touchstart', (event) => {
     event.preventDefault();
     event.stopPropagation();
-    start(event.touches[0].clientX, event.touches[0].clientY);
+    start(
+      event.touches[0].clientX,
+      event.touches[0].clientY,
+      TOUCH_DIRECTION_LOCK_THRESHOLD
+    );
   }, { passive: false });
 
   window.addEventListener('touchmove', (event) => {

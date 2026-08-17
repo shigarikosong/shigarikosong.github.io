@@ -274,7 +274,9 @@ The preferred player height is stored in localStorage. Switching between landsca
 
 Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it. A YouTube row may explicitly override the automatic Shorts-based choice with `player_aspect` set to `9:16` or `16:9`; blank and unsupported values fall back to the automatic rule. TikTok remains vertical.
 
-On viewports narrower than 640px, a vertical player may be reduced below the 200px-wide 9:16 minimum down to a 200 x 200 compact fallback. Keep the width at 200px while the height moves between 356px and 200px, accepting internal player whitespace at this deliberately compact size.
+Regular 16:9 YouTube players may be reduced to about 356 x 200 pixels. Keep the 16:9 ratio and the 200px minimum viewport dimension rather than forcing a smaller square frame.
+
+On both desktop and mobile, a vertical player may be reduced below the 200px-wide 9:16 minimum down to a 200 x 200 compact fallback. Keep the width at 200px while the height moves between 356px and 200px, accepting internal player whitespace at this deliberately compact size. Preserve that compact size when the viewport changes between narrow and wide layouts.
 
 YouTube viewports should remain at least 200 x 200 pixels when space permits. For 9:16 media this normally means a minimum rendered height of about 356 pixels. When the available viewport cannot satisfy both the ratio and minimum size, keep the player on screen and allow only the necessary ratio fallback.
 
@@ -284,7 +286,11 @@ Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When 
 
 The shared player handle locks to the dominant drag axis after a small movement threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging preserves its size and changes only its horizontal position. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
 
+On touch devices, keep the interactive handle area close to the visible grip and use a larger movement threshold than mouse input. A brief accidental touch must preserve the currently rendered height; viewport recalculation triggered during an active handle interaction must not reapply a different stored size.
+
 The handle and expanded `.player-window-actions` follow the rendered player width and horizontal offset. Actions occupy a separate row above the frame and must not cover the embedded player. Long countdown and Full ver. controls remain usable within the moved player width and must not leave the viewport.
+
+When the rendered player width is 300px or less, place the countdown or Full ver. controls on their own first row and keep collapse / close controls on the second row. Measure the resulting action height and reserve matching space above the frame so wrapped controls never overlap the embed.
 
 Transparent space around a narrow player must not intercept list interactions. Only the rendered stage and visible window-action controls should receive pointer input.
 

@@ -1103,10 +1103,11 @@ body.player-visible #desktopFilterPanel {
 #playerStageDock {
   --player-stage-width: 100%;
   --player-stage-offset-x: 0px;
+  --player-window-actions-space: 40px;
   position: relative;
   display: flex;
   width: 100%;
-  padding-top: 40px;
+  padding-top: var(--player-window-actions-space);
   justify-content: center;
 }
 
@@ -1163,8 +1164,8 @@ body.player-visible #desktopFilterPanel {
 #playerResizeHandle {
   position: absolute;
   top: -18px;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  width: min(120px, 100%);
   height: 24px;
   display: flex;
   align-items: center;
@@ -1173,6 +1174,7 @@ body.player-visible #desktopFilterPanel {
   cursor: ns-resize;
   z-index: 5;
   background: transparent;
+  transform: translateX(-50%);
   touch-action: none;
 }
 
@@ -1417,6 +1419,47 @@ body.player-visible #desktopFilterPanel {
 .end-countdown-controls.hidden,
 .full-version-prompt-controls.hidden {
   display: none;
+}
+
+.player-window-actions {
+  flex-wrap: wrap;
+}
+
+.player-window-actions.is-compact-layout .end-countdown-controls:not(.hidden),
+.player-window-actions.is-compact-layout .full-version-prompt-controls:not(.hidden) {
+  flex: 1 0 100%;
+  width: 100%;
+  max-width: 100%;
+  justify-content: flex-end;
+}
+
+.player-window-actions.is-compact-layout .end-countdown-controls:not(.hidden) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.player-window-actions.is-compact-layout .end-countdown-next,
+.player-window-actions.is-compact-layout .end-countdown-keep,
+.player-window-actions.is-compact-layout .full-version-prompt-button {
+  width: 100%;
+  max-width: 100%;
+  min-height: 30px;
+  padding: 2px 6px;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+}
+
+.player-window-actions.is-compact-layout .end-countdown-next {
+  flex-direction: column;
+  gap: 1px;
+}
+
+.player-window-actions.is-compact-layout .end-countdown-time {
+  min-width: 0;
+  font-size: 12px;
+  text-align: center;
 }
 
 .end-countdown-next,
