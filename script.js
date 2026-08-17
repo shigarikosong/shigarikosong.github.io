@@ -504,8 +504,9 @@ function checkEndCountdown(video) {
   if (remainingSeconds <= 0) {
     const cameFromSeek = isEndOverrunFromSeek(currentTime);
     const currentKey = getVideoKey(video);
+    const hasPreviousTimeSample = lastEndCountdownTime !== null;
 
-    if (!endOverrunGraceStartedAt && !cameFromSeek) {
+    if (!endOverrunGraceStartedAt && hasPreviousTimeSample && !cameFromSeek) {
       advanceFromEndCountdown();
       return;
     }
@@ -739,16 +740,20 @@ const PLAYER_CONTROL_ICONS = Object.freeze({
   repeatOne: './assets/icon/icon-repeat-one.png?v=2',
   shuffle: './assets/icon/icon-shuffle.png?v=2'
 });
-const TIKTOK_PLAYER_ORIGIN = 'https://www.tiktok.com';
 const TIKTOK_PLAYER_STATES = Object.freeze({
   ended: 0,
   playing: 1,
   paused: 2,
   buffering: 3
 });
+const TIKTOK_COMMAND_RETRY_DELAYS = Object.freeze([300, 900, 1800]);
 let isYouTubePlaybackRequested = false;
 let isTikTokPlaybackRequested = false;
 let isTikTokPlayerReady = false;
+let isTikTokPlayerFrameLoaded = false;
+let isTikTokPlaybackControlActivated = false;
+let pendingTikTokPlaybackCommand = null;
+let tiktokPlaybackCommandTimers = [];
 
 function setPlayerControlIcon(button, src) {
   const icon = button?.querySelector('.player-control-icon');
@@ -851,22 +856,31 @@ function updatePlayPauseButton(playerState = null, sourcePlatform = null) {
     typeof ytPlayer.playVideo === 'function' &&
     typeof ytPlayer.pauseVideo === 'function'
   );
-  const canControlTikTok = Boolean(
+  const canUseTikTokButton = Boolean(
     isTikTok &&
-    isTikTokPlayerReady &&
+    (isTikTokPlayerReady || isTikTokPlayerFrameLoaded) &&
     getTikTokPlayerIframe()?.contentWindow
   );
 
   if (isTikTok) {
-    btn.disabled = !canControlTikTok;
+    btn.disabled = !canUseTikTokButton;
 
-    if (!canControlTikTok) {
+    if (!canUseTikTokButton) {
       btn.dataset.state = 'unavailable';
       setPlayerControlIcon(btn, PLAYER_CONTROL_ICONS.play);
       setPlayerControlLabel(btn, 'TikTokプレイヤーを準備しています');
       return;
     }
 
+    if (!isTikTokPlaybackControlActivated) {
+      btn.disabled = true;
+      btn.dataset.state = 'awaiting-first-play';
+      setPlayerControlIcon(btn, PLAYER_CONTROL_ICONS.play);
+      setPlayerControlLabel(btn, 'TikTok画面内から最初に再生してください');
+      return;
+    }
+
+    btn.disabled = false;
     syncTikTokPlaybackIntentFromState(playerState);
     renderPlayPauseButton(btn, isTikTokPlaybackRequested);
     return;
@@ -914,7 +928,11 @@ function toggleYouTubePlayback() {
 
 function toggleTikTokPlayback() {
   const btn = document.getElementById('playPauseBtn');
-  if (!btn || btn.disabled || !isTikTokPlayerReady) return;
+  if (
+    !btn ||
+    btn.disabled ||
+    (!isTikTokPlayerReady && !isTikTokPlayerFrameLoaded)
+  ) return;
 
   if (isTikTokPlaybackRequested) {
     sendTikTokPlayerMessage('pause');
@@ -1897,13 +1915,18 @@ function getTikTokPlayerIframe() {
 }
 
 function resetTikTokPlaybackControl() {
+  tiktokPlaybackCommandTimers.forEach(clearTimeout);
+  tiktokPlaybackCommandTimers = [];
+  pendingTikTokPlaybackCommand = null;
   isTikTokPlayerReady = false;
+  isTikTokPlayerFrameLoaded = false;
+  isTikTokPlaybackControlActivated = false;
   isTikTokPlaybackRequested = false;
 }
 
-function sendTikTokPlayerMessage(type) {
+function postTikTokPlayerMessage(type) {
   const iframe = getTikTokPlayerIframe();
-  if (!isTikTokPlayerReady || !iframe?.contentWindow) return false;
+  if (!iframe?.contentWindow) return false;
 
   iframe.contentWindow.postMessage({
     type,
@@ -1912,27 +1935,90 @@ function sendTikTokPlayerMessage(type) {
   return true;
 }
 
-function handleTikTokPlayerMessage(event) {
-  const iframe = getTikTokPlayerIframe();
+function clearPendingTikTokPlaybackCommand() {
+  tiktokPlaybackCommandTimers.forEach(clearTimeout);
+  tiktokPlaybackCommandTimers = [];
+  pendingTikTokPlaybackCommand = null;
+}
+
+function sendTikTokPlayerMessage(type) {
   if (
-    !iframe?.contentWindow ||
-    event.source !== iframe.contentWindow ||
-    event.origin !== TIKTOK_PLAYER_ORIGIN
+    (!isTikTokPlayerReady && !isTikTokPlayerFrameLoaded) ||
+    !postTikTokPlayerMessage(type)
   ) {
-    return;
+    return false;
   }
 
-  const message = event.data;
+  clearPendingTikTokPlaybackCommand();
+  pendingTikTokPlaybackCommand = type;
+  tiktokPlaybackCommandTimers = TIKTOK_COMMAND_RETRY_DELAYS.map(delay => (
+    setTimeout(() => {
+      if (pendingTikTokPlaybackCommand !== type) return;
+      postTikTokPlayerMessage(type);
+    }, delay)
+  ));
+  const lastRetryDelay = TIKTOK_COMMAND_RETRY_DELAYS[
+    TIKTOK_COMMAND_RETRY_DELAYS.length - 1
+  ] || 0;
+  tiktokPlaybackCommandTimers.push(setTimeout(() => {
+    if (pendingTikTokPlaybackCommand === type) {
+      clearPendingTikTokPlaybackCommand();
+    }
+  }, lastRetryDelay + 250));
+  return true;
+}
+
+function parseTikTokPlayerMessage(data) {
+  if (typeof data !== 'string') return data;
+
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
+
+function handleTikTokPlayerMessage(event) {
+  const iframe = getTikTokPlayerIframe();
+  if (!iframe?.contentWindow) return;
+
+  const message = parseTikTokPlayerMessage(event.data);
   if (!message || message['x-tiktok-player'] !== true) return;
 
   if (message.type === 'onPlayerReady') {
     isTikTokPlayerReady = true;
     updatePlayPauseButton(null, 'tiktok');
+    if (pendingTikTokPlaybackCommand) {
+      postTikTokPlayerMessage(pendingTikTokPlaybackCommand);
+    }
     return;
   }
 
   if (message.type === 'onStateChange') {
-    updatePlayPauseButton(Number(message.value), 'tiktok');
+    isTikTokPlayerReady = true;
+    const playerState = Number(message.value);
+    const isStartingPlayback = (
+      playerState === TIKTOK_PLAYER_STATES.playing ||
+      playerState === TIKTOK_PLAYER_STATES.buffering
+    );
+
+    if (isStartingPlayback && !isTikTokPlaybackControlActivated) {
+      isTikTokPlaybackControlActivated = true;
+      isTikTokPlaybackRequested = true;
+    }
+
+    const commandWasAccepted = (
+      pendingTikTokPlaybackCommand === 'play' && (
+        playerState === TIKTOK_PLAYER_STATES.playing ||
+        playerState === TIKTOK_PLAYER_STATES.buffering
+      )
+    ) || (
+      pendingTikTokPlaybackCommand === 'pause' &&
+      playerState === TIKTOK_PLAYER_STATES.paused
+    );
+
+    if (commandWasAccepted) clearPendingTikTokPlaybackCommand();
+    updatePlayPauseButton(playerState, 'tiktok');
   }
 }
 
@@ -1950,7 +2036,7 @@ function loadTikTokEmbed(tiktokId) {
   iframe.setAttribute('allowfullscreen', '');
   iframe.addEventListener('load', () => {
     if (iframe !== getTikTokPlayerIframe()) return;
-    isTikTokPlayerReady = true;
+    isTikTokPlayerFrameLoaded = true;
     updatePlayPauseButton(null, 'tiktok');
   }, { once: true });
   tiktokPlayerEl.replaceChildren(iframe);
@@ -2009,17 +2095,20 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 (function enablePlayerResize() {
   if (!resizeHandle) return;
 
-  const MOUSE_DIRECTION_LOCK_THRESHOLD = 7;
-  const TOUCH_DIRECTION_LOCK_THRESHOLD = 18;
+  const MOUSE_AXIS_ACTIVATION_THRESHOLD = 7;
+  const TOUCH_AXIS_ACTIVATION_THRESHOLD = 18;
   const KEYBOARD_MOVE_STEP = 24;
   const KEYBOARD_RESIZE_STEP = 20;
   let dragging = false;
-  let dragAxis = null;
-  let directionLockThreshold = MOUSE_DIRECTION_LOCK_THRESHOLD;
+  let horizontalDragActive = false;
+  let verticalDragActive = false;
+  let axisActivationThreshold = MOUSE_AXIS_ACTIVATION_THRESHOLD;
   let startX = 0;
   let startY = 0;
-  let startH = 0;
-  let startOffsetX = 0;
+  let horizontalAnchorX = 0;
+  let horizontalAnchorOffset = 0;
+  let verticalAnchorY = 0;
+  let verticalAnchorHeight = 0;
   let prevUserSelect = '';
   let prevCursor = '';
   let prevOverflow = '';
@@ -2046,16 +2135,40 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     document.removeEventListener('touchmove', preventScroll, { passive: false });
   };
 
-  const start = (x, y, threshold = MOUSE_DIRECTION_LOCK_THRESHOLD) => {
+  const updateDragAxisPresentation = () => {
+    const dragAxis = horizontalDragActive && verticalDragActive
+      ? 'both'
+      : horizontalDragActive
+        ? 'horizontal'
+        : verticalDragActive
+          ? 'vertical'
+          : '';
+
+    if (dragAxis) {
+      resizeHandle.dataset.dragAxis = dragAxis;
+    } else {
+      resizeHandle.removeAttribute('data-drag-axis');
+    }
+
+    document.body.style.cursor = dragAxis === 'horizontal'
+      ? 'ew-resize'
+      : dragAxis === 'vertical'
+        ? 'ns-resize'
+        : dragAxis === 'both'
+          ? 'move'
+          : 'grabbing';
+  };
+
+  const start = (x, y, threshold = MOUSE_AXIS_ACTIVATION_THRESHOLD) => {
     dragging = true;
     isPlayerHandleInteractionActive = true;
-    dragAxis = null;
-    directionLockThreshold = threshold;
+    horizontalDragActive = false;
+    verticalDragActive = false;
+    axisActivationThreshold = threshold;
     startX = x;
     startY = y;
-    startH = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
-    localStorage.setItem(PLAYER_HEIGHT_KEY, String(Math.round(startH)));
-    startOffsetX = applyPlayerHorizontalPosition();
+    verticalAnchorHeight = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
+    localStorage.setItem(PLAYER_HEIGHT_KEY, String(Math.round(verticalAnchorHeight)));
     prevUserSelect = document.body.style.userSelect;
     prevCursor = document.body.style.cursor;
     document.body.style.userSelect = 'none';
@@ -2071,29 +2184,49 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     const dx = x - startX;
     const dy = y - startY;
 
-    if (!dragAxis) {
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < directionLockThreshold) return;
-      dragAxis = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
-      resizeHandle.dataset.dragAxis = dragAxis;
-      document.body.style.cursor = dragAxis === 'horizontal' ? 'ew-resize' : 'ns-resize';
+    const wasHorizontalDragActive = horizontalDragActive;
+    const wasVerticalDragActive = verticalDragActive;
+
+    if (!horizontalDragActive && Math.abs(dx) >= axisActivationThreshold) {
+      horizontalDragActive = true;
+      horizontalAnchorX = startX + (Math.sign(dx) * axisActivationThreshold);
+      horizontalAnchorOffset = applyPlayerHorizontalPosition();
+    }
+    if (!verticalDragActive && Math.abs(dy) >= axisActivationThreshold) {
+      verticalDragActive = true;
+      verticalAnchorY = startY + (Math.sign(dy) * axisActivationThreshold);
+      verticalAnchorHeight = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
     }
 
-    if (dragAxis === 'horizontal') {
-      setPlayerHorizontalOffset(startOffsetX + dx);
-      return;
+    if (!horizontalDragActive && !verticalDragActive) return;
+
+    if (
+      wasHorizontalDragActive !== horizontalDragActive ||
+      wasVerticalDragActive !== verticalDragActive
+    ) {
+      updateDragAxisPresentation();
     }
 
-    setPlayerHeight(startH - dy);
+    const size = verticalDragActive
+      ? setPlayerHeight(verticalAnchorHeight - (y - verticalAnchorY))
+      : null;
+
+    if (horizontalDragActive) {
+      setPlayerHorizontalOffset(horizontalAnchorOffset + (x - horizontalAnchorX), {
+        stageWidth: size?.width
+      });
+    }
   };
 
   const end = () => {
     if (!dragging) return;
-    if (dragAxis === 'horizontal') {
+    if (horizontalDragActive) {
       applyPlayerHorizontalPosition({ persist: true });
     }
     dragging = false;
     isPlayerHandleInteractionActive = false;
-    dragAxis = null;
+    horizontalDragActive = false;
+    verticalDragActive = false;
     document.body.style.userSelect = prevUserSelect;
     document.body.style.cursor = prevCursor;
     resizeHandle.classList.remove('is-dragging');
@@ -2127,7 +2260,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     start(
       event.touches[0].clientX,
       event.touches[0].clientY,
-      TOUCH_DIRECTION_LOCK_THRESHOLD
+      TOUCH_AXIS_ACTIVATION_THRESHOLD
     );
   }, { passive: false });
 

@@ -102,9 +102,13 @@ The fixed player play / pause button controls YouTube through the YouTube IFrame
 - YouTube `onStateChange` is the source of truth, including changes made inside the embedded YouTube player.
 - The control remains available while the player window is collapsed.
 - Closing the player resets the control to its unavailable play state.
-- TikTok keeps its own playback-intent flag. `onPlayerReady` enables the control, while `onStateChange` keeps the icon synchronized with operations performed inside the embedded player.
+- TikTok keeps its own playback-intent flag. `onPlayerReady` confirms full readiness, while `onStateChange` keeps the icon synchronized with operations performed inside the embedded player.
+- TikTok does not auto-play. The first playback must be started inside the embedded TikTok player because some browsers reject a host-page play command before that interaction.
+- Before the first real TikTok playback state is observed, keep the fixed-player play button disabled and translucent without showing an additional notice.
+- After TikTok reports `BUFFERING` or `PLAYING`, enable normal play / pause control from the fixed player. Keep it available for subsequent pauses, resumes, and playback completion.
+- Recognize TikTok player events by the official `x-tiktok-player` message marker. Internal player frames may relay events without using the outer iframe window as `event.source`.
 - TikTok `PLAYING` shows pause, `PAUSED` / `ENDED` show play, and `BUFFERING` / `INIT` preserve the current playback intent.
-- Do not optimistically change the TikTok icon after posting a command. Some browsers require the first play action inside the TikTok embed, so only a real `onStateChange` updates the control.
+- Do not optimistically change the TikTok icon after posting a command. Only a real `onStateChange` updates the control.
 - TikTok remains excluded from automatic continuous playback; fixed-player play / pause support does not change that rule.
 - Manual play test mode still cues the selected YouTube video. The fixed player control may start it, while the native YouTube play button remains available for the intended manual-play check.
 
@@ -216,6 +220,8 @@ When a YouTube video has a valid `end`, repeat mode is `all`, and less than 10 s
 
 If playback jumps past `end`, such as by a manual seek, do not advance immediately. Show a 10-second grace countdown, then advance when that countdown reaches `0秒`.
 
+If the first time sample for a newly loaded row is already past `end`, also use the grace countdown. The YouTube API can briefly expose the previous video's time during a load transition, so an unconfirmed first sample must never skip the new row immediately.
+
 If playback moves back before `end` during the grace countdown, the grace state should reset and return to the normal pre-end countdown rules:
 
 - More than 10 seconds before `end`: hide the countdown.
@@ -286,7 +292,7 @@ Calculate the final width and height from both the available viewport height and
 
 Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When the YouTube IFrame API is ready, keep `ytPlayer.setSize(width, height)` synchronized with the wrapper.
 
-The shared player handle locks to the dominant drag axis after a small movement threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging preserves its size and changes only its horizontal position. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
+The shared player handle activates horizontal and vertical movement independently after a small per-axis threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging changes its horizontal position. When both axes exceed their thresholds during the same gesture, resize and horizontal movement together without requiring the user to release the handle. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes.
 
 On touch devices, keep the interactive handle area close to the visible grip and use a larger movement threshold than mouse input. A brief accidental touch must preserve the currently rendered height; viewport recalculation triggered during an active handle interaction must not reapply a different stored size.
 
