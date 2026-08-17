@@ -216,6 +216,8 @@ When a YouTube video has a valid `end`, repeat mode is `all`, and less than 10 s
 
 If playback jumps past `end`, such as by a manual seek, do not advance immediately. Show a 10-second grace countdown, then advance when that countdown reaches `0秒`.
 
+If the first time sample for a newly loaded row is already past `end`, also use the grace countdown. The YouTube API can briefly expose the previous video's time during a load transition, so an unconfirmed first sample must never skip the new row immediately.
+
 If playback moves back before `end` during the grace countdown, the grace state should reset and return to the normal pre-end countdown rules:
 
 - More than 10 seconds before `end`: hide the countdown.

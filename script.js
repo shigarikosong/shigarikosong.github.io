@@ -504,8 +504,9 @@ function checkEndCountdown(video) {
   if (remainingSeconds <= 0) {
     const cameFromSeek = isEndOverrunFromSeek(currentTime);
     const currentKey = getVideoKey(video);
+    const hasPreviousTimeSample = lastEndCountdownTime !== null;
 
-    if (!endOverrunGraceStartedAt && !cameFromSeek) {
+    if (!endOverrunGraceStartedAt && hasPreviousTimeSample && !cameFromSeek) {
       advanceFromEndCountdown();
       return;
     }
