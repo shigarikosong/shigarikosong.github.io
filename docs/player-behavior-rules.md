@@ -269,7 +269,7 @@ When switching between landscape and vertical videos, apply the new stage dimens
 
 The preferred player height is stored in localStorage. Switching between landscape and vertical media must not overwrite that preference merely because the current viewport clamps the rendered size.
 
-Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it.
+Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it. A YouTube row may explicitly override the automatic Shorts-based choice with `player_aspect` set to `9:16` or `16:9`; blank and unsupported values fall back to the automatic rule. TikTok remains vertical.
 
 YouTube viewports should remain at least 200 x 200 pixels when space permits. For 9:16 media this normally means a minimum rendered height of about 356 pixels. When the available viewport cannot satisfy both the ratio and minimum size, keep the player on screen and allow only the necessary ratio fallback.
 

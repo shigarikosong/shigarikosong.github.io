@@ -204,7 +204,7 @@ PCブラウザではTikTok埋め込み自体が不安定なことがある。
 
 タグ整理と同時に触らない。
 
-`playerStageDock` は中央配置と将来の四隅配置、`playerStage` は動画の実幅、`playerFrameWrapper` は動画の実高さを担当する。通常YouTubeは16:9、Shorts/TikTokは9:16を基準にし、配置とサイズ計算を混在させない。
+`playerStageDock` は中央配置と将来の四隅配置、`playerStage` は動画の実幅、`playerFrameWrapper` は動画の実高さを担当する。通常YouTubeは16:9、Shorts/TikTokは9:16を基準にし、配置とサイズ計算を混在させない。YouTube行の `player_aspect` に `9:16` または `16:9` があればShorts判定より優先し、空欄・未対応値は自動判定へ戻す。TikTokは縦型を維持する。
 
 横動画と縦動画を切り替える際は、次の埋め込みを読み込む前に新しい比率のstageサイズを同期し、レイアウト確定後にも再適用する。前の動画の比率を残したまま新しい動画を読み込まないこと。
 

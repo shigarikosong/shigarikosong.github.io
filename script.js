@@ -934,6 +934,11 @@ function parseCommaTags(value) {
     .filter(Boolean);
 }
 
+function normalizePlayerAspect(value) {
+  const aspect = String(value ?? "").trim();
+  return aspect === "9:16" || aspect === "16:9" ? aspect : "";
+}
+
 function normalizeVideos(data) {
   return data.map(video => {
     const roles = parseCommaTags(video["担当区分"]);
@@ -944,6 +949,7 @@ function normalizeVideos(data) {
     const number = normalizeVideoNumber(video["number"]);
     const fullNumber = normalizeVideoNumber(video["full_number"]);
     const fullButtonText = String(video["full_button_text"] ?? "").trim();
+    const playerAspect = normalizePlayerAspect(video["player_aspect"]);
     const startSeconds = parseTimeToSeconds(video["start"], 0);
     const parsedEndSeconds = parseTimeToSeconds(video["end"], null);
     const endSeconds = parsedEndSeconds !== null && parsedEndSeconds > startSeconds
@@ -959,6 +965,7 @@ function normalizeVideos(data) {
     video._number = number;
     video._fullNumber = fullNumber;
     video._fullButtonText = fullButtonText;
+    video._playerAspect = playerAspect;
     video._is3D = video["3D"] === "TRUE";
     video._isShorts = video["Shorts"] === "TRUE";
     video._startSeconds = startSeconds;
@@ -1475,6 +1482,8 @@ let activePlayerLayout = PLAYER_LAYOUT_LANDSCAPE;
 
 function getPlayerLayoutForVideo(video) {
   if (isTikTokVideo(video)) return PLAYER_LAYOUT_TIKTOK;
+  if (video?._playerAspect === "9:16") return PLAYER_LAYOUT_SHORTS;
+  if (video?._playerAspect === "16:9") return PLAYER_LAYOUT_LANDSCAPE;
   return video?._isShorts ? PLAYER_LAYOUT_SHORTS : PLAYER_LAYOUT_LANDSCAPE;
 }
 
