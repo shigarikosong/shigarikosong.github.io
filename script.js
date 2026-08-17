@@ -1662,6 +1662,14 @@ function applyStoredPlayerHeight() {
   setPlayerHeight(preferredHeight, { persist: false });
 }
 
+function syncPlayerDimensionsBeforeVideoLoad() {
+  applyStoredPlayerHeight();
+  requestAnimationFrame(() => {
+    applyStoredPlayerHeight();
+    requestAnimationFrame(applyStoredPlayerHeight);
+  });
+}
+
 function getMaxPlayerHeight() {
   return calculatePlayerSize(Number.MAX_SAFE_INTEGER).height;
 }
@@ -2753,7 +2761,7 @@ function loadVideo(video, item, options = {}) {
 
 
   fixedPlayerEl.style.display = 'block';
-  requestAnimationFrame(applyStoredPlayerHeight);
+  syncPlayerDimensionsBeforeVideoLoad();
 
   if (ytApiReady) {
     tryInitYtPlayer();
@@ -2789,12 +2797,11 @@ if (ytEl) ytEl.classList.add('hidden');
     tiktokPlayerEl.innerHTML = "";
   }
 
+  fixedPlayerEl.style.display = 'block';
+  syncPlayerDimensionsBeforeVideoLoad();
+
   const tiktokId = getTikTokId(videoId);
   loadTikTokEmbed(tiktokId);
-
-  fixedPlayerEl.style.display = 'block';
-
-  requestAnimationFrame(applyStoredPlayerHeight);
     
   stopEndCountdownMonitor();
   startFullVersionPromptMonitor(video);

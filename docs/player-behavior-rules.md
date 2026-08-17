@@ -265,6 +265,8 @@ When adding another platform, explicitly decide whether it can be used for autom
 
 `playerStageDock` owns the current centered placement. `playerStage` owns the actual player width, while `playerFrameWrapper` owns the matching video height. Keep sizing separate from placement so a future dock-position feature does not need to rewrite aspect-ratio logic.
 
+When switching between landscape and vertical videos, apply the new stage dimensions before loading the next embed, then reapply them after layout settles. This prevents the previous video's aspect ratio from remaining visible during the transition.
+
 The preferred player height is stored in localStorage. Switching between landscape and vertical media must not overwrite that preference merely because the current viewport clamps the rendered size.
 
 Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it.
