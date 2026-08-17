@@ -103,10 +103,12 @@ The fixed player play / pause button controls YouTube through the YouTube IFrame
 - The control remains available while the player window is collapsed.
 - Closing the player resets the control to its unavailable play state.
 - TikTok keeps its own playback-intent flag. `onPlayerReady` confirms full readiness, while `onStateChange` keeps the icon synchronized with operations performed inside the embedded player.
-- Some Embed Player environments do not relay `onPlayerReady` to the host. After the iframe `load` event, make the control available as a fallback and retry a user-requested play / pause command briefly until the corresponding state change confirms acceptance.
+- TikTok does not auto-play. The first playback must be started inside the embedded TikTok player because some browsers reject a host-page play command before that interaction.
+- Before the first real TikTok playback state is observed, pressing the fixed-player control shows guidance to use the embedded play button instead of silently sending an ineffective command.
+- After TikTok reports `BUFFERING` or `PLAYING`, enable normal play / pause control from the fixed player. Keep it available for subsequent pauses, resumes, and playback completion.
 - Recognize TikTok player events by the official `x-tiktok-player` message marker. Internal player frames may relay events without using the outer iframe window as `event.source`.
 - TikTok `PLAYING` shows pause, `PAUSED` / `ENDED` show play, and `BUFFERING` / `INIT` preserve the current playback intent.
-- Do not optimistically change the TikTok icon after posting a command. Some browsers require the first play action inside the TikTok embed, so only a real `onStateChange` updates the control.
+- Do not optimistically change the TikTok icon after posting a command. Only a real `onStateChange` updates the control.
 - TikTok remains excluded from automatic continuous playback; fixed-player play / pause support does not change that rule.
 - Manual play test mode still cues the selected YouTube video. The fixed player control may start it, while the native YouTube play button remains available for the intended manual-play check.
 
