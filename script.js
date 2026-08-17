@@ -736,6 +736,7 @@ const PLAYER_CONTROL_ICONS = Object.freeze({
   repeatOne: './assets/icon/icon-repeat-one.png?v=2',
   shuffle: './assets/icon/icon-shuffle.png?v=2'
 });
+let isYouTubePlaybackRequested = false;
 
 function setPlayerControlIcon(button, src) {
   const icon = button?.querySelector('.player-control-icon');
@@ -778,6 +779,23 @@ function getYouTubePlayerState() {
   }
 }
 
+function syncYouTubePlaybackIntentFromState(playerState) {
+  const playingState = window.YT?.PlayerState?.PLAYING ?? 1;
+  const endedState = window.YT?.PlayerState?.ENDED ?? 0;
+  const pausedState = window.YT?.PlayerState?.PAUSED ?? 2;
+  const cuedState = window.YT?.PlayerState?.CUED ?? 5;
+
+  if (playerState === playingState) {
+    isYouTubePlaybackRequested = true;
+  } else if (
+    playerState === pausedState ||
+    playerState === endedState ||
+    playerState === cuedState
+  ) {
+    isYouTubePlaybackRequested = false;
+  }
+}
+
 function updatePlayPauseButton(playerState = null) {
   const btn = document.getElementById('playPauseBtn');
   if (!btn) return;
@@ -812,16 +830,13 @@ function updatePlayPauseButton(playerState = null) {
     return;
   }
 
-  const state = playerState ?? getYouTubePlayerState();
-  const playingState = window.YT?.PlayerState?.PLAYING ?? 1;
-  const bufferingState = window.YT?.PlayerState?.BUFFERING ?? 3;
-  const isPlaying = state === playingState || state === bufferingState;
-  const label = isPlaying ? '一時停止' : '再生';
+  syncYouTubePlaybackIntentFromState(playerState);
+  const label = isYouTubePlaybackRequested ? '一時停止' : '再生';
 
-  btn.dataset.state = isPlaying ? 'playing' : 'paused';
+  btn.dataset.state = isYouTubePlaybackRequested ? 'playing' : 'paused';
   setPlayerControlIcon(
     btn,
-    isPlaying ? PLAYER_CONTROL_ICONS.pause : PLAYER_CONTROL_ICONS.play
+    isYouTubePlaybackRequested ? PLAYER_CONTROL_ICONS.pause : PLAYER_CONTROL_ICONS.play
   );
   setPlayerControlLabel(btn, label);
 }
@@ -830,15 +845,15 @@ function toggleYouTubePlayback() {
   const btn = document.getElementById('playPauseBtn');
   if (!btn || btn.disabled || !ytPlayer) return;
 
-  const state = getYouTubePlayerState();
-  const playingState = window.YT?.PlayerState?.PLAYING ?? 1;
   const bufferingState = window.YT?.PlayerState?.BUFFERING ?? 3;
   const pausedState = window.YT?.PlayerState?.PAUSED ?? 2;
 
-  if (state === playingState || state === bufferingState) {
+  if (isYouTubePlaybackRequested) {
+    isYouTubePlaybackRequested = false;
     ytPlayer.pauseVideo();
     updatePlayPauseButton(pausedState);
   } else {
+    isYouTubePlaybackRequested = true;
     ytPlayer.playVideo();
     updatePlayPauseButton(bufferingState);
   }
@@ -1320,7 +1335,7 @@ function tryInitYtPlayer() {
     },
     events: {
       onReady: () => {
-        updatePlayPauseButton();
+        updatePlayPauseButton(getYouTubePlayerState());
       },
       onStateChange: (e) => {
         console.log('YouTube state:', e.data, 'repeatMode:', getRepeatMode(), 'randomMode:', isRandomModeEnabled());
@@ -2573,6 +2588,7 @@ function clearNowPlayingState() {
   nowPlayingKey = null;
   currentPlayingVideo = null;
   playbackHistory = [];
+  isYouTubePlaybackRequested = false;
   updatePlayPauseButton();
   updateNowPlayingHighlight();
   updateNowPlayingFilteredOutNotice();
@@ -2611,6 +2627,8 @@ function loadVideo(video, item, options = {}) {
   }
 
   if (platform.includes("youtube")) {
+  const cueYouTubeVideo = shouldCueYouTubeVideo(options);
+  isYouTubePlaybackRequested = !cueYouTubeVideo;
   const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
   if (match) videoId = match[1];
 
@@ -2635,7 +2653,7 @@ function loadVideo(video, item, options = {}) {
   if (ytApiReady) {
     tryInitYtPlayer();
 
-    if (shouldCueYouTubeVideo(options) && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
+    if (cueYouTubeVideo && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
       ytPlayer.cueVideoById({ videoId, startSeconds: start });
     } else if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
       ytPlayer.loadVideoById({ videoId, startSeconds: start });
@@ -2648,6 +2666,7 @@ function loadVideo(video, item, options = {}) {
   startFullVersionPromptMonitor(video);
 
   } else if (platform === "tiktok") {
+  isYouTubePlaybackRequested = false;
   if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
     ytPlayer.stopVideo();
   }

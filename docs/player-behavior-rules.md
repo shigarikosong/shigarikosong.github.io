@@ -95,8 +95,10 @@ If this key format changes, check the impact on:
 
 The fixed player play / pause button controls YouTube through the YouTube IFrame Player API.
 
-- `PLAYING` and `BUFFERING` show the pause icon and label.
-- Paused, cued, ended, and other non-playing states show the play icon and label.
+- Keep a separate playback-intent flag for whether YouTube playback has been requested.
+- `PLAYING` sets the playback intent and shows the pause icon and label.
+- `PAUSED`, `ENDED`, and `CUED` clear the playback intent and show the play icon and label.
+- `BUFFERING` and `UNSTARTED` preserve the current playback intent and do not change the icon by themselves.
 - YouTube `onStateChange` is the source of truth, including changes made inside the embedded YouTube player.
 - The control remains available while the player window is collapsed.
 - Closing the player resets the control to its unavailable play state.

@@ -1141,7 +1141,7 @@ body.player-visible #desktopFilterPanel {
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
   padding: 3px 10px;
 }
 
@@ -1179,7 +1179,7 @@ body.player-visible #desktopFilterPanel {
     align-items: center;
     flex-wrap: nowrap;
     justify-content: flex-end;
-    gap: 4px;
+    gap: 8px;
     padding: 0;
   }
 
@@ -1248,14 +1248,14 @@ body.player-visible #desktopFilterPanel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
 }
 
 .player-control-icon img {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   opacity: var(--player-control-icon-opacity);
   transition: filter 0.18s ease, opacity 0.18s ease;
@@ -1271,8 +1271,8 @@ body.player-visible #desktopFilterPanel {
 
 .player-control-button-primary .player-control-icon,
 .player-control-button-primary .player-control-icon img {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
 }
 
 .player-control-label {
@@ -1309,7 +1309,7 @@ body.player-visible #desktopFilterPanel {
   .player-controls {
     display: grid;
     grid-template-columns: repeat(5, minmax(44px, 1fr));
-    gap: 2px;
+    gap: 0;
     padding: 3px 8px;
   }
 
