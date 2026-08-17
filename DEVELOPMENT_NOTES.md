@@ -187,7 +187,7 @@ YouTube再生は `script.js` と `youtube-stability.js` が関係している。
 
 ### TikTok再生
 
-TikTok埋め込みは `script.js` 内の `loadTikTokEmbed` 周辺が関係する。
+TikTok埋め込みは `script.js` 内の `loadTikTokEmbed` 周辺が関係し、公式Embed Playerの `player/v1/{POST_ID}` iframeを使用する。
 PCブラウザではTikTok埋め込み自体が不安定なことがある。
 
 ### プレイヤー位置・高さ
@@ -196,10 +196,15 @@ PCブラウザではTikTok埋め込み自体が不安定なことがある。
 
 - `script.js`
 - `player-collapse.js`
+- `style.css`
+- `scroll-utils.js`
+- `loading-status.js`
 - `playing-scroll-position.js`
 - `filter-scroll-position.js`
 
 タグ整理と同時に触らない。
+
+`playerStageDock` は中央配置と将来の四隅配置、`playerStage` は動画の実幅、`playerFrameWrapper` は動画の実高さを担当する。通常YouTubeは16:9、Shorts/TikTokは9:16を基準にし、配置とサイズ計算を混在させない。
 
 ### スクロール挙動
 

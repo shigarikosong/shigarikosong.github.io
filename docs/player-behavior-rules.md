@@ -253,7 +253,7 @@ YouTube uses the YouTube iframe API or YouTube embed.
 
 YouTube can be used for automatic continuous playback.
 
-TikTok embeds are regenerated and `embed.js` is reloaded.
+TikTok uses the official Embed Player iframe at `https://www.tiktok.com/player/v1/{POST_ID}`.
 
 TikTok is not eligible for automatic continuous playback.
 
@@ -261,13 +261,23 @@ TikTok can still be selected and played manually.
 
 When adding another platform, explicitly decide whether it can be used for automatic continuous playback.
 
-## 12. Player Display And Height Rules
+## 12. Player Stage And Size Rules
 
-The fixed player height is stored in localStorage.
+`playerStageDock` owns the current centered placement. `playerStage` owns the actual player width, while `playerFrameWrapper` owns the matching video height. Keep sizing separate from placement so a future dock-position feature does not need to rewrite aspect-ratio logic.
 
-Player height should be clamped between the minimum and maximum allowed values.
+The preferred player height is stored in localStorage. Switching between landscape and vertical media must not overwrite that preference merely because the current viewport clamps the rendered size.
 
-Keep the heights of YouTube, TikTok, iframe, and wrapper elements aligned.
+Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it.
+
+YouTube viewports should remain at least 200 x 200 pixels when space permits. For 9:16 media this normally means a minimum rendered height of about 356 pixels. When the available viewport cannot satisfy both the ratio and minimum size, keep the player on screen and allow only the necessary ratio fallback.
+
+Calculate the final width and height from both the available viewport height and the fixed-player content width. Recalculate on window resize, `orientationchange`, and `visualViewport` resize without changing playback state.
+
+Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When the YouTube IFrame API is ready, keep `ytPlayer.setSize(width, height)` synchronized with the wrapper.
+
+The resize handle and expanded `.player-window-actions` follow the rendered player width. Actions occupy a separate row above the frame and must not cover the embedded player. Long countdown and Full ver. controls may use the viewport space to the left of a narrow vertical player but must not leave the viewport.
+
+Collapsed mode hides the frame and resize handle while keeping collapse/restore and close actions available.
 
 While resizing, temporarily disable iframe `pointer-events`.
 

@@ -26,7 +26,11 @@
 
     if (!fixedPlayerVisible) return 0;
 
-    const playerActionsHeight = getVisibleElementHeight(windowActions)
+    const actionsAreInsidePlayer = Boolean(
+      windowActions?.closest('#playerStageDock') &&
+      !fixedPlayer?.classList.contains('is-collapsed')
+    );
+    const playerActionsHeight = !actionsAreInsidePlayer && getVisibleElementHeight(windowActions)
       ? getVisibleElementHeight(windowActions) + actionsGap
       : 0;
 

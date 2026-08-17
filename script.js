@@ -3,6 +3,9 @@
     const playerIframe = document.getElementById('playerIframe');
     const youtubePlayerEl = document.getElementById('youtubePlayer');
     const tiktokPlayerEl = document.getElementById('tiktokPlayer');
+    const fixedPlayerInner = document.getElementById('fixedPlayerInner');
+    const playerStageDock = document.getElementById('playerStageDock');
+    const playerStage = document.getElementById('playerStage');
     const playerFrameWrapper = document.getElementById('playerFrameWrapper');
     const resizeHandle = document.getElementById('playerResizeHandle');
     const closeBtn = document.getElementById('closePlayerBtn');
@@ -559,12 +562,12 @@ function getPlayerWindowActions() {
   let actions = document.querySelector(".player-window-actions");
   if (actions) return actions;
 
-  const fixedPlayerInner = fixedPlayerEl?.firstElementChild;
-  if (!fixedPlayerInner) return null;
+  const actionsHost = playerStageDock || fixedPlayerEl?.firstElementChild;
+  if (!actionsHost) return null;
 
   actions = document.createElement("div");
   actions.className = "player-window-actions";
-  fixedPlayerInner.prepend(actions);
+  actionsHost.prepend(actions);
   return actions;
 }
 
@@ -1336,6 +1339,7 @@ function tryInitYtPlayer() {
     events: {
       onReady: () => {
         updatePlayPauseButton(getYouTubePlayerState());
+        requestAnimationFrame(applyStoredPlayerHeight);
       },
       onStateChange: (e) => {
         console.log('YouTube state:', e.data, 'repeatMode:', getRepeatMode(), 'randomMode:', isRandomModeEnabled());
@@ -1455,76 +1459,227 @@ const nowPlayingFloatingMutationObserver = new MutationObserver(scheduleNowPlayi
 
 
 // ===== 固定プレイヤーの位置・サイズ調整 =====
-function adjustFixedPlayerBottom() {
-  const nowPlayingWrapperEl = document.getElementById('nowPlayingWrapper');
-  if (!fixedPlayerEl || !nowPlayingWrapperEl || !playerIframe) return; 
+const PLAYER_HEIGHT_KEY = 'playerHeightPx';
+const DEFAULT_PLAYER_H = 360;
+const MIN_LANDSCAPE_PLAYER_H = 240;
+const MIN_EMBED_VIEWPORT = 200;
+const PLAYER_LAYOUT_LANDSCAPE = 'landscape';
+const PLAYER_LAYOUT_SHORTS = 'shorts';
+const PLAYER_LAYOUT_TIKTOK = 'tiktok';
+const PLAYER_ASPECT_RATIOS = Object.freeze({
+  [PLAYER_LAYOUT_LANDSCAPE]: 16 / 9,
+  [PLAYER_LAYOUT_SHORTS]: 9 / 16,
+  [PLAYER_LAYOUT_TIKTOK]: 9 / 16
+});
+let activePlayerLayout = PLAYER_LAYOUT_LANDSCAPE;
 
-  const h = nowPlayingWrapperEl.offsetHeight || 0;
-  fixedPlayerEl.style.bottom = `${h + 8}px`;
-  const total = (fixedPlayerEl.offsetHeight || 0) + h + 12;
-  document.body.style.paddingBottom = `${total}px`;
-
-  const maxH = getMaxPlayerHeight();
-  const current = parseInt(playerIframe.style.height || 0, 10) ||
-                  playerIframe.getBoundingClientRect().height;
-  if (current > maxH) setPlayerHeight(maxH);
+function getPlayerLayoutForVideo(video) {
+  if (isTikTokVideo(video)) return PLAYER_LAYOUT_TIKTOK;
+  return video?._isShorts ? PLAYER_LAYOUT_SHORTS : PLAYER_LAYOUT_LANDSCAPE;
 }
 
-window.addEventListener('resize', () => {
-  requestAnimationFrame(adjustFixedPlayerBottom);
-});
-window.addEventListener('orientationchange', () => {
-  setTimeout(adjustFixedPlayerBottom, 50);
-});
-window.visualViewport?.addEventListener('resize', adjustFixedPlayerBottom);
+function setPlayerLayoutForVideo(video) {
+  activePlayerLayout = getPlayerLayoutForVideo(video);
+  playerStage?.setAttribute('data-player-layout', activePlayerLayout);
+  playerStageDock?.setAttribute('data-player-layout', activePlayerLayout);
+}
 
-    window.addEventListener('resize', () => {
-  requestAnimationFrame(updateActiveTagChipsPosition);
-});
+function getPlayerAspectRatio(layout = activePlayerLayout) {
+  return PLAYER_ASPECT_RATIOS[layout] || PLAYER_ASPECT_RATIOS[PLAYER_LAYOUT_LANDSCAPE];
+}
 
-window.addEventListener('orientationchange', () => {
-  setTimeout(updateActiveTagChipsPosition, 50);
-});
+function getViewportSize() {
+  const viewport = window.visualViewport;
+  return {
+    width: Math.max(1, Math.floor(viewport?.width || window.innerWidth || document.documentElement.clientWidth)),
+    height: Math.max(1, Math.floor(viewport?.height || window.innerHeight || document.documentElement.clientHeight))
+  };
+}
 
-window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
+function getStyleNumber(style, property) {
+  const value = Number.parseFloat(style?.[property]);
+  return Number.isFinite(value) ? value : 0;
+}
 
+function getAvailablePlayerSize() {
+  const viewport = getViewportSize();
+  const innerStyle = fixedPlayerInner ? getComputedStyle(fixedPlayerInner) : null;
+  const horizontalPadding = getStyleNumber(innerStyle, 'paddingLeft') + getStyleNumber(innerStyle, 'paddingRight');
+  const verticalPadding = getStyleNumber(innerStyle, 'paddingTop') + getStyleNumber(innerStyle, 'paddingBottom');
+  const innerWidth = fixedPlayerInner?.clientWidth || Math.min(viewport.width, 896);
+  const dockStyle = playerStageDock ? getComputedStyle(playerStageDock) : null;
+  const actionsSpace = getStyleNumber(dockStyle, 'paddingTop') || 40;
+  const nowPlayingHeight = document.getElementById('nowPlayingWrapper')?.offsetHeight || 0;
+  const viewportSideMargin = Math.min(24, Math.max(0, viewport.width - 1));
+  const availableWidth = Math.max(
+    1,
+    Math.floor(Math.min(viewport.width - viewportSideMargin, innerWidth - horizontalPadding))
+  );
+  const availableHeight = Math.max(
+    1,
+    Math.floor(viewport.height - nowPlayingHeight - 8 - verticalPadding - actionsSpace - 12)
+  );
 
-// ===== プレイヤーの高さ変更 =====
-const PLAYER_HEIGHT_KEY = 'playerHeightPx';
-const MIN_PLAYER_H = 240;
+  return { width: availableWidth, height: availableHeight };
+}
 
-function applyStoredPlayerHeight() {
-  const stored = parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
-  const maxH = getMaxPlayerHeight();
+function getPreferredMinimumHeight(layout = activePlayerLayout) {
+  if (layout === PLAYER_LAYOUT_LANDSCAPE) return MIN_LANDSCAPE_PLAYER_H;
+  return Math.ceil(MIN_EMBED_VIEWPORT / getPlayerAspectRatio(layout));
+}
 
-  let h;
+function calculatePlayerSize(preferredHeight, layout = activePlayerLayout) {
+  const available = getAvailablePlayerSize();
+  const ratio = getPlayerAspectRatio(layout);
+  const requestedHeight = Number.isFinite(Number(preferredHeight))
+    ? Math.max(1, Math.round(Number(preferredHeight)))
+    : DEFAULT_PLAYER_H;
+  const preferredMinimumHeight = getPreferredMinimumHeight(layout);
+  const maxRatioHeight = Math.min(available.height, available.width / ratio);
+  let width;
+  let height;
 
-  if (!isNaN(stored)) {
-    h = stored;
+  if (maxRatioHeight >= preferredMinimumHeight) {
+    height = Math.max(preferredMinimumHeight, Math.min(requestedHeight, maxRatioHeight));
+    width = height * ratio;
+  } else if (available.width >= MIN_EMBED_VIEWPORT && available.height >= MIN_EMBED_VIEWPORT) {
+    if (ratio < 1) {
+      height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedHeight));
+      width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, height * ratio));
+    } else {
+      width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, requestedHeight * ratio));
+      height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, width / ratio));
+    }
+  } else if (available.width < MIN_EMBED_VIEWPORT) {
+    width = available.width;
+    height = Math.min(
+      available.height,
+      Math.max(Math.min(MIN_EMBED_VIEWPORT, available.height), width / ratio)
+    );
   } else {
-    h =
-      playerFrameWrapper?.getBoundingClientRect().height ||
-      youtubePlayerEl?.getBoundingClientRect().height ||
-      playerIframe?.getBoundingClientRect().height ||
-      360;
+    height = available.height;
+    width = Math.min(
+      available.width,
+      Math.max(Math.min(MIN_EMBED_VIEWPORT, available.width), height * ratio)
+    );
   }
 
-  h = Math.max(MIN_PLAYER_H, Math.min(Math.round(h), maxH));
+  return {
+    width: Math.max(1, Math.round(width)),
+    height: Math.max(1, Math.round(height))
+  };
+}
 
-  setPlayerHeight(h);
+function getYouTubeIframeElement() {
+  return document.querySelector('#youtubePlayer iframe') || document.getElementById('youtubePlayer');
+}
+
+function getYouTubePlayerElement() {
+  return document.getElementById('youtubePlayer');
+}
+
+function applyPlayerDimensions(size) {
+  const width = Math.max(1, Math.round(size.width));
+  const height = Math.max(1, Math.round(size.height));
+  const widthPx = `${width}px`;
+  const heightPx = `${height}px`;
+
+  playerStageDock?.style.setProperty('--player-stage-width', widthPx);
+
+  if (playerStage) {
+    playerStage.style.width = widthPx;
+    playerStage.setAttribute('data-player-layout', activePlayerLayout);
+  }
+
+  if (playerFrameWrapper) {
+    playerFrameWrapper.style.width = widthPx;
+    playerFrameWrapper.style.height = heightPx;
+  }
+
+  [getYouTubeIframeElement(), tiktokPlayerEl, playerIframe].forEach(element => {
+    if (!element) return;
+    element.classList.remove('aspect-video');
+    element.style.width = '100%';
+    element.style.height = '100%';
+  });
+
+  const tiktokIframe = tiktokPlayerEl?.querySelector('iframe');
+  if (tiktokIframe) {
+    tiktokIframe.style.width = '100%';
+    tiktokIframe.style.height = '100%';
+  }
+
+  if (
+    activePlayerLayout !== PLAYER_LAYOUT_TIKTOK &&
+    ytPlayer &&
+    typeof ytPlayer.setSize === 'function'
+  ) {
+    try {
+      ytPlayer.setSize(width, height);
+    } catch (error) {
+      console.warn('YouTube player size update failed:', error);
+    }
+  }
+}
+
+function updateFixedPlayerOffsets() {
+  const nowPlayingWrapperEl = document.getElementById('nowPlayingWrapper');
+  if (!fixedPlayerEl || !nowPlayingWrapperEl) return;
+
+  if (getComputedStyle(fixedPlayerEl).display === 'none') {
+    document.body.style.paddingBottom = '0px';
+    return;
+  }
+
+  const nowPlayingHeight = nowPlayingWrapperEl.offsetHeight || 0;
+  fixedPlayerEl.style.bottom = `${nowPlayingHeight + 8}px`;
+
+  if (fixedPlayerEl.classList.contains('is-collapsed')) {
+    document.body.style.paddingBottom = `${nowPlayingHeight + 12}px`;
+    return;
+  }
+
+  const total = (fixedPlayerEl.offsetHeight || 0) + nowPlayingHeight + 12;
+  document.body.style.paddingBottom = `${total}px`;
+}
+
+function setPlayerHeight(px, options = {}) {
+  const { persist = true } = options;
+  const size = calculatePlayerSize(px);
+  applyPlayerDimensions(size);
+
+  if (persist) {
+    localStorage.setItem(PLAYER_HEIGHT_KEY, String(size.height));
+  }
+
+  updateFixedPlayerOffsets();
+  return size;
+}
+
+function applyStoredPlayerHeight() {
+  const stored = Number.parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
+  const preferredHeight = Number.isFinite(stored) ? stored : DEFAULT_PLAYER_H;
+  setPlayerHeight(preferredHeight, { persist: false });
 }
 
 function getMaxPlayerHeight() {
-  const vh = window.innerHeight;
-  const nowH = document.getElementById('nowPlayingWrapper')?.offsetHeight || 0;
-  const bottomOffset = nowH + 8;
-  const fixedPlayerVerticalPadding = 16 * 2;
-  const handleAndTopSafety = 24 + 16; // だいたい 40px
-  const maxH = vh - (bottomOffset + fixedPlayerVerticalPadding + handleAndTopSafety);
-  return Math.max(MIN_PLAYER_H, Math.floor(maxH));
+  return calculatePlayerSize(Number.MAX_SAFE_INTEGER).height;
 }
 
-    function getActivePlayerElement() {
+function adjustFixedPlayerBottom() {
+  if (!fixedPlayerEl || getComputedStyle(fixedPlayerEl).display === 'none') {
+    updateFixedPlayerOffsets();
+    return;
+  }
+
+  if (!fixedPlayerEl.classList.contains('is-collapsed')) {
+    applyStoredPlayerHeight();
+  } else {
+    updateFixedPlayerOffsets();
+  }
+}
+
+function getActivePlayerElement() {
   const ytEl = getYouTubePlayerElement();
 
   if (ytEl && !ytEl.classList.contains('hidden')) {
@@ -1538,14 +1693,6 @@ function getMaxPlayerHeight() {
   return playerIframe;
 }
 
-function getYouTubeIframeElement() {
-  return document.querySelector('#youtubePlayer iframe') || document.getElementById('youtubePlayer');
-}
-
-    function getYouTubePlayerElement() {
-  return document.getElementById('youtubePlayer');
-}
-
 function hideYouTubePlayer() {
   const el = getYouTubePlayerElement();
   if (el) el.classList.add('hidden');
@@ -1556,102 +1703,63 @@ function showYouTubePlayer() {
   if (el) el.classList.remove('hidden');
 }
 
-    function getTikTokId(videoId) {
+function getTikTokId(videoId) {
   const match = String(videoId).match(/video\/(\d+)/);
   return match ? match[1] : String(videoId).trim();
 }
 
 function loadTikTokEmbed(tiktokId) {
-  if (!tiktokPlayerEl) return;
+  if (!tiktokPlayerEl || !tiktokId) return;
 
-  const tiktokUrl = `https://www.tiktok.com/@riko14218/video/${tiktokId}`;
-
-  tiktokPlayerEl.innerHTML = `
-    <blockquote
-      class="tiktok-embed"
-      cite="${tiktokUrl}"
-      data-video-id="${tiktokId}"
-      data-embed-from="embed_page"
-      style="max-width:360px; min-width:0; width:100%;">
-      <section>
-        <a target="_blank" rel="noopener" href="${tiktokUrl}">TikTokで見る</a>
-      </section>
-    </blockquote>
-  `;
-
-  reloadTikTokEmbedScript();
+  const iframe = document.createElement('iframe');
+  iframe.className = 'tiktok-player-iframe';
+  iframe.src = `https://www.tiktok.com/player/v1/${encodeURIComponent(tiktokId)}?controls=1&autoplay=0`;
+  iframe.title = 'TikTok動画プレイヤー';
+  iframe.loading = 'eager';
+  iframe.allow = 'autoplay; encrypted-media; fullscreen';
+  iframe.setAttribute('allowfullscreen', '');
+  tiktokPlayerEl.replaceChildren(iframe);
 }
 
-function reloadTikTokEmbedScript() {
-  document.querySelectorAll('script[src="https://www.tiktok.com/embed.js"]').forEach(script => {
-    script.remove();
-  });
+window.addEventListener('resize', () => {
+  requestAnimationFrame(adjustFixedPlayerBottom);
+  requestAnimationFrame(updateActiveTagChipsPosition);
+});
 
-  const script = document.createElement('script');
-  script.src = 'https://www.tiktok.com/embed.js';
-  script.async = true;
-  document.body.appendChild(script);
-}
-    
-function setPlayerHeight(px) {
-  const maxH = getMaxPlayerHeight();
-  const h = Math.max(MIN_PLAYER_H, Math.min(Math.round(px), maxH));
+window.addEventListener('orientationchange', () => {
+  setTimeout(adjustFixedPlayerBottom, 50);
+  setTimeout(updateActiveTagChipsPosition, 50);
+});
 
-  if (playerIframe) {
-    playerIframe.classList.remove('aspect-video');
-    playerIframe.style.height = h + 'px';
-  }
-
- const ytEl = getYouTubeIframeElement();
-if (ytEl) {
-  ytEl.classList.remove('aspect-video');
-  ytEl.style.height = h + 'px';
-  ytEl.style.width = '100%';
-}
-
-  if (youtubePlayerEl) {
-    youtubePlayerEl.classList.remove('aspect-video');
-    youtubePlayerEl.style.height = h + 'px';
-  }
-
-  if (tiktokPlayerEl) {
-  tiktokPlayerEl.style.height = h + 'px';
-  tiktokPlayerEl.style.overflow = 'auto';
-}
-
-  if (playerFrameWrapper) {
-    playerFrameWrapper.style.height = h + 'px';
-  }
-
-  localStorage.setItem(PLAYER_HEIGHT_KEY, String(h));
-  adjustFixedPlayerBottom();
-}
-
+window.visualViewport?.addEventListener('resize', adjustFixedPlayerBottom);
+window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 
 (function enablePlayerResize() {
   if (!resizeHandle) return;
 
-  let dragging = false, startY = 0, startH = 0;
-  let prevUserSelect = '', prevCursor = '', prevOverflow = '';
-  const preventScroll = (e) => e.preventDefault();
+  let dragging = false;
+  let startY = 0;
+  let startH = 0;
+  let prevUserSelect = '';
+  let prevCursor = '';
+  let prevOverflow = '';
+  const preventScroll = (event) => event.preventDefault();
 
   const lockScroll = () => {
-    // スクロール抑止（iOS含む）
     prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    // タッチスクロールを完全停止
     document.addEventListener('touchmove', preventScroll, { passive: false });
   };
 
-    const disableIframePointer = () => {
-  const active = getActivePlayerElement();
-  if (active) active.style.pointerEvents = 'none';
-};
+  const disableIframePointer = () => {
+    const active = getActivePlayerElement();
+    if (active) active.style.pointerEvents = 'none';
+  };
 
-const enableIframePointer = () => {
-  const active = getActivePlayerElement();
-  if (active) active.style.pointerEvents = '';
-};
+  const enableIframePointer = () => {
+    const active = getActivePlayerElement();
+    if (active) active.style.pointerEvents = '';
+  };
 
   const unlockScroll = () => {
     document.body.style.overflow = prevOverflow;
@@ -1661,23 +1769,19 @@ const enableIframePointer = () => {
   const start = (y) => {
     dragging = true;
     startY = y;
-    
-    const activePlayer = getActivePlayerElement();
-startH = parseInt(activePlayer.style.height || 0, 10) ||
-         activePlayer.getBoundingClientRect().height;
-    
+    startH = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
     prevUserSelect = document.body.style.userSelect;
     prevCursor = document.body.style.cursor;
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'ns-resize';
-    disableIframePointer(); 
+    disableIframePointer();
     lockScroll();
   };
 
   const move = (y) => {
     if (!dragging) return;
     const dy = y - startY;
-    setPlayerHeight(startH - dy); // 上に動かすと高さが増える
+    setPlayerHeight(startH - dy);
   };
 
   const end = () => {
@@ -1685,45 +1789,43 @@ startH = parseInt(activePlayer.style.height || 0, 10) ||
     dragging = false;
     document.body.style.userSelect = prevUserSelect;
     document.body.style.cursor = prevCursor;
-    enableIframePointer(); 
+    enableIframePointer();
     unlockScroll();
   };
 
-     window.addEventListener('blur', end);
-    document.addEventListener('mouseleave', end);
-
+  window.addEventListener('blur', end);
+  document.addEventListener('mouseleave', end);
   document.addEventListener('mouseup', end);
-document.addEventListener('touchend', end);
-document.addEventListener('touchcancel', end);
+  document.addEventListener('touchend', end);
+  document.addEventListener('touchcancel', end);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) end();
+  });
 
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) end();
-});
+  resizeHandle.addEventListener('mousedown', (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    start(event.clientY);
+  });
 
-  // マウス
- resizeHandle.addEventListener('mousedown', (e) => {
-  if (e.button !== 0) return;
-  e.preventDefault();
-  e.stopPropagation();
-  start(e.clientY);
-});
-  window.addEventListener('mousemove', (e) => move(e.clientY));
+  window.addEventListener('mousemove', (event) => move(event.clientY));
   window.addEventListener('mouseup', end);
 
-  // タッチ（passive: false で preventDefault を有効に）
-  resizeHandle.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  start(e.touches[0].clientY);
-}, { passive: false });
-  
-  window.addEventListener('touchmove', (e) => {
-    move(e.touches[0].clientY);
+  resizeHandle.addEventListener('touchstart', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    start(event.touches[0].clientY);
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (event) => {
+    if (!dragging || !event.touches[0]) return;
+    event.preventDefault();
+    move(event.touches[0].clientY);
   }, { passive: false });
 
   window.addEventListener('touchend', end);
   window.addEventListener('touchcancel', end);
-
 })();
 
 
@@ -2626,6 +2728,8 @@ function loadVideo(video, item, options = {}) {
     return;
   }
 
+  setPlayerLayoutForVideo(video);
+
   if (platform.includes("youtube")) {
   const cueYouTubeVideo = shouldCueYouTubeVideo(options);
   isYouTubePlaybackRequested = !cueYouTubeVideo;
@@ -2649,6 +2753,7 @@ function loadVideo(video, item, options = {}) {
 
 
   fixedPlayerEl.style.display = 'block';
+  requestAnimationFrame(applyStoredPlayerHeight);
 
   if (ytApiReady) {
     tryInitYtPlayer();
@@ -2671,10 +2776,6 @@ function loadVideo(video, item, options = {}) {
     ytPlayer.stopVideo();
   }
 
-    requestAnimationFrame(() => {
-  applyStoredPlayerHeight();
-});
-
  const ytEl = document.getElementById('youtubePlayer');
 if (ytEl) ytEl.classList.add('hidden');
 
@@ -2693,9 +2794,7 @@ if (ytEl) ytEl.classList.add('hidden');
 
   fixedPlayerEl.style.display = 'block';
 
-    requestAnimationFrame(() => {
-  applyStoredPlayerHeight();
-});
+  requestAnimationFrame(applyStoredPlayerHeight);
     
   stopEndCountdownMonitor();
   startFullVersionPromptMonitor(video);
@@ -2729,6 +2828,10 @@ if (closeBtn) {
       }), '*');
     } else {
       playerIframe.src = "";
+    }
+    if (tiktokPlayerEl) {
+      tiktokPlayerEl.classList.add('hidden');
+      tiktokPlayerEl.replaceChildren();
     }
     clearNowPlayingState();
     fixedPlayerEl.style.display = 'none';
