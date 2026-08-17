@@ -14,6 +14,7 @@ This document covers:
 - YouTube player
 - TikTok embed
 - Now playing display
+- Play / pause control
 - Previous / next
 - `Shift + A` / `Shift + D` keyboard shortcuts
 - Random playback
@@ -89,6 +90,20 @@ If this key format changes, check the impact on:
 - Previous/next movement
 - Random queue
 - Scroll and highlight behavior
+
+## 5.1 Play / Pause Control Rules
+
+The fixed player play / pause button controls YouTube through the YouTube IFrame Player API.
+
+- Keep a separate playback-intent flag for whether YouTube playback has been requested.
+- `PLAYING` sets the playback intent and shows the pause icon and label.
+- `PAUSED`, `ENDED`, and `CUED` clear the playback intent and show the play icon and label.
+- `BUFFERING` and `UNSTARTED` preserve the current playback intent and do not change the icon by themselves.
+- YouTube `onStateChange` is the source of truth, including changes made inside the embedded YouTube player.
+- The control remains available while the player window is collapsed.
+- Closing the player resets the control to its unavailable play state.
+- TikTok cannot be controlled from the fixed player. Keep the button in place but disabled, and direct playback operations to the TikTok embed.
+- Manual play test mode still cues the selected YouTube video. The fixed player control may start it, while the native YouTube play button remains available for the intended manual-play check.
 
 ## 6. Previous / Next Rules
 

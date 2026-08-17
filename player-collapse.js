@@ -138,7 +138,7 @@
     }
 
     #playerControls {
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       padding: 3px 10px !important;
     }
 
