@@ -274,7 +274,9 @@ When adding another platform, explicitly decide whether it can be used for autom
 
 ## 12. Player Stage And Size Rules
 
-`playerStageDock` owns the current centered placement. `playerStage` owns the actual player width, while `playerFrameWrapper` owns the matching video height. Keep sizing separate from placement so a future dock-position feature does not need to rewrite aspect-ratio logic.
+`playerStageDock` owns the current horizontal placement. `playerStage` owns the actual player width, while `playerFrameWrapper` owns the matching video height. Keep sizing separate from placement so position changes do not need to rewrite aspect-ratio logic.
+
+When no horizontal position has been saved, place the player at the rightmost allowed position. Continue to prefer the normalized position stored in `playerHorizontalPosition` for returning users, and do not overwrite it merely because the default changes.
 
 When switching between landscape and vertical videos, apply the new stage dimensions before loading the next embed, then reapply them after layout settles. This prevents the previous video's aspect ratio from remaining visible during the transition.
 
