@@ -1164,18 +1164,25 @@ body.player-visible #desktopFilterPanel {
 #playerResizeHandle {
   position: absolute;
   top: -18px;
-  left: 50%;
-  width: min(120px, 100%);
+  left: 0;
+  width: min(160px, 100%);
   height: 24px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
+  box-sizing: border-box;
+  padding-left: clamp(8px, 6%, 24px);
   cursor: ns-resize;
   z-index: 5;
   background: transparent;
-  transform: translateX(-50%);
   touch-action: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #playerResizeHandle {
+    width: 100%;
+  }
 }
 
 .player-resize-handle-bar {
