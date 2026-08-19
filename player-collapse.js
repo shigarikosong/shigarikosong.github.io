@@ -94,6 +94,25 @@
       pointer-events: auto;
     }
 
+    .player-window-chrome {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 6px;
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.18s ease;
+    }
+
+    .player-window-chrome.is-fading {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .player-window-chrome[hidden] {
+      display: none;
+    }
+
     .player-window-button,
     .player-window-icon-button {
       display: grid;
@@ -367,7 +386,10 @@
   closeButton.type = "button";
   closeButton.setAttribute("aria-label", "プレイヤーを閉じる");
 
-  actions.insertBefore(collapseButton, closeButton);
+  const windowChrome = document.createElement("div");
+  windowChrome.className = "player-window-chrome";
+  windowChrome.append(collapseButton, closeButton);
+  actions.append(windowChrome);
 
   if (playerFrameWrapper) {
     playerFrameWrapper.classList.remove("shadow-lg");
@@ -379,6 +401,82 @@
 
   function isCollapsed() {
     return fixedPlayer.classList.contains("is-collapsed");
+  }
+
+  const WINDOW_CHROME_HIDE_DELAY_MS = 2600;
+  const WINDOW_CHROME_FADE_MS = 180;
+  let windowChromeHideTimer = null;
+  let windowChromeFadeTimer = null;
+  let isHandleInteractionActive = false;
+
+  function clearWindowChromeTimers() {
+    if (windowChromeHideTimer !== null) {
+      clearTimeout(windowChromeHideTimer);
+      windowChromeHideTimer = null;
+    }
+    if (windowChromeFadeTimer !== null) {
+      clearTimeout(windowChromeFadeTimer);
+      windowChromeFadeTimer = null;
+    }
+  }
+
+  function shouldKeepWindowChromeVisible() {
+    const activeElement = document.activeElement;
+    const hasKeyboardFocus = Boolean(
+      activeElement &&
+      (actions.contains(activeElement) || activeElement === document.getElementById("playerResizeHandle")) &&
+      activeElement.matches(":focus-visible")
+    );
+
+    return isCollapsed() ||
+      isHandleInteractionActive ||
+      hasKeyboardFocus;
+  }
+
+  function hideWindowChrome(options = {}) {
+    const { immediate = false, force = false } = options;
+    clearWindowChromeTimers();
+
+    if (!force && shouldKeepWindowChromeVisible()) return;
+
+    if (immediate) {
+      windowChrome.classList.add("is-fading");
+      windowChrome.hidden = true;
+      return;
+    }
+
+    windowChrome.classList.add("is-fading");
+    windowChromeFadeTimer = window.setTimeout(() => {
+      windowChromeFadeTimer = null;
+      if (!shouldKeepWindowChromeVisible()) {
+        windowChrome.hidden = true;
+      } else {
+        windowChrome.classList.remove("is-fading");
+      }
+    }, WINDOW_CHROME_FADE_MS);
+  }
+
+  function scheduleWindowChromeHide() {
+    if (!isPlayerVisible() || shouldKeepWindowChromeVisible()) return;
+    if (windowChromeHideTimer !== null) clearTimeout(windowChromeHideTimer);
+
+    windowChromeHideTimer = window.setTimeout(() => {
+      windowChromeHideTimer = null;
+      hideWindowChrome();
+    }, WINDOW_CHROME_HIDE_DELAY_MS);
+  }
+
+  function showWindowChrome(options = {}) {
+    const { autoHide = true } = options;
+    clearWindowChromeTimers();
+    windowChrome.hidden = false;
+    requestAnimationFrame(() => {
+      windowChrome.classList.remove("is-fading");
+    });
+
+    if (autoHide && !shouldKeepWindowChromeVisible()) {
+      scheduleWindowChromeHide();
+    }
   }
 
   function syncButtons() {
@@ -417,6 +515,7 @@
     }
 
     syncButtons();
+    showWindowChrome({ autoHide: !isCollapsed() });
   }
 
   function collapsePlayer() {
@@ -427,6 +526,7 @@
     refreshNowPlayingMarquee();
     syncButtons();
     setMiniBarPadding();
+    showWindowChrome({ autoHide: false });
   }
 
   function restorePlayer() {
@@ -434,6 +534,7 @@
     refreshNowPlayingMarquee();
     syncButtons();
     readjustExpandedPlayer();
+    showWindowChrome();
   }
 
   function togglePlayerSize() {
@@ -450,12 +551,79 @@
     nowPlayingWrapper.classList.add("hidden");
     document.body.style.paddingBottom = "0px";
     syncButtons();
+    hideWindowChrome({ immediate: true, force: true });
   }
 
   collapseButton.addEventListener("click", togglePlayerSize);
   closeButton.addEventListener("click", hideMiniBar);
 
-  const observer = new MutationObserver(showMiniBarIfPlaying);
+  const resizeHandle = document.getElementById("playerResizeHandle");
+  const revealWindowChrome = () => showWindowChrome({ autoHide: false });
+  const releaseWindowChrome = () => scheduleWindowChromeHide();
+
+  resizeHandle?.addEventListener("pointerenter", revealWindowChrome);
+  resizeHandle?.addEventListener("pointerleave", releaseWindowChrome);
+  windowChrome.addEventListener("pointerenter", revealWindowChrome);
+  windowChrome.addEventListener("pointerleave", releaseWindowChrome);
+
+  [resizeHandle, windowChrome].filter(Boolean).forEach(element => {
+    element.addEventListener("focusin", revealWindowChrome);
+    element.addEventListener("focusout", () => {
+      window.setTimeout(releaseWindowChrome, 0);
+    });
+  });
+
+  [fixedPlayer, nowPlayingWrapper].forEach(element => {
+    element.addEventListener("focusout", () => {
+      window.setTimeout(() => {
+        const activeElement = document.activeElement;
+        if (
+          !fixedPlayer.contains(activeElement) &&
+          !nowPlayingWrapper.contains(activeElement)
+        ) {
+          scheduleWindowChromeHide();
+        }
+      }, 0);
+    });
+  });
+
+  document.addEventListener("keydown", event => {
+    const activeElement = document.activeElement;
+    const isPlayerKeyboardContext = Boolean(
+      activeElement &&
+      (nowPlayingWrapper.contains(activeElement) || fixedPlayer.contains(activeElement))
+    );
+
+    if (event.key === "Tab" && isPlayerVisible() && isPlayerKeyboardContext) {
+      showWindowChrome({ autoHide: false });
+    }
+  });
+
+  fixedPlayer.addEventListener("player-handle-interaction-start", () => {
+    isHandleInteractionActive = true;
+    showWindowChrome({ autoHide: false });
+  });
+
+  fixedPlayer.addEventListener("player-handle-interaction-end", () => {
+    isHandleInteractionActive = false;
+    scheduleWindowChromeHide();
+  });
+
+  let observedPlayerVisible = isPlayerVisible();
+  let observedCollapsed = isCollapsed();
+  const observer = new MutationObserver(() => {
+    const playerVisible = isPlayerVisible();
+    const collapsed = isCollapsed();
+    const visibilityChanged = playerVisible !== observedPlayerVisible;
+    const collapsedChanged = collapsed !== observedCollapsed;
+
+    observedPlayerVisible = playerVisible;
+    observedCollapsed = collapsed;
+
+    if (visibilityChanged || collapsedChanged) {
+      showMiniBarIfPlaying();
+    }
+  });
   observer.observe(fixedPlayer, {
     attributes: true,
     attributeFilter: ["class", "style"]
