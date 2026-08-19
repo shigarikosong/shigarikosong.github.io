@@ -563,10 +563,10 @@
 
   resizeHandle?.addEventListener("pointerenter", revealWindowChrome);
   resizeHandle?.addEventListener("pointerleave", releaseWindowChrome);
-  actions.addEventListener("pointerenter", revealWindowChrome);
-  actions.addEventListener("pointerleave", releaseWindowChrome);
+  windowChrome.addEventListener("pointerenter", revealWindowChrome);
+  windowChrome.addEventListener("pointerleave", releaseWindowChrome);
 
-  [resizeHandle, actions].filter(Boolean).forEach(element => {
+  [resizeHandle, windowChrome].filter(Boolean).forEach(element => {
     element.addEventListener("focusin", revealWindowChrome);
     element.addEventListener("focusout", () => {
       window.setTimeout(releaseWindowChrome, 0);
