@@ -1443,7 +1443,7 @@ function tryInitYtPlayer() {
         ytPlayerReady = true;
         window.dispatchEvent(new CustomEvent('youtubePlayerReady'));
         updatePlayPauseButton(getYouTubePlayerState(), 'youtube');
-        requestAnimationFrame(applyStoredPlayerHeight);
+        requestAnimationFrame(applyStoredPlayerSizePreference);
       },
       onStateChange: (e) => {
         console.log('YouTube state:', e.data, 'repeatMode:', getRepeatMode(), 'randomMode:', isRandomModeEnabled());
@@ -1564,11 +1564,13 @@ const nowPlayingFloatingMutationObserver = new MutationObserver(scheduleNowPlayi
 
 // ===== 固定プレイヤーの位置・サイズ調整 =====
 const PLAYER_HEIGHT_KEY = 'playerHeightPx';
+const PLAYER_SIZE_PREFERENCE_KEY = 'playerSizePreference';
 const PLAYER_HORIZONTAL_POSITION_KEY = 'playerHorizontalPosition';
 const DEFAULT_PLAYER_H = 360;
 const DEFAULT_PLAYER_HORIZONTAL_POSITION = 1;
 const MIN_LANDSCAPE_PLAYER_H = 200;
 const MIN_EMBED_VIEWPORT = 200;
+const MIN_PLAYER_SIZE_PREFERENCE = MIN_EMBED_VIEWPORT / (16 / 9);
 const COMPACT_PLAYER_ACTIONS_MAX_WIDTH = 300;
 const PLAYER_LAYOUT_LANDSCAPE = 'landscape';
 const PLAYER_LAYOUT_SHORTS = 'shorts';
@@ -1580,6 +1582,7 @@ const PLAYER_ASPECT_RATIOS = Object.freeze({
 });
 let activePlayerLayout = PLAYER_LAYOUT_LANDSCAPE;
 let playerHorizontalPosition = readStoredPlayerHorizontalPosition();
+let playerSizePreference = readStoredPlayerSizePreference();
 let isPlayerHandleInteractionActive = false;
 
 function clampPlayerHorizontalPosition(value) {
@@ -1592,6 +1595,33 @@ function readStoredPlayerHorizontalPosition() {
   const stored = localStorage.getItem(PLAYER_HORIZONTAL_POSITION_KEY);
   if (stored === null || stored.trim() === '') return DEFAULT_PLAYER_HORIZONTAL_POSITION;
   return clampPlayerHorizontalPosition(stored);
+}
+
+function clampPlayerSizePreference(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return DEFAULT_PLAYER_H;
+  return Math.max(MIN_PLAYER_SIZE_PREFERENCE, number);
+}
+
+function readStoredPlayerSizePreference() {
+  const storedPreference = localStorage.getItem(PLAYER_SIZE_PREFERENCE_KEY);
+  if (storedPreference !== null && storedPreference.trim() !== '') {
+    return clampPlayerSizePreference(storedPreference);
+  }
+
+  const legacyHeight = localStorage.getItem(PLAYER_HEIGHT_KEY);
+  if (legacyHeight !== null && legacyHeight.trim() !== '') {
+    return clampPlayerSizePreference(legacyHeight);
+  }
+
+  return DEFAULT_PLAYER_H;
+}
+
+function persistPlayerSizePreference() {
+  localStorage.setItem(
+    PLAYER_SIZE_PREFERENCE_KEY,
+    playerSizePreference.toFixed(2)
+  );
 }
 
 function getPlayerLayoutForVideo(video) {
@@ -1707,17 +1737,21 @@ function getPreferredMinimumHeight(layout = activePlayerLayout) {
   return Math.ceil(MIN_EMBED_VIEWPORT / getPlayerAspectRatio(layout));
 }
 
-function calculatePlayerSize(preferredHeight, layout = activePlayerLayout) {
+function calculatePlayerSize(preferredSize, layout = activePlayerLayout) {
   const available = getAvailablePlayerSize();
   const ratio = getPlayerAspectRatio(layout);
-  const requestedHeight = Number.isFinite(Number(preferredHeight))
-    ? Math.max(1, Math.round(Number(preferredHeight)))
-    : DEFAULT_PLAYER_H;
+  const requestedSize = clampPlayerSizePreference(preferredSize);
   const preferredMinimumHeight = getPreferredMinimumHeight(layout);
   const maxRatioHeight = Math.min(available.height, available.width / ratio);
   const useCompactVerticalSize = (
     ratio < 1 &&
-    requestedHeight < preferredMinimumHeight &&
+    requestedSize < preferredMinimumHeight &&
+    available.width >= MIN_EMBED_VIEWPORT &&
+    available.height >= MIN_EMBED_VIEWPORT
+  );
+  const useCompactLandscapeSize = (
+    ratio >= 1 &&
+    requestedSize < preferredMinimumHeight &&
     available.width >= MIN_EMBED_VIEWPORT &&
     available.height >= MIN_EMBED_VIEWPORT
   );
@@ -1725,17 +1759,23 @@ function calculatePlayerSize(preferredHeight, layout = activePlayerLayout) {
   let height;
 
   if (useCompactVerticalSize) {
-    height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedHeight));
+    height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedSize));
     width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, height * ratio));
+  } else if (useCompactLandscapeSize) {
+    height = Math.min(available.height, MIN_EMBED_VIEWPORT);
+    width = Math.min(
+      available.width,
+      Math.max(MIN_EMBED_VIEWPORT, requestedSize * ratio)
+    );
   } else if (maxRatioHeight >= preferredMinimumHeight) {
-    height = Math.max(preferredMinimumHeight, Math.min(requestedHeight, maxRatioHeight));
+    height = Math.max(preferredMinimumHeight, Math.min(requestedSize, maxRatioHeight));
     width = height * ratio;
   } else if (available.width >= MIN_EMBED_VIEWPORT && available.height >= MIN_EMBED_VIEWPORT) {
     if (ratio < 1) {
-      height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedHeight));
+      height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedSize));
       width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, height * ratio));
     } else {
-      width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, requestedHeight * ratio));
+      width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, requestedSize * ratio));
       height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, width / ratio));
     }
   } else if (available.width < MIN_EMBED_VIEWPORT) {
@@ -1833,30 +1873,30 @@ function updateFixedPlayerOffsets() {
   document.body.style.paddingBottom = `${total}px`;
 }
 
-function setPlayerHeight(px, options = {}) {
+function setPlayerSizePreference(value, options = {}) {
   const { persist = true } = options;
-  const size = calculatePlayerSize(px);
+  playerSizePreference = clampPlayerSizePreference(value);
+  const size = calculatePlayerSize(playerSizePreference);
   applyPlayerDimensions(size);
 
   if (persist) {
-    localStorage.setItem(PLAYER_HEIGHT_KEY, String(size.height));
+    persistPlayerSizePreference();
   }
 
   updateFixedPlayerOffsets();
   return size;
 }
 
-function applyStoredPlayerHeight() {
-  const stored = Number.parseInt(localStorage.getItem(PLAYER_HEIGHT_KEY) || '', 10);
-  const preferredHeight = Number.isFinite(stored) ? stored : DEFAULT_PLAYER_H;
-  setPlayerHeight(preferredHeight, { persist: false });
+function applyStoredPlayerSizePreference() {
+  playerSizePreference = readStoredPlayerSizePreference();
+  setPlayerSizePreference(playerSizePreference, { persist: false });
 }
 
 function syncPlayerDimensionsBeforeVideoLoad() {
-  applyStoredPlayerHeight();
+  applyStoredPlayerSizePreference();
   requestAnimationFrame(() => {
-    applyStoredPlayerHeight();
-    requestAnimationFrame(applyStoredPlayerHeight);
+    applyStoredPlayerSizePreference();
+    requestAnimationFrame(applyStoredPlayerSizePreference);
   });
 }
 
@@ -1875,7 +1915,7 @@ function adjustFixedPlayerBottom() {
       updateFixedPlayerOffsets();
       return;
     }
-    applyStoredPlayerHeight();
+    applyStoredPlayerSizePreference();
   } else {
     updateFixedPlayerOffsets();
   }
@@ -2096,7 +2136,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
   if (!resizeHandle) return;
 
   const MOUSE_AXIS_ACTIVATION_THRESHOLD = 7;
-  const TOUCH_AXIS_ACTIVATION_THRESHOLD = 18;
+  const TOUCH_AXIS_ACTIVATION_THRESHOLD = 12;
   const KEYBOARD_MOVE_STEP = 24;
   const KEYBOARD_RESIZE_STEP = 20;
   let dragging = false;
@@ -2108,7 +2148,11 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
   let horizontalAnchorX = 0;
   let horizontalAnchorOffset = 0;
   let verticalAnchorY = 0;
-  let verticalAnchorHeight = 0;
+  let verticalAnchorPreference = 0;
+  let latestDragPoint = null;
+  let dragUpdateFrame = null;
+  let pointerDisabledElement = null;
+  let previousPointerEvents = '';
   let prevUserSelect = '';
   let prevCursor = '';
   let prevOverflow = '';
@@ -2122,12 +2166,19 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 
   const disableIframePointer = () => {
     const active = getActivePlayerElement();
-    if (active) active.style.pointerEvents = 'none';
+    if (!active) return;
+
+    pointerDisabledElement = active;
+    previousPointerEvents = active.style.pointerEvents;
+    active.style.pointerEvents = 'none';
   };
 
   const enableIframePointer = () => {
-    const active = getActivePlayerElement();
-    if (active) active.style.pointerEvents = '';
+    if (!pointerDisabledElement) return;
+
+    pointerDisabledElement.style.pointerEvents = previousPointerEvents;
+    pointerDisabledElement = null;
+    previousPointerEvents = '';
   };
 
   const unlockScroll = () => {
@@ -2167,8 +2218,12 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     axisActivationThreshold = threshold;
     startX = x;
     startY = y;
-    verticalAnchorHeight = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
-    localStorage.setItem(PLAYER_HEIGHT_KEY, String(Math.round(verticalAnchorHeight)));
+    verticalAnchorPreference = playerSizePreference;
+    latestDragPoint = null;
+    if (dragUpdateFrame !== null) {
+      cancelAnimationFrame(dragUpdateFrame);
+      dragUpdateFrame = null;
+    }
     prevUserSelect = document.body.style.userSelect;
     prevCursor = document.body.style.cursor;
     document.body.style.userSelect = 'none';
@@ -2177,9 +2232,10 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     resizeHandle.removeAttribute('data-drag-axis');
     disableIframePointer();
     lockScroll();
+    fixedPlayerEl?.dispatchEvent(new CustomEvent('player-handle-interaction-start'));
   };
 
-  const move = (x, y) => {
+  const applyMove = (x, y) => {
     if (!dragging) return;
     const dx = x - startX;
     const dy = y - startY;
@@ -2195,7 +2251,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     if (!verticalDragActive && Math.abs(dy) >= axisActivationThreshold) {
       verticalDragActive = true;
       verticalAnchorY = startY + (Math.sign(dy) * axisActivationThreshold);
-      verticalAnchorHeight = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
+      verticalAnchorPreference = playerSizePreference;
     }
 
     if (!horizontalDragActive && !verticalDragActive) return;
@@ -2208,7 +2264,10 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     }
 
     const size = verticalDragActive
-      ? setPlayerHeight(verticalAnchorHeight - (y - verticalAnchorY))
+      ? setPlayerSizePreference(
+        verticalAnchorPreference - (y - verticalAnchorY),
+        { persist: false }
+      )
       : null;
 
     if (horizontalDragActive) {
@@ -2218,10 +2277,38 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     }
   };
 
+  const flushPendingMove = () => {
+    if (dragUpdateFrame !== null) {
+      cancelAnimationFrame(dragUpdateFrame);
+      dragUpdateFrame = null;
+    }
+
+    const point = latestDragPoint;
+    latestDragPoint = null;
+    if (point) applyMove(point.x, point.y);
+  };
+
+  const scheduleMove = (x, y) => {
+    if (!dragging) return;
+    latestDragPoint = { x, y };
+    if (dragUpdateFrame !== null) return;
+
+    dragUpdateFrame = requestAnimationFrame(() => {
+      dragUpdateFrame = null;
+      const point = latestDragPoint;
+      latestDragPoint = null;
+      if (point) applyMove(point.x, point.y);
+    });
+  };
+
   const end = () => {
     if (!dragging) return;
+    flushPendingMove();
     if (horizontalDragActive) {
       applyPlayerHorizontalPosition({ persist: true });
+    }
+    if (verticalDragActive) {
+      persistPlayerSizePreference();
     }
     dragging = false;
     isPlayerHandleInteractionActive = false;
@@ -2233,6 +2320,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     resizeHandle.removeAttribute('data-drag-axis');
     enableIframePointer();
     unlockScroll();
+    fixedPlayerEl?.dispatchEvent(new CustomEvent('player-handle-interaction-end'));
   };
 
   window.addEventListener('blur', end);
@@ -2251,7 +2339,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     start(event.clientX, event.clientY);
   });
 
-  window.addEventListener('mousemove', (event) => move(event.clientX, event.clientY));
+  window.addEventListener('mousemove', (event) => scheduleMove(event.clientX, event.clientY));
   window.addEventListener('mouseup', end);
 
   resizeHandle.addEventListener('touchstart', (event) => {
@@ -2267,15 +2355,13 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
   window.addEventListener('touchmove', (event) => {
     if (!dragging || !event.touches[0]) return;
     event.preventDefault();
-    move(event.touches[0].clientX, event.touches[0].clientY);
+    scheduleMove(event.touches[0].clientX, event.touches[0].clientY);
   }, { passive: false });
 
   window.addEventListener('touchend', end);
   window.addEventListener('touchcancel', end);
 
   resizeHandle.addEventListener('keydown', (event) => {
-    const currentHeight = playerFrameWrapper?.getBoundingClientRect().height || DEFAULT_PLAYER_H;
-
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault();
       const currentOffset = applyPlayerHorizontalPosition();
@@ -2287,7 +2373,9 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
       const direction = event.key === 'ArrowUp' ? 1 : -1;
-      setPlayerHeight(currentHeight + (KEYBOARD_RESIZE_STEP * direction));
+      setPlayerSizePreference(
+        playerSizePreference + (KEYBOARD_RESIZE_STEP * direction)
+      );
     }
   });
 })();

@@ -21,7 +21,7 @@ This document covers:
 - Random queue
 - Repeat
 - Automatic continuous playback
-- Player height adjustment
+- Player size adjustment
 - Closing and restoring the player
 
 ## 3. Main State
@@ -280,11 +280,11 @@ When no horizontal position has been saved, place the player at the rightmost al
 
 When switching between landscape and vertical videos, apply the new stage dimensions before loading the next embed, then reapply them after layout settles. This prevents the previous video's aspect ratio from remaining visible during the transition.
 
-The preferred player height is stored in localStorage. Switching between landscape and vertical media must not overwrite that preference merely because the current viewport clamps the rendered size.
+The preferred player size is stored in localStorage as `playerSizePreference`. Treat the old `playerHeightPx` value as a migration source when the new key is absent. The preference normally behaves like a requested height, but values below the 200px landscape height boundary represent the compact-width range. Switching media layout or clamping to the current viewport must not overwrite the preference.
 
 Regular YouTube videos use 16:9. YouTube Shorts and TikTok use 9:16 when the viewport can accommodate it. A YouTube row may explicitly override the automatic Shorts-based choice with `player_aspect` set to `9:16` or `16:9`; blank and unsupported values fall back to the automatic rule. TikTok remains vertical.
 
-Regular 16:9 YouTube players may be reduced to about 356 x 200 pixels. Keep the 16:9 ratio and the 200px minimum viewport dimension rather than forcing a smaller square frame.
+Regular 16:9 YouTube players keep their ratio down to about 356 x 200 pixels. Below that point, keep the iframe height at 200px while reducing its width to a 200 x 200 minimum. Internal YouTube letterboxing is acceptable in this deliberate compact range. Preserve the compact width after reload and media-layout changes.
 
 On both desktop and mobile, a vertical player may be reduced below the 200px-wide 9:16 minimum down to a 200 x 200 compact fallback. Keep the width at 200px while the height moves between 356px and 200px, accepting internal player whitespace at this deliberately compact size. Preserve that compact size when the viewport changes between narrow and wide layouts.
 
@@ -294,17 +294,19 @@ Calculate the final width and height from both the available viewport height and
 
 Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When the YouTube IFrame API is ready, keep `ytPlayer.setSize(width, height)` synchronized with the wrapper.
 
-The shared player handle activates horizontal and vertical movement independently after a small per-axis threshold. Vertical dragging resizes the aspect-ratio-preserving player; horizontal dragging changes its horizontal position. When both axes exceed their thresholds during the same gesture, resize and horizontal movement together without requiring the user to release the handle. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes. Place the visible grip toward the left side of the player. On fine-pointer devices, let the full player top edge start the same drag operation without stretching the visible grip itself.
+The shared player handle activates horizontal and vertical movement independently after a small per-axis threshold. Vertical dragging changes the saved size preference; horizontal dragging changes its horizontal position. When both axes exceed their thresholds during the same gesture, resize and horizontal movement together without requiring the user to release the handle. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes. Place the visible grip toward the left side of the player. On fine-pointer devices, let the full player top edge start the same drag operation without stretching the visible grip itself.
 
-On touch devices, keep the interactive handle area wider than the visible grip but short of a full-width transparent strip, and use a larger movement threshold than mouse input. This preserves an easy target without taking the entire top edge away from page scrolling. A brief accidental touch must preserve the currently rendered height; viewport recalculation triggered during an active handle interaction must not reapply a different stored size.
+On touch devices, keep the interactive handle area wider than the visible grip but short of a full-width transparent strip. Use an activation threshold of about 12px, compared with the smaller mouse threshold, to balance responsiveness and accidental movement. A brief touch must preserve the current size preference. Batch mouse and touch coordinates through `requestAnimationFrame`, render at most once per frame, and persist size and position only when the interaction ends. Restore iframe pointer events and page scrolling on every end, cancel, blur, and visibility-change path.
 
 The handle and expanded `.player-window-actions` follow the rendered player width and horizontal offset. Actions occupy a separate row above the frame and must not cover the embedded player. Long countdown and Full ver. controls remain usable within the moved player width and must not leave the viewport.
 
-When the rendered player width is 300px or less, place the countdown or Full ver. controls on their own first row and keep collapse / close controls on the second row. Measure the resulting action height and reserve matching space above the frame so wrapped controls never overlap the embed.
+In expanded mode, group collapse / close as transient window chrome. Show it when the player opens, while the pointer is over the upper handle/action area, during handle interaction, and for keyboard navigation. Fade it after about 2.6 seconds of inactivity, then remove the group from layout and pointer interaction. Countdown and Full ver. controls are notifications and must not trigger or follow this auto-hide state.
+
+When the rendered player width is 300px or less, place the countdown or Full ver. controls on their own first row and show collapse / close on the second row only while the transient chrome is visible. Measure the actual visible action height and reserve matching space above the frame so hidden chrome never leaves an empty row. Keep the minimum space required by the resize handle even when no action UI is visible.
 
 Transparent space around a narrow player must not intercept list interactions. Only the rendered stage and visible window-action controls should receive pointer input.
 
-Collapsed mode hides the frame and resize handle while keeping collapse/restore and close actions available.
+Collapsed mode hides the frame and resize handle while keeping restore and close actions visibly available at all times.
 
 While resizing, temporarily disable iframe `pointer-events`.
 
