@@ -3040,41 +3040,67 @@ videoListFragment.appendChild(item);
 function updateVideoSearchActionOverflow() {
   updateVideoTitleArtistWidths();
 
-  document.querySelectorAll('.video-search-action').forEach(button => {
-    const text = button.querySelector('.video-search-action-text');
-    if (!text) return;
+  const actionEntries = [...videoList.querySelectorAll('.video-search-action')]
+    .map(button => ({
+      button,
+      text: button.querySelector('.video-search-action-text')
+    }))
+    .filter(entry => entry.text);
 
+  actionEntries.forEach(({ button }) => {
     button.classList.remove('is-overflowing');
     button.style.removeProperty('--search-scroll-distance');
     button.style.removeProperty('--search-scroll-duration');
+  });
 
+  const overflowMeasurements = actionEntries.map(({ button, text }) => {
     const overflow = text.scrollWidth - button.clientWidth;
-    if (overflow <= 1) return;
+    if (overflow <= 1) return null;
 
+    return {
+      button,
+      distance: overflow + 12,
+      duration: Math.min(Math.max((overflow + 12) / 24, 2.8), 8)
+    };
+  }).filter(Boolean);
+
+  overflowMeasurements.forEach(({ button, distance, duration }) => {
     button.classList.add('is-overflowing');
-    button.style.setProperty('--search-scroll-distance', `${overflow + 12}px`);
-    button.style.setProperty('--search-scroll-duration', `${Math.min(Math.max((overflow + 12) / 24, 2.8), 8)}s`);
+    button.style.setProperty('--search-scroll-distance', `${distance}px`);
+    button.style.setProperty('--search-scroll-duration', `${duration}s`);
   });
 }
 
 function updateVideoTitleArtistWidths() {
   const widthBuffer = 8;
+  const rowEntries = [...videoList.querySelectorAll('.video-item-row')]
+    .map(row => {
+      const title = row.querySelector('.video-title');
+      if (!title) return null;
 
-  document.querySelectorAll('.video-item-row').forEach(row => {
-    const title = row.querySelector('.video-title');
-    const artist = row.querySelector('.video-artist');
-    if (!title) return;
+      const artist = row.querySelector('.video-artist');
+      return {
+        row,
+        title,
+        artist,
+        titleText: title.querySelector('.video-search-action-text'),
+        artistText: artist?.querySelector('.video-search-action-text'),
+        separator: row.querySelector('.video-title-separator')
+      };
+    })
+    .filter(Boolean);
 
-    const titleText = title.querySelector('.video-search-action-text');
-    const artistText = artist?.querySelector('.video-search-action-text');
+  rowEntries.forEach(({ title, artist }) => {
     [title, artist].filter(Boolean).forEach(element => {
       element.style.removeProperty('flex');
       element.style.removeProperty('width');
     });
+  });
 
-    if (!artist || !titleText || !artistText) return;
+  const widthMeasurements = rowEntries.map(entry => {
+    const { row, title, artist, titleText, artistText, separator } = entry;
+    if (!artist || !titleText || !artistText) return null;
 
-    const separator = row.querySelector('.video-title-separator');
     const rowStyle = window.getComputedStyle(row);
     const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
     const reservedWidth = (separator?.offsetWidth || 0) + (gap * 2);
@@ -3083,28 +3109,46 @@ function updateVideoTitleArtistWidths() {
     const artistWidth = artistText.scrollWidth + widthBuffer;
 
     if (titleWidth + artistWidth <= availableWidth) {
-      title.style.flex = `0 0 ${titleWidth}px`;
-      artist.style.flex = `0 0 ${artistWidth}px`;
-      return;
+      return {
+        title,
+        artist,
+        titleFlex: `0 0 ${titleWidth}px`,
+        artistFlex: `0 0 ${artistWidth}px`
+      };
     }
 
     const minTitleWidth = Math.min(titleWidth, Math.max(availableWidth * 0.35, 72));
     const minArtistWidth = Math.min(artistWidth, Math.max(availableWidth * 0.28, 72));
 
     if (titleWidth <= availableWidth - minArtistWidth) {
-      title.style.flex = `0 0 ${titleWidth}px`;
-      artist.style.flex = `0 1 ${Math.max(availableWidth - titleWidth, minArtistWidth)}px`;
-      return;
+      return {
+        title,
+        artist,
+        titleFlex: `0 0 ${titleWidth}px`,
+        artistFlex: `0 1 ${Math.max(availableWidth - titleWidth, minArtistWidth)}px`
+      };
     }
 
     if (artistWidth <= availableWidth - minTitleWidth) {
-      title.style.flex = `0 1 ${Math.max(availableWidth - artistWidth, minTitleWidth)}px`;
-      artist.style.flex = `0 0 ${artistWidth}px`;
-      return;
+      return {
+        title,
+        artist,
+        titleFlex: `0 1 ${Math.max(availableWidth - artistWidth, minTitleWidth)}px`,
+        artistFlex: `0 0 ${artistWidth}px`
+      };
     }
 
-    title.style.flex = `0 1 ${Math.max(availableWidth * 0.6, minTitleWidth)}px`;
-    artist.style.flex = `0 1 ${Math.max(availableWidth * 0.4, minArtistWidth)}px`;
+    return {
+      title,
+      artist,
+      titleFlex: `0 1 ${Math.max(availableWidth * 0.6, minTitleWidth)}px`,
+      artistFlex: `0 1 ${Math.max(availableWidth * 0.4, minArtistWidth)}px`
+    };
+  }).filter(Boolean);
+
+  widthMeasurements.forEach(({ title, artist, titleFlex, artistFlex }) => {
+    title.style.flex = titleFlex;
+    artist.style.flex = artistFlex;
   });
 }
 
