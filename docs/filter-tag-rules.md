@@ -71,6 +71,8 @@ Clicking a chip should clear only that condition:
 - `renderActiveTagChips()`
 - Three-state click handling for tags inside the video list
 - Player, random playback, repeat mode, and related playback behavior
+- Parse the search expression once per `applyFilters()` call, then reuse it for every video match.
+- Build replacement video cards in a `DocumentFragment`, append them together, then run overflow measurement and dispatch `videoListRendered`.
 
 ### `desktop-filter-panel.js`
 

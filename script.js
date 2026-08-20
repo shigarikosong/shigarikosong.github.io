@@ -1393,12 +1393,11 @@ function parseSearchQuery(query) {
   };
 }
 
-function matchesSearchQuery(video, query) {
-  const rawQuery = String(query || "").trim();
-  if (!rawQuery) return true;
+function matchesParsedSearchQuery(video, parsedQuery) {
+  const { excludeTerms, groups } = parsedQuery;
+  if (!excludeTerms.length && !groups.length) return true;
 
   const text = video._searchText || "";
-  const { excludeTerms, groups } = parseSearchQuery(rawQuery);
   const hasExcludedTerm = excludeTerms.some(term => text.includes(term));
   if (hasExcludedTerm) return false;
 
@@ -2680,11 +2679,12 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
         const listTagScrollVideoKey = pendingListTagScrollVideoKey;
         pendingListTagScrollVideoKey = null;
         const searchQuery = searchInput.value;
+        const parsedSearchQuery = parseSearchQuery(searchQuery);
         updateSearchClearUi();
         const now = new Date();
         const filterState = window.FilterState.getState();
         let filtered = allVideos.filter(video => {
-  return matchesSearchQuery(video, searchQuery) &&
+  return matchesParsedSearchQuery(video, parsedSearchQuery) &&
     
 // フィルタ条件
     (!filterState.include.category || video["カテゴリ"] === filterState.include.category) &&
@@ -2776,6 +2776,7 @@ function updateResultCounts(totalCount, visibleCount) {
 
 function renderVideoList(videos) {
   videoList.innerHTML = '';
+  const videoListFragment = document.createDocumentFragment();
 
     // 件数表示を更新
   const countElement = document.getElementById('songCount');
@@ -3028,9 +3029,10 @@ item.appendChild(content);
 if (roleTagRow) item.appendChild(roleTagRow);
 if (tagRow) item.appendChild(tagRow);
 
-videoList.appendChild(item);
+videoListFragment.appendChild(item);
       });
 
+  videoList.appendChild(videoListFragment);
   updateVideoSearchActionOverflow();
   window.dispatchEvent(new CustomEvent("videoListRendered"));
 }
