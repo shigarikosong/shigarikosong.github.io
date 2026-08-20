@@ -103,6 +103,13 @@
 - 既存の未コミット差分がある場合、Codexは勝手に戻さず、今回の作業対象と分けて扱う
 - 動作確認の観点は [手動チェックリスト](docs/manual-checklist.md) を使う
 
+## Tailwind CSSの生成
+
+- 公開ページではTailwind CDNを使用せず、生成済みの`tailwind.generated.css`を読み込む
+- Tailwindクラスを`index.html`またはJavaScript内で追加・変更した場合は、`pnpm run build:css`を実行する
+- `tailwind.generated.css`は公開に必要なファイルなので、CSSを再生成した場合は差分へ含める
+- Tailwindの探索対象は`tailwind.config.js`で管理し、動的なクラス名を追加する場合は生成漏れがないか確認する
+
 
 ## 現在のタグ仕様メモ
 
