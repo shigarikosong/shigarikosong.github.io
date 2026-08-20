@@ -73,6 +73,7 @@ Clicking a chip should clear only that condition:
 - Player, random playback, repeat mode, and related playback behavior
 - Parse the search expression once per `applyFilters()` call, then reuse it for every video match.
 - Build replacement video cards in a `DocumentFragment`, append them together, then run overflow measurement and dispatch `videoListRendered`.
+- For title/artist overflow updates, batch DOM resets, layout reads, and style writes instead of alternating them for each card.
 
 ### `desktop-filter-panel.js`
 
