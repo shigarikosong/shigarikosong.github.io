@@ -22,6 +22,22 @@
   let sortButtonGroup = null;
   let lockedScrollY = 0;
   let shouldCorrectScrollAfterUnlock = false;
+  let hasUnappliedModalChanges = false;
+  let scheduledApplyFrame = null;
+  let scheduledApplyAfterPaintFrame = null;
+  let shouldDispatchStateChangeAfterApply = false;
+
+  function cancelScheduledFilterApply() {
+    if (scheduledApplyFrame !== null) {
+      cancelAnimationFrame(scheduledApplyFrame);
+      scheduledApplyFrame = null;
+    }
+
+    if (scheduledApplyAfterPaintFrame !== null) {
+      cancelAnimationFrame(scheduledApplyAfterPaintFrame);
+      scheduledApplyAfterPaintFrame = null;
+    }
+  }
 
   function sortByPreferredOrder(values, preferredOrder) {
     return [...values].sort((a, b) => {
@@ -59,12 +75,42 @@
   }
 
   function applyFiltersAndUpdateCount() {
+    cancelScheduledFilterApply();
     applyFilters({ scrollAfterUpdate: false });
     updateModalResultCount();
+    hasUnappliedModalChanges = false;
+
+    if (shouldDispatchStateChangeAfterApply) {
+      shouldDispatchStateChangeAfterApply = false;
+      dispatchMobileFilterStateChanged();
+    }
 
     if (document.body.dataset.filterScrollLocked === "true") {
       shouldCorrectScrollAfterUnlock = true;
     }
+  }
+
+  function scheduleFilterApplyAfterPaint(afterApply = null) {
+    cancelScheduledFilterApply();
+
+    scheduledApplyFrame = requestAnimationFrame(() => {
+      scheduledApplyFrame = null;
+      scheduledApplyAfterPaintFrame = requestAnimationFrame(() => {
+        scheduledApplyAfterPaintFrame = null;
+        applyFiltersAndUpdateCount();
+        if (typeof afterApply === "function") afterApply();
+      });
+    });
+  }
+
+  function hasScheduledFilterApply() {
+    return scheduledApplyFrame !== null || scheduledApplyAfterPaintFrame !== null;
+  }
+
+  function dispatchMobileFilterStateChanged() {
+    window.dispatchEvent(new CustomEvent("tagFilterStateChanged", {
+      detail: { source: "mobile-filter-modal" }
+    }));
   }
 
   function configureSortButtons() {
@@ -88,6 +134,7 @@
       button.addEventListener("click", () => {
         sortSelect.value = value;
         if (sortOrder) sortOrder.value = value;
+        hasUnappliedModalChanges = true;
         updateSortButtons();
       });
       sortButtonGroup.appendChild(button);
@@ -166,8 +213,8 @@
     window.FilterState.toggleTag(group, value);
     if (typeof clearSelect === "function") clearSelect();
     if (typeof renderUpdatedTags === "function") renderUpdatedTags();
+    shouldDispatchStateChangeAfterApply = true;
     applyFiltersAndUpdateCount();
-    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
   }
 
   function renderFormatTags() {
@@ -316,8 +363,9 @@
     renderPlatformTags();
     renderMobileTagSections();
     updateSortButtons();
-    applyFiltersAndUpdateCount();
-    window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+    hasUnappliedModalChanges = true;
+    shouldDispatchStateChangeAfterApply = true;
+    scheduleFilterApplyAfterPaint();
   }
 
   function configureResetButton() {
@@ -412,29 +460,35 @@
 
   searchField?.addEventListener("input", syncModalSearchInput);
 
-  applyButton.addEventListener("click", () => {
-    configureSortButtons();
-    configureCategoryButtons();
-    configureDateButtons();
-    configureFormatButtons();
-    configureRoleButtons();
-    configureResetButton();
-    syncModalValues();
+  function finishClosingModal() {
+    window.ScrollUtils?.requestFilterCloseTargetJump();
+  }
 
-    renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
-    renderDateTags();
-    renderPlatformTags();
-    renderMobileTagSections();
-    applyFiltersAndUpdateCount();
+  applyButton.addEventListener("click", () => {
+    const needsApply = hasUnappliedModalChanges || hasScheduledFilterApply();
+    cancelScheduledFilterApply();
     modal.classList.add("hidden");
     unlockPageScroll({ correctAfterUnlock: false });
-    window.ScrollUtils?.requestFilterCloseTargetJump();
+
+    if (needsApply) {
+      scheduleFilterApplyAfterPaint(finishClosingModal);
+      return;
+    }
+
+    finishClosingModal();
   });
 
   window.addEventListener("collabTagOrderReady", () => {
     renderCollabTags();
   });
-  window.addEventListener("tagFilterStateChanged", () => {
+  window.addEventListener("tagFilterStateChanged", event => {
+    if (event.detail?.source === "mobile-filter-modal") {
+      updateModalResultCount();
+      return;
+    }
+
+    if (modal.classList.contains("hidden")) return;
+
     renderMobileTagSections();
     updateModalResultCount();
   });

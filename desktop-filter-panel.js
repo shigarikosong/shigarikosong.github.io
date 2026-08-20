@@ -280,7 +280,9 @@
   window.addEventListener("collabTagOrderReady", () => {
     renderCollabTags();
   });
-  window.addEventListener("tagFilterStateChanged", renderDesktopPanel);
+  window.addEventListener("tagFilterStateChanged", () => {
+    if (!panel.classList.contains("hidden")) renderDesktopPanel();
+  });
   window.addEventListener("videoListRendered", () => {
     if (!panel.classList.contains("hidden")) renderDesktopPanel();
   });

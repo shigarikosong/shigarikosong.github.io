@@ -89,6 +89,10 @@ Clicking a chip should clear only that condition:
 - Applying modal search/sort values to the main filter state
 - The mobile filter modal is immediate-apply; bottom actions are `リセット` and `閉じる`, where `閉じる` is not a cancel action.
 - Mobile modal search input is also immediate-apply and should update the modal result count while typing.
+- Do not rebuild all modal controls or re-run `applyFilters()` when `閉じる` is pressed if tag/search changes have already been applied.
+- Sort changes may remain pending until `閉じる`; pending work should be applied once before the existing close-scroll jump runs.
+- A mobile modal handler should not rebuild all mobile tag sections again in response to the state-change event that it dispatched itself.
+- Hidden desktop/mobile filter UIs should synchronize when opened instead of rebuilding all controls for every state-change event.
 
 ### `exclusion-style-sync.js`
 

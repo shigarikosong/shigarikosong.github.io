@@ -2474,7 +2474,9 @@ function applyMobileFilterTagClick(group, value, renderUpdatedTags) {
   window.FilterState.toggleTag(group, value);
   if (typeof renderUpdatedTags === "function") renderUpdatedTags();
   applyFilters({ scrollAfterUpdate: false });
-  window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+  window.dispatchEvent(new CustomEvent("tagFilterStateChanged", {
+    detail: { source: "mobile-filter-modal" }
+  }));
 }
 
 function renderPlatformTags() {
