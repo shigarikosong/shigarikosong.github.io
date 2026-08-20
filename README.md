@@ -47,3 +47,14 @@ TikTok動画の再生・一時停止は、埋め込み動画内で操作しま�
 ### 注意事項
 
 TikTokの埋め込みは、YouTubeに比べて音量や表示サイズの挙動が異なる場合があります。
+
+## Tailwind CSSの更新
+
+公開ページは、リポジトリ内の`tailwind.generated.css`をそのまま読み込みます。Tailwindのクラスを`index.html`またはJavaScript内で追加・変更した場合は、次のコマンドでCSSを再生成してください。
+
+```sh
+pnpm install
+pnpm run build:css
+```
+
+生成後は`tailwind.generated.css`も変更と一緒にコミットします。GitHub PagesやCloudflare PagesでTailwindのビルドを実行する必要はありません。

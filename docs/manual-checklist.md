@@ -6,6 +6,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 1. Basic Display
 
+- [ ] Tailwind CDNへのリクエストが発生せず、`tailwind.generated.css`が読み込まれる。
 - [ ] 初期表示で動画一覧が読み込まれる。
 - [ ] 初期表示で全件表示になっている。
 - [ ] 件数表示が `全 n 件中 m 件表示` の形で崩れていない。
