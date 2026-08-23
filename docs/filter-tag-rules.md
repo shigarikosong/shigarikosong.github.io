@@ -223,6 +223,7 @@ Tag colors use a shared visual hierarchy instead of group-specific colors:
 - Included tags use the site blue as the active state.
 - Excluded tags keep the red exclusion styling and minus label.
 - Hover and keyboard focus may use a light blue accent, but must not replace the include/exclude state indication.
+- Collab member `+N` / `-` controls are secondary disclosure controls, not tags. Keep them transparent with a light gray outline and muted text so they never appear more prominent than ordinary tags.
 
 ## 9. Random And Continuous Playback
 

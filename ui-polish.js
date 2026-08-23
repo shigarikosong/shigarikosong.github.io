@@ -312,7 +312,7 @@
       if (!toggleButton) {
         toggleButton = document.createElement("button");
         toggleButton.type = "button";
-        toggleButton.className = "collab-member-toggle border border-gray-300 text-gray-600 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition";
+        toggleButton.className = "collab-member-toggle px-2.5 py-1 rounded-full text-xs";
       }
       toggleButton.setAttribute("aria-controls", memberRow.id);
 

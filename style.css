@@ -121,6 +121,23 @@ body {
   flex: 0 0 auto;
   min-width: max-content;
   white-space: nowrap;
+  color: #6b7280;
+  font-weight: 400;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  box-shadow: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.collab-member-toggle:hover {
+  color: #4b5563;
+  background: rgba(255, 255, 255, 0.45);
+  border-color: #cbd5e1;
+}
+
+.collab-member-toggle:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.4);
+  outline-offset: 2px;
 }
 
 .video-card-tag-row {
