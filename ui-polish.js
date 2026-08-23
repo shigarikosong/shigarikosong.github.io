@@ -12,6 +12,7 @@
     "desktopCollabLiverTags",
     "desktopCollabUnitTags"
   ];
+  const COLLAB_MEMBER_COMPACT_THRESHOLD = 5;
   const collabTagOrder = new Map();
   const collabTagObservers = new Map();
   let isSortingCollabTags = false;
@@ -271,7 +272,8 @@
       const collabLivers = isCollabTagOrderReady ? sortCollabTagValues(rawCollabLivers) : rawCollabLivers;
       const collabUnits = isCollabTagOrderReady ? sortCollabTagValues(rawCollabUnits) : rawCollabUnits;
 
-      if (!collabLivers.length || !collabUnits.length) return;
+      const shouldCompactMembers = collabUnits.length > 0 || collabLivers.length >= COLLAB_MEMBER_COMPACT_THRESHOLD;
+      if (!collabLivers.length || !shouldCompactMembers) return;
 
       const cardContent = card.querySelector(".video-card-content");
       const rows = [
@@ -302,6 +304,7 @@
         memberRow = document.createElement("div");
         memberRow.className = "collab-member-row basis-full flex flex-wrap gap-1.5";
       }
+      memberRow.id = `collab-members-${index}`;
 
       memberButtons.forEach(button => memberRow.appendChild(button));
       const shouldShowMembers = memberButtons.some(button => button.classList.contains("bg-gray-600"));
@@ -311,10 +314,18 @@
         toggleButton.type = "button";
         toggleButton.className = "collab-member-toggle border border-gray-300 text-gray-600 bg-gray-50 px-2.5 py-1 rounded-full text-xs hover:bg-gray-100 transition";
       }
+      toggleButton.setAttribute("aria-controls", memberRow.id);
 
       const setMemberRowVisibility = (show) => {
         memberRow.classList.toggle("hidden", !show);
-        toggleButton.textContent = show ? "閉じる" : `+${collabLivers.length}`;
+        toggleButton.textContent = show ? "-" : `+${collabLivers.length}`;
+        toggleButton.setAttribute("aria-expanded", String(show));
+
+        const actionLabel = show
+          ? "コラボメンバーを隠す"
+          : `${collabLivers.length}人のコラボメンバーを表示`;
+        toggleButton.setAttribute("aria-label", actionLabel);
+        toggleButton.title = actionLabel;
       };
 
       setMemberRowVisibility(shouldShowMembers);
