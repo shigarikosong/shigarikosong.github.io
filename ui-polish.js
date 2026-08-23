@@ -307,7 +307,7 @@
       memberRow.id = `collab-members-${index}`;
 
       memberButtons.forEach(button => memberRow.appendChild(button));
-      const shouldShowMembers = memberButtons.some(button => button.classList.contains("bg-gray-600"));
+      const shouldShowMembers = memberButtons.some(button => button.classList.contains("tag-collab-liver-active"));
 
       if (!toggleButton) {
         toggleButton = document.createElement("button");

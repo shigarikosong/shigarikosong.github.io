@@ -55,8 +55,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./tailwind.generated.css?v=1">
-  <link rel="stylesheet" href="./style.css?v=65">
+  <link rel="stylesheet" href="./tailwind.generated.css?v=2">
+  <link rel="stylesheet" href="./style.css?v=66">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -147,10 +147,10 @@ YouTube / TikTok の動画を掲載しています。
   
 <!-- モバイル用：絞り込み＋ランダム再生を横並び -->
 <div class="flex sm:hidden items-center justify-center gap-2 mt-1 px-4">
-  <button id="openFilterModal" class="bg-blue-500 text-white px-4 py-2 rounded-md w-full">
+  <button id="openFilterModal" class="neutral-toolbar-button px-4 py-2 rounded-md w-full">
     🔍 絞り込み
   </button>
-  <button id="mobileRandomPlayButton" class="bg-green-500 text-white px-4 py-2 rounded-md w-full">
+  <button id="mobileRandomPlayButton" class="neutral-toolbar-button px-4 py-2 rounded-md w-full">
     🎲 ランダム再生
   </button>
 </div>
@@ -163,19 +163,19 @@ YouTube / TikTok の動画を掲載しています。
           <button id="clearSearchInput" type="button" class="desktop-search-clear hidden" aria-label="検索語をクリア">×</button>
         </div>
         <button id="desktopToggleFilters" type="button" aria-controls="desktopFilterPanel" aria-expanded="false"
-          class="shrink-0 bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">
+          class="neutral-toolbar-button shrink-0 font-medium text-sm px-4 py-2 rounded-md">
           絞り込み
         </button>
-        <button id="resetFilters" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">リセット</button>
+        <button id="resetFilters" class="neutral-toolbar-button shrink-0 font-medium text-sm px-4 py-2 rounded-md">リセット</button>
         <!-- ランダム再生ボタン -->
-        <button id="randomPlayButton" class="shrink-0 bg-green-100 hover:bg-green-200 text-green-900 font-medium text-sm px-4 py-2 rounded-md transition-all duration-300">
+        <button id="randomPlayButton" class="neutral-toolbar-button shrink-0 font-medium text-sm px-4 py-2 rounded-md">
           ランダム再生
         </button>
         <div id="desktopResultCount" class="ml-auto whitespace-nowrap text-right text-gray-500" aria-live="polite">
           <span class="text-xs">全</span>
           <span id="desktopResultTotal" class="text-base font-semibold text-gray-700">0</span>
           <span class="text-xs">件中</span>
-          <span id="desktopResultVisible" class="text-xl font-bold text-blue-600">0</span>
+          <span id="desktopResultVisible" class="text-xl font-bold text-gray-800">0</span>
           <span class="text-xs">件表示</span>
         </div>
       </div>
@@ -323,11 +323,11 @@ YouTube / TikTok の動画を掲載しています。
       <span class="text-xs">全</span>
       <span id="modalResultTotal" class="text-lg font-semibold text-gray-700">0</span>
       <span class="text-xs">件中</span>
-      <span id="modalResultVisible" class="text-2xl font-bold text-blue-600">0</span>
+      <span id="modalResultVisible" class="text-2xl font-bold text-gray-800">0</span>
       <span class="text-xs">件表示</span>
     </div>
     <div class="mt-4 flex justify-start gap-3 items-center">
-      <button id="applyFilters" class="bg-blue-500 text-white px-4 py-2 rounded-md">閉じる</button>
+      <button id="applyFilters" class="neutral-toolbar-button px-4 py-2 rounded-md">閉じる</button>
     </div>
   </div>
 </div>
@@ -418,13 +418,13 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./filter-state.js?v=4"></script>
   <script src="./scroll-utils.js?v=2"></script>
   <script src="./loading-status.js?v=8"></script>
-  <script src="./playing-scroll-position.js?v=3"></script>
-  <script src="./script.js?v=78"></script>
+  <script src="./playing-scroll-position.js?v=4"></script>
+  <script src="./script.js?v=79"></script>
   <script src="./exclusion-style-sync.js?v=1"></script>
   <script src="./waku-name-display.js?v=27"></script>
-  <script src="./mobile-filter-modal.js?v=27"></script>
+  <script src="./mobile-filter-modal.js?v=28"></script>
   <script src="./desktop-filter-panel.js?v=29"></script>
-  <script src="./ui-polish.js?v=32"></script>
+  <script src="./ui-polish.js?v=33"></script>
   <script src="./player-collapse.js?v=35"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
   <script src="./site-info-modal.js?v=2"></script>

@@ -73,35 +73,14 @@
 })();
 
 (() => {
-  const classByGroup = {
-    category: {
-      active: 'bg-orange-600 text-white border border-orange-600 px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-orange-50 text-orange-700 border border-orange-300 px-3 py-1 rounded-full text-xs'
-    },
-    platform: {
-      active: 'bg-purple-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs'
-    },
-    date: {
-      active: 'bg-green-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs'
-    },
-    format: {
-      active: 'bg-pink-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs'
-    },
-    role: {
-      active: 'bg-yellow-400 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs'
-    },
-    collabLiver: {
-      active: 'bg-gray-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
-    },
-    collabUnit: {
-      active: 'bg-gray-600 text-white px-3 py-1 rounded-full text-xs',
-      inactive: 'bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs'
-    }
+  const kindByGroup = {
+    category: 'tag-style',
+    platform: 'tag-platform',
+    date: 'tag-time',
+    format: 'tag-format',
+    role: 'tag-role-filter',
+    collabLiver: 'tag-collab-liver',
+    collabUnit: 'tag-collab-unit'
   };
 
   const panelGroups = [
@@ -138,13 +117,10 @@
   }
 
   function setButtonClass(button, group, isActive) {
-    const classes = classByGroup[group];
-    if (!classes) return;
+    const kind = kindByGroup[group];
+    if (!kind) return;
 
-    const nextClassName = isActive ? classes.active : classes.inactive;
-    if (button.className !== nextClassName) {
-      button.className = nextClassName;
-    }
+    button.classList.toggle(`${kind}-active`, isActive);
   }
 
   function syncPanelButtons(activeLabels) {
@@ -165,11 +141,7 @@
       if (!platformLabels.has(label)) return;
 
       const isActive = activeLabels.has(label);
-      const nextClassName = `tag-button tag-xs tag-platform${isActive ? " tag-platform-active" : ""}`;
-
-      if (button.className !== nextClassName) {
-        button.className = nextClassName;
-      }
+      button.classList.toggle('tag-platform-active', isActive);
     });
   }
 

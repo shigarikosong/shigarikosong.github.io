@@ -377,7 +377,7 @@
     const resetButton = document.createElement("button");
     resetButton.id = "resetModalFilters";
     resetButton.type = "button";
-    resetButton.className = "bg-gray-100 text-gray-700 px-4 py-2 rounded-md";
+    resetButton.className = "neutral-toolbar-button px-4 py-2 rounded-md";
     resetButton.textContent = "リセット";
     resetButton.addEventListener("click", resetModalFilters);
 

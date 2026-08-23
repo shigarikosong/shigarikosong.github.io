@@ -2763,7 +2763,7 @@ function updateResultCounts(totalCount, visibleCount) {
       <span class="text-xs">全</span>
       <span class="text-base font-semibold text-gray-700">${totalCount}</span>
       <span class="text-xs">件中</span>
-      <span class="text-xl font-bold text-blue-600">${visibleCount}</span>
+      <span class="text-xl font-bold text-gray-800">${visibleCount}</span>
       <span class="text-xs">件表示</span>
     `;
   }
@@ -2797,7 +2797,7 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
 
   videos.forEach(video => {
     const item = document.createElement('div');
-    item.className = 'video-card p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-teal-700';
+    item.className = 'video-card p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-gray-300';
 
     const key = getVideoKey(video);
     item.dataset.videoKey = key;

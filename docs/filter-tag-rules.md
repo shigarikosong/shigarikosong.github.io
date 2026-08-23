@@ -217,6 +217,13 @@ Video cards compact Collab member tags as follows:
 - Without a Collab unit, show all individual members for one to four members and compact all members behind `+N` for five or more members.
 - Expanded member rows show every member and use `-` as the collapse control. Do not partially show the first few members.
 
+Tag colors use a shared visual hierarchy instead of group-specific colors:
+
+- Unselected tags use neutral gray styling regardless of group.
+- Included tags use the site blue as the active state.
+- Excluded tags keep the red exclusion styling and minus label.
+- Hover and keyboard focus may use a light blue accent, but must not replace the include/exclude state indication.
+
 ## 9. Random And Continuous Playback
 
 The visible list should reflect the result after both `include` and `exclude` filtering.
