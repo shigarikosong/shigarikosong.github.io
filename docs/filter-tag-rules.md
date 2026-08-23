@@ -211,6 +211,12 @@ Collab exclude conditions remain independent per tag. If any excluded Collab tag
 
 Video list Collab tags should prefer the same collab tag definition order as the filter UI. Tags missing from the definition should stay after known tags while preserving their local order as much as possible.
 
+Video cards compact Collab member tags as follows:
+
+- When a Collab unit exists, keep the unit visible and compact all individual members behind `+N` regardless of member count.
+- Without a Collab unit, show all individual members for one to four members and compact all members behind `+N` for five or more members.
+- Expanded member rows show every member and use `-` as the collapse control. Do not partially show the first few members.
+
 ## 9. Random And Continuous Playback
 
 The visible list should reflect the result after both `include` and `exclude` filtering.
