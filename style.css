@@ -551,6 +551,24 @@ body.player-visible #desktopFilterPanel {
   max-height: min(36vh, 380px);
 }
 
+.neutral-toolbar-button {
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #374151;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.neutral-toolbar-button:hover {
+  border-color: #9ca3af;
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.neutral-toolbar-button:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 2px;
+}
+
 #desktopFilterPanel .modal-collab-scroll {
   max-height: 96px;
 }
@@ -578,12 +596,32 @@ body.player-visible #desktopFilterPanel {
 
 /* ===== Tag buttons ===== */
 .tag-button {
+  --tag-text: #374151;
+  --tag-background: #f9fafb;
+  --tag-border: #d1d5db;
+  --tag-hover-text: #1d4ed8;
+  --tag-hover-background: #eff6ff;
+  --tag-hover-border: #93c5fd;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid transparent;
+  border: 1px solid var(--tag-border);
   border-radius: 9999px;
+  background: var(--tag-background);
+  color: var(--tag-text);
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tag-button:hover {
+  border-color: var(--tag-hover-border);
+  background: var(--tag-hover-background);
+  color: var(--tag-hover-text);
+}
+
+.tag-button:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 2px;
 }
 
 .tag-xs {
@@ -614,379 +652,30 @@ body.player-visible #desktopFilterPanel {
 
 .tag-active-chip {
   flex-shrink: 0;
-  color: #374151;
-  background: #f9fafb;
-  border-color: #d1d5db;
+  --tag-hover-text: #374151;
+  --tag-hover-background: #f3f4f6;
+  --tag-hover-border: #d1d5db;
 }
 
-.tag-active-chip:hover {
-  background: #f3f4f6;
+:is(
+  .tag-sort-active,
+  .tag-style-active,
+  .tag-platform-active,
+  .tag-time-active,
+  .tag-format-active,
+  .tag-format-3d-active,
+  .tag-role-filter-active,
+  .tag-collab-liver-active,
+  .tag-collab-unit-active,
+  .tag-role-active
+) {
+  --tag-text: #ffffff;
+  --tag-background: #2563eb;
+  --tag-border: #2563eb;
+  --tag-hover-text: #ffffff;
+  --tag-hover-background: #1d4ed8;
+  --tag-hover-border: #1d4ed8;
 }
-
-.tag-sort {
-  color: #1d4ed8;
-  background: #dbeafe;
-}
-
-.tag-sort-active {
-  color: #fff;
-  background: #2563eb;
-  border-color: #2563eb;
-}
-
-.tag-style {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fdba74;
-}
-
-.tag-style-active {
-  color: #fff;
-  background: #ea580c;
-  border-color: #ea580c;
-}
-
-.tag-platform {
-  color: #7e22ce;
-  background: #faf5ff;
-  border-color: #d8b4fe;
-}
-
-.tag-sm.tag-platform {
-  background: #f3e8ff;
-  border-color: transparent;
-}
-
-.tag-platform-active {
-  color: #fff;
-  background: #9333ea;
-  border-color: #9333ea;
-}
-
-.tag-time {
-  color: #15803d;
-  background: #dcfce7;
-}
-
-.tag-time-active {
-  color: #fff;
-  background: #16a34a;
-  border-color: #16a34a;
-}
-
-.tag-format {
-  color: #be185d;
-  background: #fdf2f8;
-  border-color: #f9a8d4;
-}
-
-.tag-sm.tag-format {
-  background: #fce7f3;
-  border-color: transparent;
-}
-
-.tag-desktop.tag-format {
-  background: #fdf2f8;
-  border-color: #fbcfe8;
-}
-
-.tag-format-active {
-  color: #fff;
-  background: #db2777;
-  border-color: #db2777;
-}
-
-.tag-format-3d {
-  color: #0369a1;
-  background: #f0f9ff;
-  border-color: #7dd3fc;
-}
-
-.tag-format-3d-active {
-  color: #fff;
-  background: #0284c7;
-  border-color: #0284c7;
-}
-
-.tag-role-filter {
-  color: #b45309;
-  background: #fef3c7;
-}
-
-.tag-role-filter-active {
-  color: #fff;
-  background: #d97706;
-  border-color: #d97706;
-}
-
-.tag-desktop.tag-role-filter {
-  color: #854d0e;
-  background: #fefce8;
-  border-color: #fef08a;
-}
-
-.tag-desktop.tag-role-filter.tag-role-filter-active {
-  color: #fff;
-  background: #ca8a04;
-  border-color: #ca8a04;
-}
-
-.tag-collab-liver {
-  color: #374151;
-  background: #fff;
-  border-color: #d1d5db;
-}
-
-.tag-sm.tag-collab-liver {
-  background: #f3f4f6;
-  border-color: transparent;
-}
-
-.tag-desktop.tag-collab-liver {
-  background: #fff;
-  border-color: #e5e7eb;
-}
-
-.tag-collab-liver-active {
-  color: #fff;
-  background: #4b5563;
-  border-color: #6b7280;
-}
-
-.tag-sm.tag-collab-liver.tag-collab-liver-active {
-  background: #374151;
-  border-color: #374151;
-}
-
-.tag-collab-unit {
-  color: #374151;
-  background: #fff;
-  border-color: #d1d5db;
-}
-
-.tag-sm.tag-collab-unit {
-  background: #f3f4f6;
-  border-color: transparent;
-}
-
-.tag-desktop.tag-collab-unit {
-  background: #fff;
-  border-color: #e5e7eb;
-}
-
-.tag-collab-unit-active {
-  color: #fff;
-  background: #4b5563;
-  border-color: #6b7280;
-}
-
-.tag-sm.tag-collab-unit.tag-collab-unit-active {
-  background: #374151;
-  border-color: #374151;
-}
-
-.tag-style-solo {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fdba74;
-}
-
-.tag-style-solo.tag-style-active {
-  color: #fff;
-  background: #ea580c;
-  border-color: #ea580c;
-}
-
-.tag-style-collab {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fdba74;
-}
-
-.tag-style-collab.tag-style-active {
-  color: #fff;
-  background: #ea580c;
-  border-color: #ea580c;
-}
-
-.tag-style-ayakaki {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fdba74;
-}
-
-.tag-style-ayakaki.tag-style-active {
-  color: #fff;
-  background: #ea580c;
-  border-color: #ea580c;
-}
-
-.tag-style-default {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fdba74;
-}
-
-.tag-style-default.tag-style-active {
-  color: #fff;
-  background: #ea580c;
-  border-color: #ea580c;
-}
-
-.tag-role {
-  color: #374151;
-  background: #fff;
-  border-color: #d1d5db;
-}
-
-.tag-role-active {
-  color: #fff;
-  background: #2563eb;
-  border-color: #2563eb;
-}
-
-.tag-role-vocal {
-  color: #1f2937;
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.tag-role-vocal.tag-role-active {
-  color: #fff;
-  background: #374151;
-  border-color: #374151;
-}
-
-.tag-role-dance {
-  color: #be123c;
-  background: #fff1f2;
-  border-color: #fecdd3;
-}
-
-.tag-role-dance.tag-role-active {
-  color: #fff;
-  background: #f43f5e;
-  border-color: #f43f5e;
-}
-
-.tag-role-piano {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fed7aa;
-}
-
-.tag-role-piano.tag-role-active {
-  color: #fff;
-  background: #fb923c;
-  border-color: #fb923c;
-}
-
-.tag-role-euphonium {
-  color: #b45309;
-  background: #fffbeb;
-  border-color: #fde68a;
-}
-
-.tag-role-euphonium.tag-role-active {
-  color: #fff;
-  background: #fbbf24;
-  border-color: #fbbf24;
-}
-
-.tag-role-movie {
-  color: #4d7c0f;
-  background: #f7fee7;
-  border-color: #d9f99d;
-}
-
-.tag-role-movie.tag-role-active {
-  color: #fff;
-  background: #84cc16;
-  border-color: #84cc16;
-}
-
-.tag-role-chorus {
-  color: #0369a1;
-  background: #f0f9ff;
-  border-color: #bae6fd;
-}
-
-.tag-role-chorus.tag-role-active {
-  color: #fff;
-  background: #0ea5e9;
-  border-color: #0ea5e9;
-}
-
-.tag-role-illustration {
-  color: #0e7490;
-  background: #ecfeff;
-  border-color: #a5f3fc;
-}
-
-.tag-role-illustration.tag-role-active {
-  color: #fff;
-  background: #06b6d4;
-  border-color: #06b6d4;
-}
-
-.tag-button:hover {
-  filter: brightness(0.98);
-}
-
-.tag-style:hover,
-.tag-time:hover,
-.tag-platform:hover,
-.tag-format:hover,
-.tag-format-3d:hover,
-.tag-role-filter:hover,
-.tag-collab-liver:hover,
-.tag-collab-unit:hover,
-.tag-role:hover {
-  filter: none;
-}
-
-.tag-style:hover { background: #ffedd5; }
-.tag-time:hover { background: #bbf7d0; }
-.tag-platform:hover { background: #f3e8ff; }
-.tag-format:hover { background: #fce7f3; }
-.tag-format-3d:hover { background: #e0f2fe; }
-.tag-role-filter:hover { background: #fde68a; }
-.tag-collab-liver:hover { background: #f3f4f6; }
-.tag-collab-unit:hover { background: #f3f4f6; }
-.tag-role:hover { background: #f3f4f6; }
-
-.tag-style-active:hover,
-.tag-time-active:hover,
-.tag-platform-active:hover,
-.tag-format-active:hover,
-.tag-format-3d-active:hover,
-.tag-role-filter-active:hover,
-.tag-collab-liver-active:hover,
-.tag-collab-unit-active:hover,
-.tag-role-active:hover {
-  filter: brightness(0.96);
-}
-
-.tag-sort.tag-sort-active:hover,
-.tag-style.tag-style-active:hover { background: #ea580c; }
-.tag-platform.tag-platform-active:hover { background: #9333ea; }
-.tag-time.tag-time-active:hover { background: #16a34a; }
-.tag-format.tag-format-active:hover { background: #db2777; }
-.tag-format-3d.tag-format-3d-active:hover { background: #0284c7; }
-.tag-role-filter.tag-role-filter-active:hover { background: #d97706; }
-.tag-desktop.tag-role-filter.tag-role-filter-active:hover { background: #ca8a04; }
-.tag-collab-liver.tag-collab-liver-active:hover { background: #4b5563; }
-.tag-sm.tag-collab-liver.tag-collab-liver-active:hover { background: #374151; }
-.tag-collab-unit.tag-collab-unit-active:hover { background: #4b5563; }
-.tag-sm.tag-collab-unit.tag-collab-unit-active:hover { background: #374151; }
-.tag-role.tag-role-active:hover { background: #2563eb; }
-.tag-role-vocal.tag-role-active:hover { background: #374151; }
-.tag-role-dance.tag-role-active:hover { background: #f43f5e; }
-.tag-role-piano.tag-role-active:hover { background: #fb923c; }
-.tag-role-euphonium.tag-role-active:hover { background: #fbbf24; }
-.tag-role-movie.tag-role-active:hover { background: #84cc16; }
-.tag-role-chorus.tag-role-active:hover { background: #0ea5e9; }
-.tag-role-illustration.tag-role-active:hover { background: #06b6d4; }
 
 @media (max-height: 820px) {
   #desktopFilterPanel {
