@@ -335,9 +335,9 @@
 
     if (typeof window.loadVideo === 'function' && !window.loadVideo.isEmptyGuarded) {
       const originalLoadVideo = window.loadVideo;
-      window.loadVideo = function guardedLoadVideo(video, item) {
+      window.loadVideo = function guardedLoadVideo(video, ...args) {
         if (!video) return;
-        return originalLoadVideo(video, item);
+        return originalLoadVideo(video, ...args);
       };
       window.loadVideo.isEmptyGuarded = true;
       installed = true;
