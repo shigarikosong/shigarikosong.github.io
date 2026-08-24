@@ -198,6 +198,8 @@ YouTube should autoplay for normal list title selection, previous / next, and ma
 
 For embed behavior testing, `manualPlayTestMode` can be enabled through `?manualPlay=1`, the info modal toggle, or the hidden `Ctrl + Alt/Option + Shift + M` shortcut. In that mode, manual YouTube selection should cue the selected video without starting playback automatically. The user should start playback with the native YouTube player button. Automatic continuous playback should keep autoplay behavior.
 
+YouTube API readiness is owned by `script.js`. If a video is selected before `YT.Player` is ready, retain only the latest pending `{ videoId, start, autoplay }` request and execute it once from the player `onReady` callback. Selecting TikTok, selecting invalid data, or closing the player must clear the pending YouTube request. Do not wrap `loadVideo()` or `onYouTubeIframeAPIReady` from a helper script.
+
 ## 9.1 `start` / `end` Time Rules
 
 `start` and `end` values in the JSON can use either plain seconds or timestamp text:

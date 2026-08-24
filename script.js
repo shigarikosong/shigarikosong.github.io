@@ -1412,12 +1412,67 @@ function matchesParsedSearchQuery(video, parsedQuery) {
     let ytPlayer = null;
 let ytApiReady = false;
 let ytPlayerReady = false;
+let pendingYouTubeVideoLoad = null;
 
 function isYouTubePlayerReady() {
   return ytPlayerReady;
 }
 
 window.isYouTubePlayerReady = isYouTubePlayerReady;
+
+function clearPendingYouTubeVideoLoad() {
+  pendingYouTubeVideoLoad = null;
+}
+
+function executePendingYouTubeVideoLoad() {
+  if (!pendingYouTubeVideoLoad || !ytPlayerReady || !ytPlayer) return;
+
+  const pendingLoad = pendingYouTubeVideoLoad;
+  let loaded = false;
+
+  if (!pendingLoad.autoplay && typeof ytPlayer.cueVideoById === 'function') {
+    ytPlayer.cueVideoById({
+      videoId: pendingLoad.videoId,
+      startSeconds: pendingLoad.start
+    });
+    loaded = true;
+  } else if (typeof ytPlayer.loadVideoById === 'function') {
+    ytPlayer.loadVideoById({
+      videoId: pendingLoad.videoId,
+      startSeconds: pendingLoad.start
+    });
+    loaded = true;
+  } else if (typeof ytPlayer.cueVideoById === 'function') {
+    ytPlayer.cueVideoById({
+      videoId: pendingLoad.videoId,
+      startSeconds: pendingLoad.start
+    });
+    loaded = true;
+  }
+
+  if (loaded && pendingYouTubeVideoLoad === pendingLoad) {
+    pendingYouTubeVideoLoad = null;
+  }
+}
+
+function syncYouTubeApiReadyFromGlobal() {
+  if (!ytApiReady && window.YT && typeof window.YT.Player === 'function') {
+    ytApiReady = true;
+  }
+
+  if (ytApiReady) tryInitYtPlayer();
+}
+
+function requestYouTubeVideoLoad(videoId, start, options = {}) {
+  pendingYouTubeVideoLoad = {
+    videoId,
+    start,
+    autoplay: options.autoplay !== false
+  };
+
+  syncYouTubeApiReadyFromGlobal();
+  executePendingYouTubeVideoLoad();
+}
 
 // YouTube IFrame API の準備完了コールバック
 window.onYouTubeIframeAPIReady = () => {
@@ -1441,7 +1496,7 @@ function tryInitYtPlayer() {
     events: {
       onReady: () => {
         ytPlayerReady = true;
-        window.dispatchEvent(new CustomEvent('youtubePlayerReady'));
+        executePendingYouTubeVideoLoad();
         updatePlayPauseButton(getYouTubePlayerState(), 'youtube');
         requestAnimationFrame(applyStoredPlayerSizePreference);
       },
@@ -1460,6 +1515,8 @@ function tryInitYtPlayer() {
     }
   });
 }
+
+syncYouTubeApiReadyFromGlobal();
 
 
 // ===== スプレッドシートからデータ取得 =====    
@@ -3367,10 +3424,12 @@ function loadVideo(video, item, options = {}) {
   let platform = video._platform || (video["platform"] || "").toLowerCase();
 
   if (!videoId) {
+    clearPendingYouTubeVideoLoad();
     alert("videoId が指定されていません");
     return;
   }
   if (!platform) {
+    clearPendingYouTubeVideoLoad();
     alert("platform が未指定のため再生できません");
     return;
   }
@@ -3402,23 +3461,13 @@ function loadVideo(video, item, options = {}) {
 
   fixedPlayerEl.style.display = 'block';
   syncPlayerDimensionsBeforeVideoLoad();
-
-  if (ytApiReady) {
-    tryInitYtPlayer();
-
-    if (ytPlayerReady && cueYouTubeVideo && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
-      ytPlayer.cueVideoById({ videoId, startSeconds: start });
-    } else if (ytPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-      ytPlayer.loadVideoById({ videoId, startSeconds: start });
-    } else if (ytPlayerReady && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
-      ytPlayer.cueVideoById({ videoId, startSeconds: start });
-    }
-  }
+  requestYouTubeVideoLoad(videoId, start, { autoplay: !cueYouTubeVideo });
 
   startEndCountdownMonitor(video);
   startFullVersionPromptMonitor(video);
 
   } else if (platform === "tiktok") {
+  clearPendingYouTubeVideoLoad();
   isYouTubePlaybackRequested = false;
   if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
     ytPlayer.stopVideo();
@@ -3447,6 +3496,7 @@ if (ytEl) ytEl.classList.add('hidden');
   startFullVersionPromptMonitor(video);
 
   } else {
+    clearPendingYouTubeVideoLoad();
     alert(`未対応の platform: ${platform}`);
     return;
   }
@@ -3460,7 +3510,7 @@ if (ytEl) ytEl.classList.add('hidden');
 // ===== プレイヤーを閉じる =====
 if (closeBtn) {
   closeBtn.addEventListener('click', () => {
-    window.clearPendingYouTubeVideoLoad?.();
+    clearPendingYouTubeVideoLoad();
     stopEndCountdownMonitor();
     stopFullVersionPromptMonitor();
     document.body.style.paddingBottom =

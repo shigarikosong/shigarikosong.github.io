@@ -197,7 +197,7 @@
 
 ### YouTube再生
 
-YouTube再生は `script.js` と `youtube-stability.js` が関係している。初回の早い再生操作は `YT.Player` の生成だけで実行せず、`onReady` 後に待機中の最新動画を1回だけ読み込む。
+YouTube再生とAPI準備待ちは `script.js` が担当する。初回の早い再生操作は `YT.Player` の生成だけで実行せず、`onReady` 後に待機中の最新動画を1回だけ読み込む。削除済みの `youtube-stability.js` による `loadVideo()` の上書きを復活させない。
 開始秒 `start` の反映も関係するため、タグ整理とは別作業にする。
 
 ### TikTok再生
