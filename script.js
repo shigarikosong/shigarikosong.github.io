@@ -1009,6 +1009,7 @@ document.getElementById('modalSortOrder').value = "desc";
     var selectedPlatformTag = "";
     var selected3DTag = null;
     var selectedShortsTag = null;
+    const COLLAB_MEMBER_COMPACT_THRESHOLD = 5;
     let pendingListTagScrollVideoKey = null;
     let nowPlayingFloatingButton = null;
     let nowPlayingFloatingUpdateFrame = null;
@@ -2774,6 +2775,87 @@ function updateResultCounts(totalCount, visibleCount) {
   }
 }
 
+function createCollabListTag(value, kind) {
+  const tag = document.createElement('button');
+  tag.type = 'button';
+  tag.className = getTagButtonClass(
+    kind === 'liver' ? 'tag-collab-liver' : 'tag-collab-unit',
+    window.FilterState.isTagIncluded('collab', value)
+  );
+  tag.textContent = value;
+  tag.dataset.filterGroup = 'collab';
+  tag.dataset.filterValue = value;
+  tag.addEventListener('click', () => {
+    handleListTagClick('collab', value);
+  });
+  return tag;
+}
+
+function createCollabMemberToggle(memberRow, memberCount) {
+  const toggleButton = document.createElement('button');
+  toggleButton.type = 'button';
+  toggleButton.className = 'collab-member-toggle px-2.5 py-1 rounded-full text-xs';
+  toggleButton.setAttribute('aria-controls', memberRow.id);
+
+  const setMemberRowVisibility = show => {
+    memberRow.classList.toggle('hidden', !show);
+    toggleButton.textContent = show ? '-' : `+${memberCount}`;
+    toggleButton.setAttribute('aria-expanded', String(show));
+
+    const actionLabel = show
+      ? 'コラボメンバーを隠す'
+      : `${memberCount}人のコラボメンバーを表示`;
+    toggleButton.setAttribute('aria-label', actionLabel);
+    toggleButton.title = actionLabel;
+  };
+
+  const shouldShowMembers = [...memberRow.children]
+    .some(button => button.classList.contains('tag-collab-liver-active'));
+  setMemberRowVisibility(shouldShowMembers);
+  toggleButton.addEventListener('click', () => {
+    setMemberRowVisibility(memberRow.classList.contains('hidden'));
+  });
+
+  return toggleButton;
+}
+
+function createCollabTagRow(video, cardIndex) {
+  const collabLivers = sortCollabTagsForDisplay(video._collabLivers);
+  const collabUnits = sortCollabTagsForDisplay(video._collabUnits);
+  if (!collabLivers.length && !collabUnits.length) return null;
+
+  const tagRow = document.createElement('div');
+  tagRow.className = 'video-card-tag-row video-card-collab-row flex flex-wrap gap-1.5';
+
+  const memberTags = collabLivers.map(name => {
+    const tag = createCollabListTag(name, 'liver');
+    tag.dataset.collabMember = name;
+    return tag;
+  });
+  const unitTags = collabUnits.map(unit => createCollabListTag(unit, 'unit'));
+  const shouldCompactMembers = collabLivers.length > 0 && (
+    collabUnits.length > 0 ||
+    collabLivers.length >= COLLAB_MEMBER_COMPACT_THRESHOLD
+  );
+
+  if (!shouldCompactMembers) {
+    memberTags.forEach(tag => tagRow.appendChild(tag));
+    unitTags.forEach(tag => tagRow.appendChild(tag));
+    return tagRow;
+  }
+
+  unitTags.forEach(tag => tagRow.appendChild(tag));
+
+  const memberRow = document.createElement('div');
+  memberRow.id = `collab-members-${cardIndex}`;
+  memberRow.className = 'collab-member-row basis-full flex flex-wrap gap-1.5';
+  memberTags.forEach(tag => memberRow.appendChild(tag));
+
+  tagRow.appendChild(createCollabMemberToggle(memberRow, collabLivers.length));
+  tagRow.appendChild(memberRow);
+  return tagRow;
+}
+
 function renderVideoList(videos) {
   videoList.innerHTML = '';
   const videoListFragment = document.createDocumentFragment();
@@ -2795,7 +2877,7 @@ if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.lengt
   countElement.insertAdjacentElement('afterend', notice);
 }
 
-  videos.forEach(video => {
+  videos.forEach((video, cardIndex) => {
     const item = document.createElement('div');
     item.className = 'video-card p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-gray-300';
 
@@ -2974,52 +3056,16 @@ if (
   });
     }
 
-// 3行目：コラボタグ
-const collabLivers = sortCollabTagsForDisplay(video._collabLivers);
-const collabUnits = sortCollabTagsForDisplay(video._collabUnits);
-
-let tagRow = null;
-
-if (collabLivers.length || collabUnits.length) {
-  tagRow = document.createElement('div');
-  tagRow.className = 'video-card-tag-row video-card-collab-row flex flex-wrap gap-1.5';
-
-  collabLivers.forEach(name => {
-    const tag = document.createElement('button');
-    tag.type = 'button';
-
-    const isActive = window.FilterState.isTagIncluded("collab", name);
-    tag.className = getTagButtonClass("tag-collab-liver", isActive);
-
-    tag.textContent = name;
-    tag.dataset.filterGroup = "collab";
-    tag.dataset.filterValue = name;
-
-    tag.addEventListener('click', () => {
-      handleListTagClick("collab", name);
-    });
-
-    tagRow.appendChild(tag);
-  });
-
-  collabUnits.forEach(unit => {
-    const tag = document.createElement('button');
-    tag.type = 'button';
-
-    const isActive = window.FilterState.isTagIncluded("collab", unit);
-    tag.className = getTagButtonClass("tag-collab-unit", isActive);
-
-    tag.textContent = unit;
-    tag.dataset.filterGroup = "collab";
-    tag.dataset.filterValue = unit;
-
-    tag.addEventListener('click', () => {
-      handleListTagClick("collab", unit);
-    });
-
-    tagRow.appendChild(tag);
-  });
+const wakuName = String(video["waku_name"] || '').trim();
+if (wakuName) {
+  const wakuSpan = document.createElement('span');
+  wakuSpan.className = 'video-meta-waku';
+  wakuSpan.textContent = wakuName;
+  metaRow.appendChild(wakuSpan);
 }
+
+// 3行目：コラボタグ
+const tagRow = createCollabTagRow(video, cardIndex);
 
 content.appendChild(topRow);
 content.appendChild(metaRow);
@@ -3160,7 +3206,7 @@ window.addEventListener('resize', () => {
 
 window.addEventListener("collabTagOrderReady", () => {
   if (!Array.isArray(currentFilteredVideos) || !currentFilteredVideos.length) return;
-  window.renderVideoList(currentFilteredVideos);
+  renderVideoList(currentFilteredVideos);
   updateNowPlayingFilteredOutNotice();
   requestNowPlayingFloatingButtonUpdate();
 });

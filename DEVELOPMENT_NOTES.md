@@ -34,7 +34,7 @@
 
 - `filter-state.js` は `window.FilterState` として、include / exclude のタグ状態、アクティブチップ用データ、除外判定を持つ
 - `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
-- `renderVideoList()` は `script.js` が持つ。補助スクリプトから上書きしない
+- `renderVideoList()` は `script.js` が持ち、枠名表示とコラボメンバー収納もカード生成時に処理する。補助スクリプトから上書きしない
 - `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
 - ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
 - リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
@@ -83,6 +83,7 @@
 - 「タグ周りだけ」「再生周りだけ」のように範囲を限定する
 - 変更前に、どのファイルを触る予定か説明してもらう
 - `applyFilters` や `renderVideoList` を上書きする新しい補助JSを追加しない方針で進める
+- 枠名表示のために削除済みの `waku-name-display.js` を復活させず、カード項目は `renderVideoList()` の正式な描画工程へ追加する
 - 挙動変更とリファクタリングを同時にしない
 
 ## Codex作業フロー

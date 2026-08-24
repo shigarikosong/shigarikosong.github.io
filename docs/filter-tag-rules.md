@@ -68,6 +68,8 @@ Clicking a chip should clear only that condition:
 - Three-state click handling for shared Category / Platform / Time filter tags
 - `applyFilters()`
 - `renderVideoList()`
+- Video card metadata rendering, including `waku_name`
+- Collab member compact rows and their `+N` / `-` disclosure controls
 - `renderActiveTagChips()`
 - Three-state click handling for tags inside the video list
 - Player, random playback, repeat mode, and related playback behavior
@@ -216,6 +218,7 @@ Video cards compact Collab member tags as follows:
 - When a Collab unit exists, keep the unit visible and compact all individual members behind `+N` regardless of member count.
 - Without a Collab unit, show all individual members for one to four members and compact all members behind `+N` for five or more members.
 - Expanded member rows show every member and use `-` as the collapse control. Do not partially show the first few members.
+- Build the compact member row directly inside `script.js` while creating each video card. Do not wrap `renderVideoList()` from `ui-polish.js` or another helper script.
 
 Tag colors use a shared visual hierarchy instead of group-specific colors:
 
