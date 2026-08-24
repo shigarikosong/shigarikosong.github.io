@@ -58,3 +58,13 @@ pnpm run build:css
 ```
 
 生成後は`tailwind.generated.css`も変更と一緒にコミットします。GitHub PagesやCloudflare PagesでTailwindのビルドを実行する必要はありません。
+
+## 動画JSONの検査
+
+`data/videos.json`と`data/meta.json`は、次のコマンドで検査できます。
+
+```sh
+pnpm run validate:data
+```
+
+固定IDの重複、`full_number`の参照切れ、必須項目、動画ID、時刻範囲、日付、`player_aspect`などを確認します。JSON自動更新Workflowでも、取得データをリポジトリへ反映する前に同じ検査を実行します。

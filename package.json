@@ -3,7 +3,9 @@
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "scripts": {
-    "build:css": "tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify"
+    "build:css": "tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify",
+    "validate:data": "node scripts/validate-video-data.mjs",
+    "test:data-validation": "node --test scripts/validate-video-data.test.mjs"
   },
   "devDependencies": {
     "tailwindcss": "3.4.17"

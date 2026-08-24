@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch JSON data
+      - name: Fetch and validate JSON data
         run: |
           set -euo pipefail
 
@@ -33,6 +33,7 @@ jobs:
 
           python3 -m json.tool "$tmp_dir/videos.json" > /dev/null
           python3 -m json.tool "$tmp_dir/meta.json" > /dev/null
+          node scripts/validate-video-data.mjs "$tmp_dir/videos.json" "$tmp_dir/meta.json"
 
           mkdir -p data
           cp "$tmp_dir/videos.json" data/videos.json

@@ -111,6 +111,13 @@
 - `tailwind.generated.css`は公開に必要なファイルなので、CSSを再生成した場合は差分へ含める
 - Tailwindの探索対象は`tailwind.config.js`で管理し、動的なクラス名を追加する場合は生成漏れがないか確認する
 
+## 動画JSONの検査
+
+- `scripts/validate-video-data.mjs`は`data/videos.json`と`data/meta.json`の公開前検査を担当する
+- ローカルでは`pnpm run validate:data`で実行する
+- JSON自動更新Workflowは一時ファイルを検査し、成功した場合だけ`data/`へコピーする
+- Format、Riko Part、Collabの値は追加を妨げないため固定リスト検査をせず、必須項目・固定ID・参照・再生元・時刻・日付など、壊れたデータだけをエラーにする
+
 
 ## 現在のタグ仕様メモ
 
