@@ -222,6 +222,9 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 - [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
+- [ ] `loading-status.js` が `window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしていない。
+- [ ] 動画JSONの取得・配列確認・必須項目確認が`script.js`の専用読み込み処理で行われる。
+- [ ] 動画JSONの取得失敗・不正形式時に、0件一覧へ進まず読み込みエラー表示が残る。
 - [ ] `exclusion-style-sync.js` が `renderVideoList()` を上書きしていない。
 - [ ] `ui-polish.js` が `renderVideoList()` を上書きしていない。
 - [ ] 枠名とコラボメンバー収納が `script.js` のカード描画内で反映され、削除済みの `waku-name-display.js` への参照が残っていない。
