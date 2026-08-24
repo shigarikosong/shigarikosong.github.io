@@ -117,41 +117,20 @@
     status.setAttribute('aria-live', 'polite');
   }
 
-  function isVideoListRequest(input) {
-    const url = String(input?.url || input || '');
-    return url.includes('シート1') || url.includes('%E3%82%B7%E3%83%BC%E3%83%881') || url.includes('data/videos.json');
+  function showVideoListLoading() {
+    setStatus('動画リストを読み込んでいます...', false, true);
   }
 
-  function getRequestUrl(input) {
-    return String(input?.url || input || '');
+  function showVideoListPreparing(count) {
+    setStatus(`${count}件の動画を準備しています...`, false, true);
   }
 
-  function isOpenSheetRequest(input) {
-    const url = getRequestUrl(input);
-    return url.includes('opensheet.elk.sh') || url.includes('data/videos.json') || url.includes('data/meta.json');
+  function showVideoListRendering() {
+    setStatus('リストを表示しています...');
   }
 
-  function createEmptyArrayResponse() {
-    return new Response('[]', {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
-  function normalizeOpenSheetData(data, url, shouldWatch) {
-    if (!Array.isArray(data)) {
-      console.error('opensheet response was not an array', { url, data });
-      if (shouldWatch) setStatus(errorMessage, true, true);
-      return [];
-    }
-
-    if (shouldWatch && data.some(video => !video || !video.title || !video.videoId)) {
-      console.error('opensheet video list is missing required fields', { url });
-      setStatus(errorMessage, true, true);
-      return [];
-    }
-
-    return data;
+  function showVideoListError() {
+    setStatus(errorMessage, true, true);
   }
 
   function setupBackToTopButton() {
@@ -304,115 +283,13 @@
     updateButtonState();
   }
 
-  function installArrayGuards(retries = 20) {
-    let installed = false;
+  window.LoadingStatus = Object.freeze({
+    showVideoListLoading,
+    showVideoListPreparing,
+    showVideoListRendering,
+    showVideoListError
+  });
 
-    if (typeof window.populateFilters === 'function' && !window.populateFilters.isArrayGuarded) {
-      const originalPopulateFilters = window.populateFilters;
-      window.populateFilters = function guardedPopulateFilters(videos) {
-        if (!Array.isArray(videos)) {
-          console.error('populateFilters expected an array', { videos });
-          videos = [];
-        }
-        return originalPopulateFilters(videos);
-      };
-      window.populateFilters.isArrayGuarded = true;
-      installed = true;
-    }
-
-    if (typeof window.renderVideoList === 'function' && !window.renderVideoList.isArrayGuarded) {
-      const originalRenderVideoList = window.renderVideoList;
-      window.renderVideoList = function guardedRenderVideoList(videos) {
-        if (!Array.isArray(videos)) {
-          console.error('renderVideoList expected an array', { videos });
-          videos = [];
-        }
-        return originalRenderVideoList(videos);
-      };
-      window.renderVideoList.isArrayGuarded = true;
-      installed = true;
-    }
-
-    if (typeof window.loadVideo === 'function' && !window.loadVideo.isEmptyGuarded) {
-      const originalLoadVideo = window.loadVideo;
-      window.loadVideo = function guardedLoadVideo(video, ...args) {
-        if (!video) return;
-        return originalLoadVideo(video, ...args);
-      };
-      window.loadVideo.isEmptyGuarded = true;
-      installed = true;
-    }
-
-    if (!installed && retries > 0) {
-      window.setTimeout(() => installArrayGuards(retries - 1), 50);
-    }
-  }
-
-  const originalFetch = window.fetch.bind(window);
-  setStatus('動画リストを読み込んでいます...', false, true);
+  showVideoListLoading();
   setupBackToTopButton();
-
-  window.fetch = (input, init) => {
-    const shouldWatch = isVideoListRequest(input);
-    const shouldGuard = isOpenSheetRequest(input);
-    const url = getRequestUrl(input);
-
-    if (shouldWatch) {
-      setStatus('動画リストを読み込んでいます...', false, true);
-    }
-
-    return originalFetch(input, init)
-      .then(response => {
-        if (!shouldGuard) return response;
-
-        if (!response.ok) {
-          console.error('opensheet fetch failed', { url, status: response.status });
-          if (shouldWatch) setStatus(errorMessage, true, true);
-          return createEmptyArrayResponse();
-        }
-
-        return new Proxy(response, {
-          get(target, prop) {
-            if (prop === 'json') {
-              return () => target.json()
-                .then(data => {
-                  const rows = normalizeOpenSheetData(data, url, shouldWatch);
-
-                  if (shouldWatch && rows.length) {
-                    setStatus(`${rows.length}件の動画を準備しています...`);
-
-                    requestAnimationFrame(() => {
-                      setStatus('リストを表示しています...');
-                    });
-                  }
-
-                  return rows;
-                })
-                .catch(error => {
-                  console.error('opensheet JSON parse failed', { url, error });
-                  if (shouldWatch) setStatus(errorMessage, true, true);
-                  return [];
-                });
-            }
-
-            const value = target[prop];
-            return typeof value === 'function' ? value.bind(target) : value;
-          }
-        });
-      })
-      .catch(error => {
-        if (shouldGuard) {
-          console.error('opensheet fetch failed', { url, error });
-        }
-
-        if (shouldWatch) {
-          setStatus(errorMessage, true, true);
-          return createEmptyArrayResponse();
-        }
-
-        throw error;
-      });
-  };
-
-  installArrayGuards();
 })();

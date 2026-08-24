@@ -1519,10 +1519,40 @@ function tryInitYtPlayer() {
 syncYouTubeApiReadyFromGlobal();
 
 
-// ===== スプレッドシートからデータ取得 =====    
-fetch(sheetJsonUrl)
-  .then(response => response.json())
-  .then(data => {
+// ===== JSONデータ取得 =====
+async function fetchJsonArray(url, label) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`${label} request failed: HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data)) {
+    throw new TypeError(`${label} response was not an array`);
+  }
+
+  return data;
+}
+
+async function loadVideoData() {
+  window.LoadingStatus?.showVideoListLoading();
+
+  try {
+    const data = await fetchJsonArray(sheetJsonUrl, 'video data');
+    if (!data.length) {
+      throw new Error('video data was empty');
+    }
+
+    const invalidRowIndex = data.findIndex(video => !video || !video.title || !video.videoId);
+    if (invalidRowIndex >= 0) {
+      throw new Error(`video data row ${invalidRowIndex + 1} was missing required fields`);
+    }
+
+    window.LoadingStatus?.showVideoListPreparing(data.length);
+    requestAnimationFrame(() => {
+      window.LoadingStatus?.showVideoListRendering();
+    });
+
     allVideos = normalizeVideos(data);
     populateFilters(allVideos);
     applyFilters({ scrollAfterUpdate: false });
@@ -1530,17 +1560,27 @@ fetch(sheetJsonUrl)
       adjustFixedPlayerBottom();
       updateActiveTagChipsPosition();
     });
-  });
+  } catch (error) {
+    console.error('video data fetch failed', { url: sheetJsonUrl, error });
+    window.LoadingStatus?.showVideoListError();
+  }
+}
 
-fetch(metaSheetUrl)
-  .then(res => res.json())
-  .then(data => {
+async function loadMetaData() {
+  try {
+    const data = await fetchJsonArray(metaSheetUrl, 'meta data');
     const lastUpdate = data.find(row => row["項目"] === "最終更新日");
     if (lastUpdate) {
       document.getElementById("lastUpdated").textContent =
         `最終更新日：${lastUpdate["値"]}`;
     }
-  });
+  } catch (error) {
+    console.error('meta data fetch failed', { url: metaSheetUrl, error });
+  }
+}
+
+loadVideoData();
+loadMetaData();
 
 // ===== フィルターUIの操作 =====
     const repeatModeBtn = document.getElementById('repeatModeBtn');

@@ -111,8 +111,11 @@ Clicking a chip should clear only that condition:
 ### `loading-status.js`
 
 - Loading status display
-- Fetch guards
 - Back-to-top button
+- Exposes `window.LoadingStatus` for explicit video-list loading, preparing, rendering, and error messages.
+- Does not replace `window.fetch` or wrap `populateFilters()`, `renderVideoList()`, or `loadVideo()`.
+
+`script.js` owns the explicit `data/videos.json` and `data/meta.json` fetch flow. It checks HTTP status, JSON array shape, and required video fields before normalizing or rendering the list.
 
 ## 6. `FilterState` API
 

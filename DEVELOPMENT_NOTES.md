@@ -35,6 +35,8 @@
 - `filter-state.js` は `window.FilterState` として、include / exclude のタグ状態、アクティブチップ用データ、除外判定を持つ
 - `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
 - `renderVideoList()` は `script.js` が持ち、枠名表示とコラボメンバー収納もカード生成時に処理する。補助スクリプトから上書きしない
+- 動画JSONとmeta JSONは`script.js`の専用読み込み関数で取得・確認し、`loading-status.js`は状態表示とページトップボタンだけを担当する
+- `loading-status.js`から`window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしない
 - `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
 - ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
 - リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
