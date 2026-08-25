@@ -346,7 +346,7 @@ Now playing behavior can interact with scroll-position adjustment logic, so chec
 
 `script.js` applies exclusion conditions before rendering the list and updating `currentFilteredVideos`.
 
-PC, mobile, and video-card tag owners render exclusion labels and styles explicitly through `FilterTagView`. Exclusion presentation should not be restored as a post-render button scan or by wrapping `renderVideoList()`.
+PC, mobile, and video-card tag owners render include and exclusion styles explicitly through `FilterTagView`. Tag presentation should not be restored as a post-render button scan or by wrapping `renderVideoList()`.
 
 When changing player behavior, keep `currentFilteredVideos` aligned with the actual visible list.
 

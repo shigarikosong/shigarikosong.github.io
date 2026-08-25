@@ -108,18 +108,11 @@ Clicking a chip should clear only that condition:
 ### `filter-tag-view.js`
 
 - Reads each tag's `include` / `exclude` / `none` state from `FilterState` while the tag button is created.
-- Supplies the display label, `- ` prefix, exclusion class, and exclusion `aria-label` through `FilterTagView`.
+- Supplies the include class, display label, `- ` prefix, exclusion class, and exclusion `aria-label` through `FilterTagView`.
 - Does not intercept tag clicks or reset clicks.
 - Does not scan existing buttons after rendering or listen for state-change events.
 - Tag owners must call `FilterTagView.getPresentation()` and `applyButton()` in their normal render path.
 - Category and Collab sorting must use `data-filter-value`, not the visible label that may contain an exclusion prefix.
-
-### `filter-active-style-sync.js`
-
-- Syncs include-state classes after `tagFilterStateChanged` and `videoListRendered`.
-- Reads state from `FilterState` and identifies tags from `data-filter-group` / `data-filter-value`.
-- Does not infer filter state from active-chip text or watch DOM mutations and page-wide input events.
-- Does not own filter state or intercept tag clicks.
 
 ### `loading-status.js`
 

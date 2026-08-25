@@ -1316,7 +1316,7 @@ function createListTagElement(label, group, value, onClick) {
   const presentation = window.FilterTagView.getPresentation(group, value, label);
 
   tag.type = 'button';
-  tag.className = getTagButtonClass(kind, presentation.state === "include");
+  tag.className = getTagButtonClass(kind);
   window.FilterTagView.applyButton(tag, presentation);
   tag.addEventListener('click', onClick);
 
@@ -2538,7 +2538,7 @@ function renderPlatformTags() {
       const presentation = window.FilterTagView.getPresentation("platform", p, getPlatformLabel(p));
       const isActive = presentation.state === "include";
 
-      btn.className = getTagButtonClass("tag-platform", isActive, { size: "tag-sm" });
+      btn.className = getTagButtonClass("tag-platform", false, { size: "tag-sm" });
       window.FilterTagView.applyButton(btn, presentation);
 
       btn.onclick = () => {
@@ -2576,7 +2576,7 @@ function renderPlatformTags() {
       const presentation = window.FilterTagView.getPresentation("category", category, category);
       const isActive = presentation.state === "include";
 
-      btn.className = getTagButtonClass("tag-style", isActive, { size: "tag-sm" });
+      btn.className = getTagButtonClass("tag-style", false, { size: "tag-sm" });
       window.FilterTagView.applyButton(btn, presentation);
 
       btn.onclick = () => {
@@ -2624,7 +2624,7 @@ function renderDateTags() {
       const presentation = window.FilterTagView.getPresentation("date", opt.value, opt.label);
       const isActive = presentation.state === "include";
 
-      btn.className = getTagButtonClass("tag-time", isActive, { size: "tag-sm" });
+      btn.className = getTagButtonClass("tag-time", false, { size: "tag-sm" });
       window.FilterTagView.applyButton(btn, presentation);
 
       btn.onclick = () => {
@@ -2822,8 +2822,7 @@ function createCollabListTag(value, kind) {
   const presentation = window.FilterTagView.getPresentation('collab', value, value);
   tag.type = 'button';
   tag.className = getTagButtonClass(
-    kind === 'liver' ? 'tag-collab-liver' : 'tag-collab-unit',
-    presentation.state === 'include'
+    kind === 'liver' ? 'tag-collab-liver' : 'tag-collab-unit'
   );
   window.FilterTagView.applyButton(tag, presentation);
   tag.addEventListener('click', () => {
