@@ -353,8 +353,7 @@ function handleVideoEnded() {
     randomEnabled: isRandomModeEnabled()
   });
 
-  stopEndCountdownMonitor();
-  stopFullVersionPromptMonitor();
+  stopPlaybackMonitors();
   executePlaybackTransition(transition);
 }
 
@@ -3395,6 +3394,105 @@ function clearNowPlayingState() {
   requestNowPlayingFloatingButtonUpdate();
 }
 
+function stopPlaybackMonitors() {
+  stopEndCountdownMonitor();
+  stopFullVersionPromptMonitor();
+}
+
+function resetPlaybackMonitorsForVideo(video) {
+  resetEndCountdownForVideo(video);
+  resetFullVersionPromptForVideo(video);
+}
+
+function startPlaybackMonitors(video, options = {}) {
+  if (options.monitorEndCountdown) {
+    startEndCountdownMonitor(video);
+  } else {
+    stopEndCountdownMonitor();
+  }
+  startFullVersionPromptMonitor(video);
+}
+
+function hideLegacyPlayerIframe() {
+  if (!playerIframe) return;
+
+  playerIframe.classList.add('hidden');
+  playerIframe.src = '';
+}
+
+function hideTikTokPlayer() {
+  if (!tiktokPlayerEl) return;
+
+  tiktokPlayerEl.classList.add('hidden');
+  tiktokPlayerEl.replaceChildren();
+}
+
+function prepareTikTokPlayer() {
+  if (!tiktokPlayerEl) return;
+
+  tiktokPlayerEl.classList.remove('hidden');
+  tiktokPlayerEl.replaceChildren();
+}
+
+function showFixedPlayer() {
+  fixedPlayerEl.style.display = 'block';
+  syncPlayerDimensionsBeforeVideoLoad();
+}
+
+function normalizeYouTubeVideoId(value) {
+  const videoId = String(value);
+  const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
+  return match ? match[1] : videoId;
+}
+
+function loadYouTubeVideo(video, videoId, start, options = {}) {
+  const cueYouTubeVideo = window.PlaybackPolicy.shouldCueYouTubeVideo({
+    autoplay: options.autoplay,
+    manualPlayEnabled: isManualPlayTestModeEnabled()
+  });
+
+  isYouTubePlaybackRequested = !cueYouTubeVideo;
+  resetTikTokPlaybackControl();
+  hideLegacyPlayerIframe();
+  showYouTubePlayer();
+  hideTikTokPlayer();
+  showFixedPlayer();
+  requestYouTubeVideoLoad(normalizeYouTubeVideoId(videoId), start, {
+    autoplay: !cueYouTubeVideo
+  });
+  startPlaybackMonitors(video, { monitorEndCountdown: true });
+}
+
+function stopYouTubePlayback() {
+  if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+    ytPlayer.stopVideo();
+    return;
+  }
+
+  if (playerIframe?.src.includes('youtube.com')) {
+    playerIframe.contentWindow?.postMessage(JSON.stringify({
+      event: 'command',
+      func: 'pauseVideo',
+      args: []
+    }), '*');
+    return;
+  }
+
+  if (playerIframe) playerIframe.src = '';
+}
+
+function loadTikTokVideo(video, videoId) {
+  clearPendingYouTubeVideoLoad();
+  isYouTubePlaybackRequested = false;
+  stopYouTubePlayback();
+  hideYouTubePlayer();
+  hideLegacyPlayerIframe();
+  prepareTikTokPlayer();
+  showFixedPlayer();
+  loadTikTokEmbed(getTikTokId(videoId));
+  startPlaybackMonitors(video);
+}
+
 function updateNowPlaying(video) {
   const nowPlayingTitle = document.getElementById('nowPlayingTitle');
   const label = `${video["title"]} - ${video["artist"]}`;
@@ -3411,11 +3509,10 @@ function updateNowPlaying(video) {
 
 // ===== 動画の再生処理 =====
 function loadVideo(video, item, options = {}) {
-  resetEndCountdownForVideo(video);
-  resetFullVersionPromptForVideo(video);
+  resetPlaybackMonitorsForVideo(video);
   const start = video._startSeconds ?? parseTimeToSeconds(video["start"], 0);
-  let videoId = video["videoId"];
-  let platform = video._platform || (video["platform"] || "").toLowerCase();
+  const videoId = video["videoId"];
+  const platform = video._platform || (video["platform"] || "").toLowerCase();
 
   if (!videoId) {
     clearPendingYouTubeVideoLoad();
@@ -3431,107 +3528,34 @@ function loadVideo(video, item, options = {}) {
   setPlayerLayoutForVideo(video);
 
   if (platform.includes("youtube")) {
-  const cueYouTubeVideo = window.PlaybackPolicy.shouldCueYouTubeVideo({
-    autoplay: options.autoplay,
-    manualPlayEnabled: isManualPlayTestModeEnabled()
-  });
-  isYouTubePlaybackRequested = !cueYouTubeVideo;
-  resetTikTokPlaybackControl();
-  const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
-  if (match) videoId = match[1];
-
-  if (playerIframe) {
-    playerIframe.classList.add('hidden');
-    playerIframe.src = "";
-  }
-
-  // YouTube表示
-  const ytEl = document.getElementById('youtubePlayer');
-  if (ytEl) ytEl.classList.remove('hidden');
-
-  // TikTok非表示
-  if (tiktokPlayerEl) {
-    tiktokPlayerEl.classList.add('hidden');
-    tiktokPlayerEl.innerHTML = "";
-  }
-
-
-  fixedPlayerEl.style.display = 'block';
-  syncPlayerDimensionsBeforeVideoLoad();
-  requestYouTubeVideoLoad(videoId, start, { autoplay: !cueYouTubeVideo });
-
-  startEndCountdownMonitor(video);
-  startFullVersionPromptMonitor(video);
-
+    loadYouTubeVideo(video, videoId, start, options);
   } else if (platform === "tiktok") {
-  clearPendingYouTubeVideoLoad();
-  isYouTubePlaybackRequested = false;
-  if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-    ytPlayer.stopVideo();
-  }
-
- const ytEl = document.getElementById('youtubePlayer');
-if (ytEl) ytEl.classList.add('hidden');
-
-  if (playerIframe) {
-    playerIframe.classList.add('hidden');
-    playerIframe.src = "";
-  }
-
-  if (tiktokPlayerEl) {
-    tiktokPlayerEl.classList.remove('hidden');
-    tiktokPlayerEl.innerHTML = "";
-  }
-
-  fixedPlayerEl.style.display = 'block';
-  syncPlayerDimensionsBeforeVideoLoad();
-
-  const tiktokId = getTikTokId(videoId);
-  loadTikTokEmbed(tiktokId);
-    
-  stopEndCountdownMonitor();
-  startFullVersionPromptMonitor(video);
-
+    loadTikTokVideo(video, videoId);
   } else {
     clearPendingYouTubeVideoLoad();
     alert(`未対応の platform: ${platform}`);
     return;
   }
 
-  
-
   recordPlaybackHistoryForNext(video);
   updateNowPlaying(video);
 }
 
+function closeFixedPlayer() {
+  clearPendingYouTubeVideoLoad();
+  stopPlaybackMonitors();
+  document.body.style.paddingBottom =
+    `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
+
+  stopYouTubePlayback();
+  hideTikTokPlayer();
+  clearNowPlayingState();
+  fixedPlayerEl.style.display = 'none';
+}
+
 // ===== プレイヤーを閉じる =====
 if (closeBtn) {
-  closeBtn.addEventListener('click', () => {
-    clearPendingYouTubeVideoLoad();
-    stopEndCountdownMonitor();
-    stopFullVersionPromptMonitor();
-    document.body.style.paddingBottom =
-      `${(document.getElementById('nowPlayingWrapper')?.offsetHeight || 0) + 12}px`;
-
-    if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-      ytPlayer.stopVideo();
-    } else if (playerIframe?.src.includes("youtube.com")) {
-      playerIframe.contentWindow?.postMessage(JSON.stringify({
-        event: 'command',
-        func: 'pauseVideo',
-        args: []
-      }), '*');
-    } else {
-      playerIframe.src = "";
-    }
-    if (tiktokPlayerEl) {
-      tiktokPlayerEl.classList.add('hidden');
-      tiktokPlayerEl.replaceChildren();
-    }
-    resetTikTokPlaybackControl();
-    clearNowPlayingState();
-    fixedPlayerEl.style.display = 'none';
-  });
+  closeBtn.addEventListener('click', closeFixedPlayer);
 }
 
 
