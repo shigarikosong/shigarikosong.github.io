@@ -196,7 +196,7 @@ TikTok must remain excluded from automatic continuous playback.
 
 YouTube should autoplay for normal list title selection, previous / next, and manual random playback regardless of repeat mode.
 
-For embed behavior testing, `manualPlayTestMode` can be enabled through `?manualPlay=1`, the info modal toggle, or the hidden `Ctrl + Alt/Option + Shift + M` shortcut. In that mode, manual YouTube selection should cue the selected video without starting playback automatically. The user should start playback with the native YouTube player button. Automatic continuous playback should keep autoplay behavior.
+For embed behavior testing, `manualPlayTestMode` can be enabled through `?manualPlay=1`, the info modal toggle, or the hidden `Ctrl + Alt/Option + Shift + M` shortcut. In that mode, every YouTube transition should cue the selected video without starting playback automatically, including Repeat ONE, Repeat ALL, random continuous playback, and end-based transitions. The selected repeat and random modes remain active, but the user must start each cued video with the native YouTube player button. Manual play mode takes priority over an explicit `autoplay: true` request.
 
 YouTube API readiness is owned by `script.js`. If a video is selected before `YT.Player` is ready, retain only the latest pending `{ videoId, start, autoplay }` request and execute it once from the player `onReady` callback. Selecting TikTok, selecting invalid data, or closing the player must clear the pending YouTube request. Do not wrap `loadVideo()` or `onYouTubeIframeAPIReady` from a helper script.
 

@@ -61,6 +61,12 @@
 
 検索演算子のルールを変えたいときは、このファイルと`scripts/search-utils.test.mjs`を一緒に確認します。
 
+## playback-policy.js
+
+YouTube動画をすぐ再生するか、プレイヤー内の再生ボタンを待つかを決める小さな共通ファイルです。
+
+手動再生モードと`autoplay`指定の優先順位を変えたいときは、このファイルと`scripts/playback-policy.test.mjs`を一緒に確認します。
+
 ## 初心者向けの更新手順
 
 1. まず Googleスプレッドシートだけで更新できる内容か確認する
