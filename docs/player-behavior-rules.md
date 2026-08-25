@@ -202,6 +202,8 @@ For embed behavior testing, `manualPlayTestMode` can be enabled through `?manual
 
 YouTube API readiness is owned by `script.js`. If a video is selected before `YT.Player` is ready, retain only the latest pending `{ videoId, start, autoplay }` request and execute it once from the player `onReady` callback. Selecting TikTok, selecting invalid data, or closing the player must clear the pending YouTube request. Do not wrap `loadVideo()` or `onYouTubeIframeAPIReady` from a helper script.
 
+`loadVideo()` is the single playback entry point. Keep validation and platform dispatch there, while YouTube loading, TikTok loading, monitor startup, and fixed-player teardown stay in their named lifecycle functions. Do not duplicate those platform-switch and cleanup steps at new call sites.
+
 ## 9.1 `start` / `end` Time Rules
 
 `start` and `end` values in the JSON can use either plain seconds or timestamp text:
