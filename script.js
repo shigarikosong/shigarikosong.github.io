@@ -64,32 +64,9 @@ function setManualPlayTestModeEnabled(on) {
 window.isManualPlayTestModeEnabled = isManualPlayTestModeEnabled;
 window.setManualPlayTestModeEnabled = setManualPlayTestModeEnabled;
 
-function parseTimeToSeconds(value, fallback = null) {
-  if (value === null || value === undefined || value === "") return fallback;
-  if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
-
-  const text = String(value).trim();
-  if (!text) return fallback;
-  if (/^\d+(?:\.\d+)?$/.test(text)) return Math.floor(Number(text));
-
-  const parts = text.split(":");
-  if (parts.length < 2 || parts.length > 3) return fallback;
-  if (!parts.every(part => /^\d+$/.test(part.trim()))) return fallback;
-
-  const numbers = parts.map(part => Number(part.trim()));
-  const seconds = numbers.pop();
-  const minutes = numbers.pop();
-  const hours = numbers.pop() || 0;
-
-  if (minutes > 59 || seconds > 59) return fallback;
-  return (hours * 3600) + (minutes * 60) + seconds;
-}
+const parseTimeToSeconds = window.VideoNormalizer.parseTimeToSeconds;
 
 window.parseTimeToSeconds = parseTimeToSeconds;
-
-function normalizeVideoNumber(value) {
-  return String(value ?? "").trim();
-}
 
 function getVideoKey(video) {
   return `${video?.["videoId"]}__${video?._startSeconds ?? parseTimeToSeconds(video?.["start"], 0)}`;
@@ -1026,75 +1003,6 @@ document.getElementById('modalSortOrder').value = "desc";
     var selectedVideoTypeTags = new Set();
 
 // ===== タグの表示・解除 =====
-function parseCommaTags(value) {
-  return String(value || "")
-    .split(",")
-    .map(v => v.trim())
-    .filter(Boolean);
-}
-
-function normalizePlayerAspect(value) {
-  const aspect = String(value ?? "").trim();
-  return aspect === "9:16" || aspect === "16:9" ? aspect : "";
-}
-
-function normalizeVideos(data) {
-  return data.map(video => {
-    const roles = parseCommaTags(video["担当区分"]);
-    const types = parseCommaTags(video["動画種別"]);
-    const collabLivers = parseCommaTags(video["コラボライバー"]);
-    const collabUnits = parseCommaTags(video["コラボユニット"]);
-    const platform = String(video["platform"] || "").trim().toLowerCase();
-    const number = normalizeVideoNumber(video["number"]);
-    const fullNumber = normalizeVideoNumber(video["full_number"]);
-    const fullButtonText = String(video["full_button_text"] ?? "").trim();
-    const playerAspect = normalizePlayerAspect(video["player_aspect"]);
-    const startSeconds = parseTimeToSeconds(video["start"], 0);
-    const parsedEndSeconds = parseTimeToSeconds(video["end"], null);
-    const endSeconds = parsedEndSeconds !== null && parsedEndSeconds > startSeconds
-      ? parsedEndSeconds
-      : null;
-
-    video._roles = roles;
-    video._types = types;
-    video._collabLivers = collabLivers;
-    video._collabUnits = collabUnits;
-    video._collabTags = [...collabLivers, ...collabUnits];
-    video._platform = platform;
-    video._number = number;
-    video._fullNumber = fullNumber;
-    video._fullButtonText = fullButtonText;
-    video._playerAspect = playerAspect;
-    video._is3D = video["3D"] === "TRUE";
-    video._isShorts = video["Shorts"] === "TRUE";
-    video._startSeconds = startSeconds;
-    video._endSeconds = endSeconds;
-    video._time = window.DATE_UTILS.parseYmdToTime(video["公開日"] || video["公開月"]);
-    video._searchText = [
-      video["title"],
-      video["title_kana"],
-      video["artist"],
-      video["artist_kana"],
-      video["waku_name"],
-      video["カテゴリ"],
-      video["platform"],
-      window.TAG_CONFIG?.getPlatformLabel?.(platform),
-      video["動画種別"],
-      video["担当区分"],
-      video["コラボライバー"],
-      video["コラボユニット"],
-      video._is3D ? "3D" : "",
-      video._isShorts ? "Shorts" : "",
-      types.join(" "),
-      roles.join(" "),
-      collabLivers.join(" "),
-      collabUnits.join(" ")
-    ].filter(Boolean).join(" ").toLowerCase();
-
-    return video;
-  });
-}
-
     function toggleTagState(state) {
   if (state === null) return "include";
   return null;
@@ -1517,7 +1425,7 @@ async function loadVideoData() {
       window.LoadingStatus?.showVideoListRendering();
     });
 
-    allVideos = normalizeVideos(data);
+    allVideos = window.VideoNormalizer.normalizeVideos(data);
     populateFilters(allVideos);
     applyFilters({ scrollAfterUpdate: false });
     requestAnimationFrame(() => {
