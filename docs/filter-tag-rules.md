@@ -110,8 +110,9 @@ Clicking a chip should clear only that condition:
 
 ### `filter-active-style-sync.js`
 
-- Syncs include-state classes for desktop/mobile filter buttons from active chips.
-- Syncs include-state classes for Platform tags in the video list.
+- Syncs include-state classes after `tagFilterStateChanged` and `videoListRendered`.
+- Reads state from `FilterState` and identifies tags from `data-filter-group` / `data-filter-value`.
+- Does not infer filter state from active-chip text or watch DOM mutations and page-wide input events.
 - Does not own filter state or intercept tag clicks.
 
 ### `loading-status.js`

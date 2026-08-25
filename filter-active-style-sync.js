@@ -1,117 +1,48 @@
 (() => {
-  const kindByGroup = {
-    category: 'tag-style',
-    platform: 'tag-platform',
-    date: 'tag-time',
-    format: 'tag-format',
-    role: 'tag-role-filter',
-    collabLiver: 'tag-collab-liver',
-    collabUnit: 'tag-collab-unit'
-  };
+  const syncRootSelectors = ['#filterModal', '#desktopFilterPanel', '#videoList'];
+  const filterButtonSelector = syncRootSelectors
+    .map(selector => `${selector} button[data-filter-group][data-filter-value]`)
+    .join(', ');
+  const activeClassByBaseClass = Object.freeze({
+    'tag-style': 'tag-style-active',
+    'tag-platform': 'tag-platform-active',
+    'tag-time': 'tag-time-active',
+    'tag-format': 'tag-format-active',
+    'tag-role-filter': 'tag-role-filter-active',
+    'tag-collab-liver': 'tag-collab-liver-active',
+    'tag-collab-unit': 'tag-collab-unit-active'
+  });
+  let syncFrame = null;
 
-  const panelGroups = [
-    ['modalCategoryTags', 'category'],
-    ['desktopCategoryTags', 'category'],
-    ['modalPlatformTags', 'platform'],
-    ['desktopPlatformTags', 'platform'],
-    ['modalDateTags', 'date'],
-    ['desktopDateTags', 'date'],
-    ['modalFormatTags', 'format'],
-    ['desktopFormatTags', 'format'],
-    ['modalRoleTags', 'role'],
-    ['desktopRoleTags', 'role'],
-    ['modalCollabLiverTags', 'collabLiver'],
-    ['desktopCollabLiverTags', 'collabLiver'],
-    ['modalCollabUnitTags', 'collabUnit'],
-    ['desktopCollabUnitTags', 'collabUnit']
-  ];
-
-  const platformLabels = new Set(['youtube', 'tiktok']);
-  let syncScheduled = false;
-  let delayedSyncTimer = null;
-
-  function normalizeLabel(value) {
-    return String(value || '').trim().toLowerCase();
+  function getActiveClass(button) {
+    return Object.entries(activeClassByBaseClass)
+      .find(([baseClass]) => button.classList.contains(baseClass))?.[1] || null;
   }
 
-  function getActiveLabels() {
-    return new Set(
-      [...document.querySelectorAll('#activeTagChipsInner button')]
-        .map(button => normalizeLabel(button.textContent))
-        .filter(Boolean)
-    );
-  }
+  function syncButton(button) {
+    const activeClass = getActiveClass(button);
+    if (!activeClass) return;
 
-  function setButtonClass(button, group, isActive) {
-    const kind = kindByGroup[group];
-    if (!kind) return;
-
-    button.classList.toggle(`${kind}-active`, isActive);
-  }
-
-  function syncPanelButtons(activeLabels) {
-    panelGroups.forEach(([id, group]) => {
-      const container = document.getElementById(id);
-      if (!container) return;
-
-      container.querySelectorAll('button').forEach(button => {
-        const isActive = activeLabels.has(normalizeLabel(button.textContent));
-        setButtonClass(button, group, isActive);
-      });
-    });
-  }
-
-  function syncListPlatformButtons(activeLabels) {
-    document.querySelectorAll('#videoList button[data-filter-group="platform"]').forEach(button => {
-      const label = normalizeLabel(button.dataset.filterValue || button.textContent);
-      if (!platformLabels.has(label)) return;
-
-      const isActive = activeLabels.has(label);
-      button.classList.toggle('tag-platform-active', isActive);
-    });
+    const group = button.dataset.filterGroup;
+    const value = button.dataset.filterValue;
+    const isActive = window.FilterState.isTagIncluded(group, value);
+    button.classList.toggle(activeClass, isActive);
   }
 
   function syncActiveFilterTags() {
-    const activeLabels = getActiveLabels();
-    syncPanelButtons(activeLabels);
-    syncListPlatformButtons(activeLabels);
+    document.querySelectorAll(filterButtonSelector).forEach(syncButton);
   }
 
-  function scheduleSync() {
-    if (syncScheduled) return;
-    syncScheduled = true;
+  function requestSync() {
+    if (syncFrame !== null) return;
 
-    requestAnimationFrame(() => {
-      syncScheduled = false;
+    syncFrame = requestAnimationFrame(() => {
+      syncFrame = null;
       syncActiveFilterTags();
     });
   }
 
-  function scheduleDelayedSync() {
-    scheduleSync();
-    clearTimeout(delayedSyncTimer);
-    delayedSyncTimer = setTimeout(scheduleSync, 80);
-  }
-
-  document.addEventListener('click', scheduleDelayedSync, true);
-  document.addEventListener('input', scheduleDelayedSync, true);
-  document.addEventListener('change', scheduleDelayedSync, true);
-
-  const observer = new MutationObserver(scheduleSync);
-
-  function startObserverWhenReady() {
-    const videoList = document.getElementById('videoList');
-    const activeTagChipsInner = document.getElementById('activeTagChipsInner');
-
-    if (!videoList || !activeTagChipsInner) {
-      requestAnimationFrame(startObserverWhenReady);
-      return;
-    }
-
-    observer.observe(videoList, { childList: true, subtree: true });
-    observer.observe(activeTagChipsInner, { childList: true, subtree: true, characterData: true });
-    scheduleSync();
-  }
-
-  startObserverWhenReady();
+  window.addEventListener('tagFilterStateChanged', requestSync);
+  window.addEventListener('videoListRendered', requestSync);
+  requestSync();
 })();
