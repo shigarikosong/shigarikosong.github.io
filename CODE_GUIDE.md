@@ -73,6 +73,12 @@ YouTube動画をすぐ再生するか、プレイヤー内の再生ボタンを�
 
 手動再生モードと`autoplay`指定の優先順位を変えたいときは、このファイルと`scripts/playback-policy.test.mjs`を一緒に確認します。
 
+## playback-transition-policy.js
+
+動画終了時に停止するか、同じ動画・次の動画・ランダム動画へ進むかを決める小さな共通ファイルです。
+
+Repeat・Random・自動連続再生で扱う動画を変えたいときは、このファイルと`scripts/playback-transition-policy.test.mjs`を一緒に確認します。
+
 ## 初心者向けの更新手順
 
 1. まず Googleスプレッドシートだけで更新できる内容か確認する

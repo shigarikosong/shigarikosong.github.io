@@ -36,6 +36,7 @@
 - `filter-tag-view.js` は `FilterState` を読み、タグ生成時にinclude / exclude / noneの表示クラス・文言・アクセシブルネームを確定する
 - `search-utils.js` は検索文字列のAND / OR / 除外解析と、正規化済み動画テキストとの一致判定を持つ
 - `playback-policy.js` はYouTubeを即時再生するかcueで待機するかを判定し、手動再生モードを個別の`autoplay`指定より優先する
+- `playback-transition-policy.js` は再生終了時のRepeat / Randomに応じた停止・同曲・次曲・ランダム遷移と、自動連続再生対象を判定する
 - `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
 - `renderVideoList()` は `script.js` が持ち、枠名表示とコラボメンバー収納もカード生成時に処理する。補助スクリプトから上書きしない
 - 動画JSONとmeta JSONは`script.js`の専用読み込み関数で取得・確認し、`loading-status.js`は状態表示とページトップボタンだけを担当する
@@ -124,10 +125,10 @@ PC・モバイル・動画カードのタグを追加するときは、`FilterTa
 
 ## 自動回帰テスト
 
-- `pnpm test`で、動画データ検査とフィルター状態・タグ表示・再生方針・検索・スクロール補正の全テストを実行する
-- `pnpm run test:regressions`で、フィルター状態・タグ表示・再生方針・検索・スクロール補正だけを実行する
+- `pnpm test`で、動画データ検査とフィルター状態・タグ表示・再生／遷移方針・検索・スクロール補正の全テストを実行する
+- `pnpm run test:regressions`で、フィルター状態・タグ表示・再生／遷移方針・検索・スクロール補正だけを実行する
 - `scripts/browser-script-test-utils.mjs`は、本番のブラウザ用スクリプトをNodeの隔離環境で直接読み込む。テスト専用に同じロジックを複製しない
-- 検索演算子を変更した場合は`search-utils.test.mjs`、タグ状態を変更した場合は`filter-state.test.mjs`、タグのinclude / exclude表示を変更した場合は`filter-tag-view.test.mjs`、YouTubeのcue / autoplay優先順位を変更した場合は`playback-policy.test.mjs`、固定UIを考慮したスクロールを変更した場合は`scroll-utils.test.mjs`を更新する
+- 検索演算子を変更した場合は`search-utils.test.mjs`、タグ状態を変更した場合は`filter-state.test.mjs`、タグのinclude / exclude表示を変更した場合は`filter-tag-view.test.mjs`、YouTubeのcue / autoplay優先順位を変更した場合は`playback-policy.test.mjs`、Repeat / Randomの終了時遷移を変更した場合は`playback-transition-policy.test.mjs`、固定UIを考慮したスクロールを変更した場合は`scroll-utils.test.mjs`を更新する
 
 
 ## 現在のタグ仕様メモ

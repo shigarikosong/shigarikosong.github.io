@@ -113,8 +113,10 @@ function getVisibleFilteredVideos(videos) {
     : list;
 }
 
-function getAdjacentPlaybackList() {
-  return getSafeVideoList(currentFilteredVideos);
+function getAdjacentPlaybackList(options = {}) {
+  return options.autoPlayableOnly
+    ? getAutoPlayableVideos()
+    : getSafeVideoList(currentFilteredVideos);
 }
 
 function isTikTokVideo(video) {
@@ -122,7 +124,7 @@ function isTikTokVideo(video) {
 }
 
 function getAutoPlayableVideos() {
-  return getCurrentPlaybackList().filter(video => !isTikTokVideo(video));
+  return getCurrentPlaybackList().filter(window.PlaybackTransitionPolicy.isAutoPlayableVideo);
 }
 
 function getCurrentVideo() {
@@ -316,27 +318,44 @@ function playCurrentVideoAgain(options = {}) {
   loadVideo(currentVideo, null, options.loadVideoOptions || {});
 }
 
+function executePlaybackTransition(transition) {
+  if (!transition || transition.type === "none") return false;
+
+  const loadVideoOptions = { autoplay: transition.autoplay };
+
+  if (transition.type === "replay") {
+    playCurrentVideoAgain({ loadVideoOptions });
+    return true;
+  }
+
+  if (transition.type === "random") {
+    playRandomNextVideo({
+      autoPlayableOnly: transition.autoPlayableOnly,
+      loadVideoOptions
+    });
+    return true;
+  }
+
+  if (transition.type === "next") {
+    playAdjacentVideo(1, {
+      autoPlayableOnly: transition.autoPlayableOnly,
+      loadVideoOptions
+    });
+    return true;
+  }
+
+  return false;
+}
+
 function handleVideoEnded() {
-  const repeatMode = getRepeatMode();
+  const transition = window.PlaybackTransitionPolicy.getVideoEndTransition({
+    repeatMode: getRepeatMode(),
+    randomEnabled: isRandomModeEnabled()
+  });
 
   stopEndCountdownMonitor();
   stopFullVersionPromptMonitor();
-
-  if (repeatMode === REPEAT_MODE_OFF) return;
-
-  if (repeatMode === REPEAT_MODE_ONE) {
-    playCurrentVideoAgain({ loadVideoOptions: { autoplay: true } });
-    return;
-  }
-
-  if (isRandomModeEnabled()) {
-    playRandomNextVideo({
-      autoPlayableOnly: true,
-      loadVideoOptions: { autoplay: true }
-    });
-  } else {
-    playAdjacentVideo(1, { loadVideoOptions: { autoplay: true } });
-  }
+  executePlaybackTransition(transition);
 }
 
 // ===== end指定による連続再生カウントダウン =====
@@ -468,12 +487,10 @@ function advanceFromEndCountdown() {
   if (isEndAutoAdvancing) return;
   isEndAutoAdvancing = true;
   hideEndCountdownUi();
-
-  if (isRandomModeEnabled()) {
-    playRandomNextVideo({ autoPlayableOnly: true });
-  } else {
-    playAdjacentVideo(1);
-  }
+  executePlaybackTransition(window.PlaybackTransitionPolicy.getVideoEndTransition({
+    repeatMode: REPEAT_MODE_ALL,
+    randomEnabled: isRandomModeEnabled()
+  }));
 }
 
 function checkEndCountdown(video) {
@@ -3528,7 +3545,7 @@ const prevVideoBtn = document.getElementById('prevVideoBtn');
 const nextVideoBtn = document.getElementById('nextVideoBtn');
 
 function playAdjacentVideo(direction, options = {}) {
-  const list = getAdjacentPlaybackList();
+  const list = getAdjacentPlaybackList(options);
   if (!list.length) return;
 
   const currentIndex = list.findIndex(v => getVideoKey(v) === nowPlayingKey);
