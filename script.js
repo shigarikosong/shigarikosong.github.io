@@ -1304,7 +1304,7 @@ function getRoleTagClass(role, isActive = false) {
   });
 }
 
-function createListTagElement(label, group, value, isActive, onClick) {
+function createListTagElement(label, group, value, onClick) {
   const kindMap = {
     category: "tag-style",
     platform: "tag-platform",
@@ -1313,12 +1313,11 @@ function createListTagElement(label, group, value, isActive, onClick) {
   };
   const kind = kindMap[group] || "tag-format";
   const tag = document.createElement('button');
+  const presentation = window.FilterTagView.getPresentation(group, value, label);
 
   tag.type = 'button';
-  tag.className = getTagButtonClass(kind, isActive);
-  tag.textContent = label;
-  tag.dataset.filterGroup = group;
-  tag.dataset.filterValue = value;
+  tag.className = getTagButtonClass(kind, presentation.state === "include");
+  window.FilterTagView.applyButton(tag, presentation);
   tag.addEventListener('click', onClick);
 
   return tag;
@@ -2536,13 +2535,11 @@ function renderPlatformTags() {
 
     window.TAG_CONFIG.platformValues.forEach(p => {
       const btn = document.createElement('button');
-      const isActive = window.FilterState.isTagIncluded("platform", p);
+      const presentation = window.FilterTagView.getPresentation("platform", p, getPlatformLabel(p));
+      const isActive = presentation.state === "include";
 
       btn.className = getTagButtonClass("tag-platform", isActive, { size: "tag-sm" });
-
-        btn.textContent = getPlatformLabel(p);
-        btn.dataset.filterGroup = "platform";
-        btn.dataset.filterValue = p;
+      window.FilterTagView.applyButton(btn, presentation);
 
       btn.onclick = () => {
         if (isDesktopFilterContainer(container)) {
@@ -2576,13 +2573,11 @@ function renderPlatformTags() {
 
     categories.forEach(category => {
       const btn = document.createElement('button');
-      const isActive = window.FilterState.isTagIncluded("category", category);
+      const presentation = window.FilterTagView.getPresentation("category", category, category);
+      const isActive = presentation.state === "include";
 
       btn.className = getTagButtonClass("tag-style", isActive, { size: "tag-sm" });
-
-        btn.textContent = category;
-        btn.dataset.filterGroup = "category";
-        btn.dataset.filterValue = category;
+      window.FilterTagView.applyButton(btn, presentation);
 
       btn.onclick = () => {
         const modalCategoryFilter = document.getElementById('modalCategoryFilter');
@@ -2626,13 +2621,11 @@ function renderDateTags() {
 
     options.forEach(opt => {
       const btn = document.createElement('button');
-      const isActive = window.FilterState.isTagIncluded("date", opt.value);
+      const presentation = window.FilterTagView.getPresentation("date", opt.value, opt.label);
+      const isActive = presentation.state === "include";
 
       btn.className = getTagButtonClass("tag-time", isActive, { size: "tag-sm" });
-
-        btn.textContent = opt.label;
-        btn.dataset.filterGroup = "time";
-        btn.dataset.filterValue = opt.value;
+      window.FilterTagView.applyButton(btn, presentation);
 
       btn.onclick = () => {
         const modalDate = document.getElementById('modalDateFilter');
@@ -2826,14 +2819,13 @@ function updateResultCounts(totalCount, visibleCount) {
 
 function createCollabListTag(value, kind) {
   const tag = document.createElement('button');
+  const presentation = window.FilterTagView.getPresentation('collab', value, value);
   tag.type = 'button';
   tag.className = getTagButtonClass(
     kind === 'liver' ? 'tag-collab-liver' : 'tag-collab-unit',
-    window.FilterState.isTagIncluded('collab', value)
+    presentation.state === 'include'
   );
-  tag.textContent = value;
-  tag.dataset.filterGroup = 'collab';
-  tag.dataset.filterValue = value;
+  window.FilterTagView.applyButton(tag, presentation);
   tag.addEventListener('click', () => {
     handleListTagClick('collab', value);
   });
@@ -3027,7 +3019,6 @@ if (
       category,
       "category",
       category,
-      window.FilterState.isTagIncluded("category", category),
       () => {
         handleListTagClick("category", category, {
           beforeApply: () => {
@@ -3044,7 +3035,6 @@ if (
       getPlatformLabel(normalizedPlatform),
       "platform",
       normalizedPlatform,
-      window.FilterState.isTagIncluded("platform", normalizedPlatform),
       () => {
         handleListTagClick("platform", normalizedPlatform);
       }
@@ -3056,7 +3046,6 @@ if (
       type,
       "format",
       type,
-      window.FilterState.isTagIncluded("format", type),
       () => {
         handleListTagClick("format", type);
       }
@@ -3068,7 +3057,6 @@ if (
       "3D",
       "format",
       "3D",
-      window.FilterState.isTagIncluded("format", "3D"),
       () => {
         handleListTagClick("format", "3D");
       }
@@ -3080,7 +3068,6 @@ if (
       "Shorts",
       "format",
       "Shorts",
-      window.FilterState.isTagIncluded("format", "Shorts"),
       () => {
         handleListTagClick("format", "Shorts");
       }
@@ -3092,7 +3079,6 @@ if (
       role,
       "role",
       role,
-      window.FilterState.isTagIncluded("role", role),
       () => {
         handleListTagClick("role", role, {
           beforeApply: () => {

@@ -52,6 +52,13 @@
     return button;
   }
 
+  function createFilterButton(label, group, value, kind, onClick) {
+    const presentation = window.FilterTagView.getPresentation(group, value, label);
+    const button = createButton(label, presentation.state === "include", kind, onClick);
+    window.FilterTagView.applyButton(button, presentation);
+    return button;
+  }
+
   function handleDesktopTagClick(group, value) {
     window.FilterState.toggleTag(group, value);
     applyFilters({ scrollAfterUpdate: false });
@@ -124,14 +131,14 @@
     if (!categoryTags || !categoryTags.children.length) return;
 
     const buttons = [...categoryTags.children];
-    const currentOrder = buttons.map(button => button.textContent.trim()).join(",");
+    const currentOrder = buttons.map(button => button.dataset.filterValue || "").join(",");
     const sortedButtons = [...buttons].sort((a, b) => {
-      const aIndex = categoryOrder.indexOf(a.textContent.trim());
-      const bIndex = categoryOrder.indexOf(b.textContent.trim());
+      const aIndex = categoryOrder.indexOf(a.dataset.filterValue || "");
+      const bIndex = categoryOrder.indexOf(b.dataset.filterValue || "");
       return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
     });
 
-    const sortedOrder = sortedButtons.map(button => button.textContent.trim()).join(",");
+    const sortedOrder = sortedButtons.map(button => button.dataset.filterValue || "").join(",");
     if (currentOrder === sortedOrder) return;
 
     sortedButtons.forEach(button => categoryTags.appendChild(button));
@@ -146,30 +153,21 @@
     formatTags.innerHTML = "";
     values.forEach((value, index) => {
       if (value === "3D") {
-        const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
+        const button = createFilterButton(value, "format", value, "format", () => {
           handleDesktopTagClick("format", value);
         });
-
-        button.dataset.filterGroup = "format";
-        button.dataset.filterValue = value;
 
         formatTags.appendChild(button);
       } else if (value === "Shorts") {
-        const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
+        const button = createFilterButton(value, "format", value, "format", () => {
           handleDesktopTagClick("format", value);
         });
-
-        button.dataset.filterGroup = "format";
-        button.dataset.filterValue = value;
 
         formatTags.appendChild(button);
       } else {
-        const button = createButton(value, window.FilterState.isTagIncluded("format", value), "format", () => {
+        const button = createFilterButton(value, "format", value, "format", () => {
           handleDesktopTagClick("format", value);
         });
-
-        button.dataset.filterGroup = "format";
-        button.dataset.filterValue = value;
 
         formatTags.appendChild(button);
       }
@@ -185,12 +183,9 @@
     roleTags.innerHTML = "";
 
     values.forEach((value, index) => {
-      const button = createButton(value, window.FilterState.isTagIncluded("role", value), "role", () => {
+      const button = createFilterButton(value, "role", value, "role", () => {
         handleDesktopTagClick("role", value);
       });
-
-      button.dataset.filterGroup = "role";
-      button.dataset.filterValue = value;
 
       roleTags.appendChild(button);
 
@@ -203,12 +198,9 @@
 
     container.innerHTML = "";
     sortCollabValues(values).forEach(value => {
-      const button = createButton(value, window.FilterState.isTagIncluded("collab", value), kind, () => {
+      const button = createFilterButton(value, "collab", value, kind, () => {
         handleDesktopTagClick("collab", value);
       });
-
-      button.dataset.filterGroup = "collab";
-      button.dataset.filterValue = value;
 
       container.appendChild(button);
     });
@@ -221,6 +213,9 @@
   }
 
   function renderDesktopPanel() {
+    renderCategoryTags([...new Set(allVideos.map(video => video["カテゴリ"]).filter(Boolean))].sort());
+    renderPlatformTags();
+    renderDateTags();
     renderSortButtons();
     reorderCategoryTags();
     renderFormatTags();

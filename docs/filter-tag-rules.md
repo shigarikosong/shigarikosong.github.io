@@ -105,14 +105,14 @@ Clicking a chip should clear only that condition:
 - A mobile modal handler should not rebuild all mobile tag sections again in response to the state-change event that it dispatched itself.
 - Hidden desktop/mobile filter UIs should synchronize when opened instead of rebuilding all controls for every state-change event.
 
-### `exclusion-style-sync.js`
+### `filter-tag-view.js`
 
-- `exclude` state detection for style sync
-- Does not intercept tag clicks
-- Exclusion button style and label sync
-- Does not intercept reset clicks
-- Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
-- Exclusion style sync depends on `data-filter-group` and `data-filter-value`; new tag buttons should provide both.
+- Reads each tag's `include` / `exclude` / `none` state from `FilterState` while the tag button is created.
+- Supplies the display label, `- ` prefix, exclusion class, and exclusion `aria-label` through `FilterTagView`.
+- Does not intercept tag clicks or reset clicks.
+- Does not scan existing buttons after rendering or listen for state-change events.
+- Tag owners must call `FilterTagView.getPresentation()` and `applyButton()` in their normal render path.
+- Category and Collab sorting must use `data-filter-value`, not the visible label that may contain an exclusion prefix.
 
 ### `filter-active-style-sync.js`
 
