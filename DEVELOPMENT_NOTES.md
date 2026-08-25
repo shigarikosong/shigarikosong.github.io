@@ -43,6 +43,7 @@
 - 動画カード内の再生は左側の再生ボタンが担当する。曲名・アーティスト名は検索語の置き換えに使う
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
 - モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
+- `filter-active-style-sync.js` はアクティブチップを基準に、フィルターUIとリスト内Platformタグのinclude表示を同期する
 - `exclusion-style-sync.js` はタグクリックやリセットを横取りしない。除外スタイル同期だけを行う
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
@@ -70,8 +71,8 @@
 
 - `mobile-filter-modal.js`
 - `desktop-filter-panel.js`
+- `filter-active-style-sync.js`
 - `exclusion-style-sync.js`
-- `playing-scroll-position.js`
 - `filter-scroll-position.js`
 
 特に `exclusion-style-sync.js` は、除外状態の見た目を後から同期しているため、今後も本体のフィルター処理へ少しずつ統合していきたい。
@@ -216,7 +217,6 @@ PCブラウザではTikTok埋め込み自体が不安定なことがある。
 - `style.css`
 - `scroll-utils.js`
 - `loading-status.js`
-- `playing-scroll-position.js`
 - `filter-scroll-position.js`
 
 タグ整理と同時に触らない。
@@ -231,13 +231,15 @@ PCブラウザではTikTok埋め込み自体が不安定なことがある。
 
 以下のファイルが関係している。
 
-- `playing-scroll-position.js`
+- `script.js`
 - `filter-scroll-position.js`
 - `scroll-utils.js`
 
 タグ整理中はなるべく触らない。
 
 PCフィルターの「閉じる」とモバイルフィルターモーダルの「閉じる」は、再生中カードが表示リスト内にあればそこへ、なければ結果件数または動画一覧先頭へ即時ジャンプする。
+
+再生中カードへの移動は `ScrollUtils.scrollPlayingCardIntoComfortView()` を明示的に呼ぶ。ブラウザ標準の `Element.prototype.scrollIntoView` は上書きしない。
 
 
 ## スプレッドシート列メモ

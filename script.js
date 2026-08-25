@@ -2738,7 +2738,7 @@ function getFilterScrollTarget(sourceVideoKey) {
   }
 
   const playingElement = getNowPlayingCardElement();
-  if (playingElement) return { element: playingElement };
+  if (playingElement) return { element: playingElement, isPlayingCard: true };
 
   const filteredOutNotice = document.getElementById('nowPlayingFilteredOutNotice');
   if (filteredOutNotice) return { element: filteredOutNotice };
@@ -2751,7 +2751,10 @@ function scrollToSettledFilterTarget(options = {}) {
   const target = getFilterScrollTarget(sourceVideoKey);
 
   if (target.element) {
-    window.ScrollUtils.scrollElementIntoComfortView(target.element, { behavior });
+    const scrollTargetIntoView = target.isPlayingCard
+      ? window.ScrollUtils.scrollPlayingCardIntoComfortView
+      : window.ScrollUtils.scrollElementIntoComfortView;
+    scrollTargetIntoView(target.element, { behavior });
     scheduleNowPlayingFloatingButtonSettledUpdate();
     return;
   }
@@ -3379,7 +3382,7 @@ function scrollToNowPlayingCard() {
 
   const playingElement = getNowPlayingCardElement();
   if (playingElement) {
-    window.ScrollUtils.scrollElementIntoComfortView(playingElement);
+    window.ScrollUtils.scrollPlayingCardIntoComfortView(playingElement);
     scheduleNowPlayingFloatingButtonSettledUpdate();
     return;
   }
@@ -3425,7 +3428,7 @@ function updateNowPlayingHighlight() {
     .find(item => item.dataset.videoKey === nowPlayingKey);
   if (playingElement) {
     playingElement.classList.add('playing');
-    window.ScrollUtils.scrollElementIntoComfortView(playingElement);
+    window.ScrollUtils.scrollPlayingCardIntoComfortView(playingElement);
   }
 }
 

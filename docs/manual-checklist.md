@@ -209,6 +209,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 入力欄、textarea、select、contenteditableにフォーカス中はショートカットが発火しない。
 - [ ] 再生中カードへ戻る `♪` ボタンが必要な時だけ表示される。
 - [ ] 固定プレイヤーやstickyフィルターに、移動先のカードやnoticeが隠れない。
+- [ ] 再生開始・フィルター後・`♪` ボタンからの移動で、再生中カードへのスクロール位置が従来どおりになる。
 
 ## 11. Data And Tag Definition Changes
 
@@ -230,6 +231,9 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 枠名とコラボメンバー収納が `script.js` のカード描画内で反映され、削除済みの `waku-name-display.js` への参照が残っていない。
 - [ ] `exclusion-style-sync.js` がタグクリックを処理していない。
 - [ ] `exclusion-style-sync.js` がリセットクリックを処理していない。
+- [ ] `filter-active-style-sync.js` がフィルター状態やタグクリックを処理していない。
+- [ ] ブラウザ標準の `Element.prototype.scrollIntoView` を上書きするコードが残っていない。
+- [ ] `index.html` と実行用JavaScriptに、削除済みの `playing-scroll-position.js` への読み込み・参照が残っていない。
 - [ ] 旧 `tag-exclusion.js` への読み込み・参照が残っていない。
 - [ ] `time-tag-active.js` など削除済み補助スクリプトへの参照が残っていない。
 
