@@ -192,7 +192,9 @@ On video end:
 - `all` + random OFF: move to the next video
 - `all` + random ON: move to the next video from the auto-playable random queue
 
-TikTok must remain excluded from automatic continuous playback.
+`PlaybackTransitionPolicy.getVideoEndTransition()` owns this decision. Both the native YouTube `ENDED` event and the end-time countdown should execute the resulting transition through the same path.
+
+TikTok must remain excluded from automatic continuous playback for both sequential and random Repeat ALL transitions. Manual previous / next and manual random playback may still select TikTok from the visible list.
 
 YouTube should autoplay for normal list title selection, previous / next, and manual random playback regardless of repeat mode.
 

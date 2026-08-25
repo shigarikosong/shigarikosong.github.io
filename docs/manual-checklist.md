@@ -129,6 +129,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] プレイヤー収納中も固定プレイヤーの再生／一時停止ボタンを操作できる。
 - [ ] YouTube の開始秒 `start` が反映される。
 - [ ] `end`を越える位置へシークした動画から次の歌枠行へ進んでも、切替直後の古い再生時刻によって次の行が即スキップされない。
+- [ ] YouTube標準の動画終了と`end`指定カウントダウンが同じRepeat / Random遷移ルールを使う。
 - [ ] TikTok埋め込みが表示される。
 - [ ] TikTokは読み込み直後に自動再生されず、埋め込み画面内から最初の再生を開始できる。
 - [ ] TikTok初回再生前は固定プレイヤーの再生ボタンが半透明の無効状態になり、追加の案内文は表示されない。
@@ -198,6 +199,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] Random ON のNextはランダムキューに沿って動く。
 - [ ] 検証モードONのYouTube Next / Previous / ランダム再生は動画を表示するが、YouTube画面内の再生ボタンを押すまで再生開始しない。
 - [ ] 検証モードONで全曲リピートの動画終了後に次動画へ遷移しても、自動再生せずYouTube画面内の再生ボタンを待つ。
+- [ ] 全曲リピート + Random OFFの自動連続再生でもTikTokを飛ばし、次のYouTube動画へ進む。
 - [ ] Repeat OFF / 1曲リピート / 全曲リピートの表示と動作が大きく崩れていない。
 - [ ] リピートOFFとシャッフルOFFは半透明、ON状態は不透過で表示される。
 - [ ] 操作ボタンが「シャッフル、前へ、再生／一時停止、次へ、リピート」の順でPC・スマホとも一列に収まる。
@@ -222,7 +224,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 12. Script Loading And Helper Boundaries
 
-- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` / `filter-tag-view.js` が、依存するスクリプトより前にある。
+- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` / `filter-tag-view.js` / `playback-policy.js` / `playback-transition-policy.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
 - [ ] `loading-status.js` が `window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしていない。
 - [ ] 動画JSONの取得・配列確認・必須項目確認が`script.js`の専用読み込み処理で行われる。
