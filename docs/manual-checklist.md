@@ -224,7 +224,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 12. Script Loading And Helper Boundaries
 
-- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` / `filter-tag-view.js` / `playback-policy.js` / `playback-transition-policy.js` が、依存するスクリプトより前にある。
+- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `video-normalizer.js` / `filter-state.js` / `filter-tag-view.js` / `playback-policy.js` / `playback-transition-policy.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
 - [ ] `loading-status.js` が `window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしていない。
 - [ ] 動画JSONの取得・配列確認・必須項目確認が`script.js`の専用読み込み処理で行われる。

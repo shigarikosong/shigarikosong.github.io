@@ -50,6 +50,12 @@
 
 プレイヤー読み込みでは、`loadVideo()`を入口として、YouTube / TikTokの読み込みとプレイヤーを閉じる処理をそれぞれの名前付き関数へ分けています。動画切替時の監視開始・停止を変更するときは、この入口と各platform用関数を一緒に確認します。
 
+## video-normalizer.js
+
+`data/videos.json`の各行を、検索・絞り込み・再生で使う内部形式へ変換する共通ファイルです。
+
+スプレッドシートの列や`_roles`、`_types`、`_playerAspect`などの内部項目を変更するときは、このファイルと`scripts/video-normalizer.test.mjs`を一緒に確認します。
+
 ## search-utils.js
 
 検索欄の文字列を解析する小さな共通ファイルです。
