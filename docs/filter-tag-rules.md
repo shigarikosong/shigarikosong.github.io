@@ -73,9 +73,15 @@ Clicking a chip should clear only that condition:
 - `renderActiveTagChips()`
 - Three-state click handling for tags inside the video list
 - Player, random playback, repeat mode, and related playback behavior
-- Parse the search expression once per `applyFilters()` call, then reuse it for every video match.
+- Calls `SearchUtils.parseSearchQuery()` once per `applyFilters()` call, then reuses the parsed expression for every video match.
 - Build replacement video cards in a `DocumentFragment`, append them together, then run overflow measurement and dispatch `videoListRendered`.
 - For title/artist overflow updates, batch DOM resets, layout reads, and style writes instead of alternating them for each card.
+
+### `search-utils.js`
+
+- Parses space-separated AND terms, explicit `AND`, `OR`, and leading-minus exclusion terms.
+- Matches the parsed expression against each video's normalized `_searchText`.
+- Keeps search parsing independent from list rendering and DOM state.
 
 ### `desktop-filter-panel.js`
 

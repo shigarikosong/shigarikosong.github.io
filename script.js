@@ -1363,51 +1363,6 @@ function captureListTagScrollSource(event) {
 
 document.addEventListener('click', captureListTagScrollSource, true);
 
-function parseSearchQuery(query) {
-  const tokens = String(query || "").trim().split(/\s+/).filter(Boolean);
-  const excludeTerms = [];
-  const groups = [[]];
-
-  tokens.forEach(token => {
-    const operator = token.toUpperCase();
-
-    if (token.startsWith("-") && token.length > 1) {
-      excludeTerms.push(token.slice(1).toLowerCase());
-      return;
-    }
-
-    if (operator === "AND") {
-      return;
-    }
-
-    if (operator === "OR") {
-      if (groups[groups.length - 1].length) groups.push([]);
-      return;
-    }
-
-    groups[groups.length - 1].push(token.toLowerCase());
-  });
-
-  return {
-    excludeTerms,
-    groups: groups.filter(group => group.length)
-  };
-}
-
-function matchesParsedSearchQuery(video, parsedQuery) {
-  const { excludeTerms, groups } = parsedQuery;
-  if (!excludeTerms.length && !groups.length) return true;
-
-  const text = video._searchText || "";
-  const hasExcludedTerm = excludeTerms.some(term => text.includes(term));
-  if (hasExcludedTerm) return false;
-
-  if (!groups.length) return true;
-
-  return groups.some(group => group.every(term => text.includes(term)));
-}
-
-
 // ===== YouTubeプレイヤーの準備 =====
     let ytPlayer = null;
 let ytApiReady = false;
@@ -2780,12 +2735,12 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
         const listTagScrollVideoKey = pendingListTagScrollVideoKey;
         pendingListTagScrollVideoKey = null;
         const searchQuery = searchInput.value;
-        const parsedSearchQuery = parseSearchQuery(searchQuery);
+        const parsedSearchQuery = window.SearchUtils.parseSearchQuery(searchQuery);
         updateSearchClearUi();
         const now = new Date();
         const filterState = window.FilterState.getState();
         let filtered = allVideos.filter(video => {
-  return matchesParsedSearchQuery(video, parsedSearchQuery) &&
+  return window.SearchUtils.matchesParsedSearchQuery(video, parsedSearchQuery) &&
     
 // フィルタ条件
     (!filterState.include.category || video["カテゴリ"] === filterState.include.category) &&
