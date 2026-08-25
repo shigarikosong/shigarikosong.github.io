@@ -61,7 +61,8 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 除外チップを押すと、その `exclude` 条件だけ解除される。
 - [ ] リセットで `include` と `exclude` の両方が解除される。
 - [ ] 除外条件の追加・解除後、PC/モバイル/リスト内タグの赤い除外表示が一致する。
-- [ ] 除外表示は `exclusion-style-sync.js` が同期し、タグクリック自体は各UIの担当ファイルで処理されている。
+- [ ] 除外表示は各UIのタグ描画時に `FilterTagView` から反映され、後追いの全ボタン探索を必要としない。
+- [ ] 除外表示の `- ` が付いてもカテゴリ・Collabタグの表示順が変わらない。
 
 ## 5. Desktop Filter Panel
 
@@ -221,16 +222,14 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 12. Script Loading And Helper Boundaries
 
-- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` が、依存するスクリプトより前にある。
+- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `filter-state.js` / `filter-tag-view.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
 - [ ] `loading-status.js` が `window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしていない。
 - [ ] 動画JSONの取得・配列確認・必須項目確認が`script.js`の専用読み込み処理で行われる。
 - [ ] 動画JSONの取得失敗・不正形式時に、0件一覧へ進まず読み込みエラー表示が残る。
-- [ ] `exclusion-style-sync.js` が `renderVideoList()` を上書きしていない。
 - [ ] `ui-polish.js` が `renderVideoList()` を上書きしていない。
 - [ ] 枠名とコラボメンバー収納が `script.js` のカード描画内で反映され、削除済みの `waku-name-display.js` への参照が残っていない。
-- [ ] `exclusion-style-sync.js` がタグクリックを処理していない。
-- [ ] `exclusion-style-sync.js` がリセットクリックを処理していない。
+- [ ] 削除済みの `exclusion-style-sync.js` への読み込み・参照が残っていない。
 - [ ] `filter-active-style-sync.js` がフィルター状態やタグクリックを処理していない。
 - [ ] `filter-active-style-sync.js` がページ全体のclick/input/changeやDOM変更を監視せず、明示イベントでinclude表示を同期している。
 - [ ] ブラウザ標準の `Element.prototype.scrollIntoView` を上書きするコードが残っていない。

@@ -224,14 +224,10 @@
 
     getFormatValues().forEach(format => {
       const button = document.createElement("button");
+      const presentation = window.FilterTagView.getPresentation("format", format, format);
       button.type = "button";
-      button.textContent = format;
-      button.dataset.filterGroup = "format";
-      button.dataset.filterValue = format;
-
-      const isActive = window.FilterState.isTagIncluded("format", format);
-
-      button.className = getFormatButtonClass(isActive);
+      button.className = getFormatButtonClass(presentation.state === "include");
+      window.FilterTagView.applyButton(button, presentation);
       button.addEventListener("click", () => {
         handleMobileTagClick("format", format, renderFormatTags, () => {
           if (typeSelect) typeSelect.value = "";
@@ -249,13 +245,15 @@
 
     const buttons = [...categoryTagsContainer.querySelectorAll("button")];
     const sortedButtons = [...buttons].sort((a, b) => {
-      const indexA = categoryOrder.indexOf(a.textContent);
-      const indexB = categoryOrder.indexOf(b.textContent);
+      const valueA = a.dataset.filterValue || "";
+      const valueB = b.dataset.filterValue || "";
+      const indexA = categoryOrder.indexOf(valueA);
+      const indexB = categoryOrder.indexOf(valueB);
 
       if (indexA !== -1 && indexB !== -1) return indexA - indexB;
       if (indexA !== -1) return -1;
       if (indexB !== -1) return 1;
-      return String(a.textContent).localeCompare(String(b.textContent), "ja");
+      return String(valueA).localeCompare(String(valueB), "ja");
     });
 
     const isAlreadySorted = buttons.every((button, index) => button === sortedButtons[index]);
@@ -282,13 +280,14 @@
 
     sortByPreferredOrder(getSelectValues(roleSelect), roleOrder).forEach(role => {
       const button = document.createElement("button");
+      const presentation = window.FilterTagView.getPresentation("role", role, role);
       button.type = "button";
-      button.textContent = role;
-      button.dataset.filterGroup = "role";
-      button.dataset.filterValue = role;
-
-      const isActive = window.FilterState.isTagIncluded("role", role);
-      button.className = getTagButtonClass("tag-role-filter", isActive, { size: "tag-sm" });
+      button.className = getTagButtonClass(
+        "tag-role-filter",
+        presentation.state === "include",
+        { size: "tag-sm" }
+      );
+      window.FilterTagView.applyButton(button, presentation);
       button.addEventListener("click", () => {
         handleMobileTagClick("role", role, renderRoleTags, () => {
           if (roleSelect) roleSelect.value = "";
@@ -312,13 +311,10 @@
 
     values.forEach(value => {
       const button = document.createElement("button");
+      const presentation = window.FilterTagView.getPresentation("collab", value, value);
       button.type = "button";
-      button.textContent = value;
-      button.dataset.filterGroup = "collab";
-      button.dataset.filterValue = value;
-
-      const isActive = window.FilterState.isTagIncluded("collab", value);
-      button.className = getCollabButtonClass(isActive);
+      button.className = getCollabButtonClass(presentation.state === "include");
+      window.FilterTagView.applyButton(button, presentation);
       button.addEventListener("click", () => {
         handleMobileTagClick("collab", value, renderCollabTags);
       });
@@ -397,6 +393,9 @@
     if (categorySelect) categorySelect.value = window.FilterState.getState().include.category || "";
     if (roleSelect) roleSelect.value = "";
     if (typeSelect) typeSelect.value = "";
+    renderCategoryTags([...new Set(allVideos.map(video => video["カテゴリ"]).filter(Boolean))].sort());
+    renderPlatformTags();
+    renderDateTags();
     updateSortButtons();
     renderMobileTagSections();
     updateModalResultCount();

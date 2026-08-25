@@ -33,6 +33,7 @@
 ## 現在のフィルター構成
 
 - `filter-state.js` は `window.FilterState` として、include / exclude のタグ状態、アクティブチップ用データ、除外判定を持つ
+- `filter-tag-view.js` は `FilterState` を読み、タグ生成時にinclude / exclude / noneの表示文言・除外クラス・アクセシブルネームを確定する
 - `search-utils.js` は検索文字列のAND / OR / 除外解析と、正規化済み動画テキストとの一致判定を持つ
 - `playback-policy.js` はYouTubeを即時再生するかcueで待機するかを判定し、手動再生モードを個別の`autoplay`指定より優先する
 - `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
@@ -46,7 +47,7 @@
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
 - モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
 - `filter-active-style-sync.js` は `tagFilterStateChanged` / `videoListRendered` を受け、`FilterState` とボタンのdata属性を基準にinclude表示を同期する
-- `exclusion-style-sync.js` はタグクリックやリセットを横取りしない。除外スタイル同期だけを行う
+- 除外表示は各タグの正式な描画工程から `FilterTagView` を明示的に呼び、描画後の全ボタン探索では同期しない
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
 
@@ -74,10 +75,10 @@
 - `mobile-filter-modal.js`
 - `desktop-filter-panel.js`
 - `filter-active-style-sync.js`
-- `exclusion-style-sync.js`
+- `filter-tag-view.js`
 - `filter-scroll-position.js`
 
-特に `exclusion-style-sync.js` は、除外状態の見た目を後から同期しているため、今後も本体のフィルター処理へ少しずつ統合していきたい。
+PC・モバイル・動画カードのタグを追加するときは、`FilterTagView.getPresentation()` と `applyButton()` を描画時に使い、除外状態を後から同期する補助処理を追加しない。
 
 `time-tag-active.js` は削除済み。復活させる前に、`script.js` の `renderDateTags()` と `renderActiveTagChips()`、`filter-state.js` のdate状態で対応できないか確認する。
 
@@ -125,10 +126,10 @@
 
 ## 自動回帰テスト
 
-- `pnpm test`で、動画データ検査とフィルター状態・再生方針・検索・スクロール補正の全テストを実行する
-- `pnpm run test:regressions`で、フィルター状態・再生方針・検索・スクロール補正だけを実行する
+- `pnpm test`で、動画データ検査とフィルター状態・タグ表示・再生方針・検索・スクロール補正の全テストを実行する
+- `pnpm run test:regressions`で、フィルター状態・タグ表示・再生方針・検索・スクロール補正だけを実行する
 - `scripts/browser-script-test-utils.mjs`は、本番のブラウザ用スクリプトをNodeの隔離環境で直接読み込む。テスト専用に同じロジックを複製しない
-- 検索演算子を変更した場合は`search-utils.test.mjs`、タグ状態を変更した場合は`filter-state.test.mjs`、YouTubeのcue / autoplay優先順位を変更した場合は`playback-policy.test.mjs`、固定UIを考慮したスクロールを変更した場合は`scroll-utils.test.mjs`を更新する
+- 検索演算子を変更した場合は`search-utils.test.mjs`、タグ状態を変更した場合は`filter-state.test.mjs`、タグのinclude / exclude表示を変更した場合は`filter-tag-view.test.mjs`、YouTubeのcue / autoplay優先順位を変更した場合は`playback-policy.test.mjs`、固定UIを考慮したスクロールを変更した場合は`scroll-utils.test.mjs`を更新する
 
 
 ## 現在のタグ仕様メモ
