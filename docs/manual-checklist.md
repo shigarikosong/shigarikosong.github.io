@@ -232,6 +232,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] `exclusion-style-sync.js` がタグクリックを処理していない。
 - [ ] `exclusion-style-sync.js` がリセットクリックを処理していない。
 - [ ] `filter-active-style-sync.js` がフィルター状態やタグクリックを処理していない。
+- [ ] `filter-active-style-sync.js` がページ全体のclick/input/changeやDOM変更を監視せず、明示イベントでinclude表示を同期している。
 - [ ] ブラウザ標準の `Element.prototype.scrollIntoView` を上書きするコードが残っていない。
 - [ ] `index.html` と実行用JavaScriptに、削除済みの `playing-scroll-position.js` への読み込み・参照が残っていない。
 - [ ] 旧 `tag-exclusion.js` への読み込み・参照が残っていない。

@@ -43,7 +43,7 @@
 - 動画カード内の再生は左側の再生ボタンが担当する。曲名・アーティスト名は検索語の置き換えに使う
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
 - モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
-- `filter-active-style-sync.js` はアクティブチップを基準に、フィルターUIとリスト内Platformタグのinclude表示を同期する
+- `filter-active-style-sync.js` は `tagFilterStateChanged` / `videoListRendered` を受け、`FilterState` とボタンのdata属性を基準にinclude表示を同期する
 - `exclusion-style-sync.js` はタグクリックやリセットを横取りしない。除外スタイル同期だけを行う
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
