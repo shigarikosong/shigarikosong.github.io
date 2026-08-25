@@ -68,6 +68,10 @@
     });
   }
 
+  function scrollPlayingCardIntoComfortView(element, options = {}) {
+    scrollElementIntoComfortView(element, options);
+  }
+
   function isElementComfortablyVisible(element, options = {}) {
     if (!element) return false;
 
@@ -97,7 +101,7 @@
   function scrollToPlayingOrResultCountOrListTop(options = {}) {
     const playingItem = document.querySelector('#videoList .playing');
     if (playingItem) {
-      scrollElementIntoComfortView(playingItem, options);
+      scrollPlayingCardIntoComfortView(playingItem, options);
       return;
     }
 
@@ -141,6 +145,7 @@
     getBottomReservedHeight,
     getVisibleResultCountElement,
     scrollElementIntoComfortView,
+    scrollPlayingCardIntoComfortView,
     isElementComfortablyVisible,
     scrollToResultCountOrListTop,
     scrollToPlayingOrResultCountOrListTop,

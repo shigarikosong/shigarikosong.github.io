@@ -108,6 +108,12 @@ Clicking a chip should clear only that condition:
 - Exclusion style sync should target tag-related buttons and avoid unnecessary full-page button scans.
 - Exclusion style sync depends on `data-filter-group` and `data-filter-value`; new tag buttons should provide both.
 
+### `filter-active-style-sync.js`
+
+- Syncs include-state classes for desktop/mobile filter buttons from active chips.
+- Syncs include-state classes for Platform tags in the video list.
+- Does not own filter state or intercept tag clicks.
+
 ### `loading-status.js`
 
 - Loading status display
@@ -271,7 +277,7 @@ Related code:
 - `desktop-filter-panel.js`
 - `mobile-filter-modal.js`
 - `script.js` (`applyFilters()` / `requestSettledFilterScroll()`)
-- `scroll-utils.js` (`requestFilterCloseTargetJump()`)
+- `scroll-utils.js` (`scrollPlayingCardIntoComfortView()` / `requestFilterCloseTargetJump()`)
 - `filter-scroll-position.js` (compatibility wrapper; no list `MutationObserver`)
 
 ## 12. Checklist For Adding Tags
