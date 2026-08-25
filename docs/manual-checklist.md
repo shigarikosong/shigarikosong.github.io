@@ -241,7 +241,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 ## 13. Pre-Merge Diff Check
 
 - [ ] `pnpm run validate:data`が成功する。
-- [ ] `pnpm run test:data-validation`が成功する。
+- [ ] `pnpm test`が成功する。
 - [ ] `git status` で意図したファイルだけが変更されている。
 - [ ] `.DS_Store` が差分に含まれていない。
 - [ ] `git diff` に見た目変更や大規模差分が混ざっていない。
