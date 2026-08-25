@@ -7,7 +7,7 @@
     "validate:data": "node scripts/validate-video-data.mjs",
     "test": "node --test scripts/*.test.mjs",
     "test:data-validation": "node --test scripts/validate-video-data.test.mjs",
-    "test:regressions": "node --test scripts/filter-state.test.mjs scripts/search-utils.test.mjs scripts/scroll-utils.test.mjs"
+    "test:regressions": "node --test scripts/filter-state.test.mjs scripts/playback-policy.test.mjs scripts/search-utils.test.mjs scripts/scroll-utils.test.mjs"
   },
   "devDependencies": {
     "tailwindcss": "3.4.17"

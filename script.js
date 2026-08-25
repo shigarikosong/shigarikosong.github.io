@@ -64,12 +64,6 @@ function setManualPlayTestModeEnabled(on) {
 window.isManualPlayTestModeEnabled = isManualPlayTestModeEnabled;
 window.setManualPlayTestModeEnabled = setManualPlayTestModeEnabled;
 
-function shouldCueYouTubeVideo(options = {}) {
-  if (options.autoplay === false) return true;
-  if (options.autoplay === true) return false;
-  return isManualPlayTestModeEnabled();
-}
-
 function parseTimeToSeconds(value, fallback = null) {
   if (value === null || value === undefined || value === "") return fallback;
   if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
@@ -3435,7 +3429,10 @@ function loadVideo(video, item, options = {}) {
   setPlayerLayoutForVideo(video);
 
   if (platform.includes("youtube")) {
-  const cueYouTubeVideo = shouldCueYouTubeVideo(options);
+  const cueYouTubeVideo = window.PlaybackPolicy.shouldCueYouTubeVideo({
+    autoplay: options.autoplay,
+    manualPlayEnabled: isManualPlayTestModeEnabled()
+  });
   isYouTubePlaybackRequested = !cueYouTubeVideo;
   resetTikTokPlaybackControl();
   const match = videoId.match(/(?:v=|\/|youtu\.be\/)?([0-9A-Za-z_-]{11})/);
