@@ -54,7 +54,7 @@
 
   function createFilterButton(label, group, value, kind, onClick) {
     const presentation = window.FilterTagView.getPresentation(group, value, label);
-    const button = createButton(label, presentation.state === "include", kind, onClick);
+    const button = createButton(label, false, kind, onClick);
     window.FilterTagView.applyButton(button, presentation);
     return button;
   }

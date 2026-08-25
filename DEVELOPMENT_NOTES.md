@@ -33,7 +33,7 @@
 ## 現在のフィルター構成
 
 - `filter-state.js` は `window.FilterState` として、include / exclude のタグ状態、アクティブチップ用データ、除外判定を持つ
-- `filter-tag-view.js` は `FilterState` を読み、タグ生成時にinclude / exclude / noneの表示文言・除外クラス・アクセシブルネームを確定する
+- `filter-tag-view.js` は `FilterState` を読み、タグ生成時にinclude / exclude / noneの表示クラス・文言・アクセシブルネームを確定する
 - `search-utils.js` は検索文字列のAND / OR / 除外解析と、正規化済み動画テキストとの一致判定を持つ
 - `playback-policy.js` はYouTubeを即時再生するかcueで待機するかを判定し、手動再生モードを個別の`autoplay`指定より優先する
 - `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
@@ -46,8 +46,7 @@
 - 動画カード内の再生は左側の再生ボタンが担当する。曲名・アーティスト名は検索語の置き換えに使う
 - PCフィルター内タグの3状態クリックは、`script.js` と `desktop-filter-panel.js` が担当する
 - モバイルフィルター内タグの3状態クリックは、`script.js` と `mobile-filter-modal.js` が担当する
-- `filter-active-style-sync.js` は `tagFilterStateChanged` / `videoListRendered` を受け、`FilterState` とボタンのdata属性を基準にinclude表示を同期する
-- 除外表示は各タグの正式な描画工程から `FilterTagView` を明示的に呼び、描画後の全ボタン探索では同期しない
+- include / exclude表示は各タグの正式な描画工程から `FilterTagView` を明示的に呼び、描画後の全ボタン探索では同期しない
 - `time-tag-active.js` は削除済み。Timeタグは `script.js` / `FilterState` 側で扱う
 - タグ系補助スクリプトは `index.html` で明示読み込みする。`loading-status.js` から後追い読み込みしない
 
@@ -74,11 +73,10 @@
 
 - `mobile-filter-modal.js`
 - `desktop-filter-panel.js`
-- `filter-active-style-sync.js`
 - `filter-tag-view.js`
 - `filter-scroll-position.js`
 
-PC・モバイル・動画カードのタグを追加するときは、`FilterTagView.getPresentation()` と `applyButton()` を描画時に使い、除外状態を後から同期する補助処理を追加しない。
+PC・モバイル・動画カードのタグを追加するときは、`FilterTagView.getPresentation()` と `applyButton()` を描画時に使い、include / exclude状態を後から同期する補助処理を追加しない。
 
 `time-tag-active.js` は削除済み。復活させる前に、`script.js` の `renderDateTags()` と `renderActiveTagChips()`、`filter-state.js` のdate状態で対応できないか確認する。
 

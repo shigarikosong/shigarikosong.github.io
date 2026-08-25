@@ -61,7 +61,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 除外チップを押すと、その `exclude` 条件だけ解除される。
 - [ ] リセットで `include` と `exclude` の両方が解除される。
 - [ ] 除外条件の追加・解除後、PC/モバイル/リスト内タグの赤い除外表示が一致する。
-- [ ] 除外表示は各UIのタグ描画時に `FilterTagView` から反映され、後追いの全ボタン探索を必要としない。
+- [ ] include / exclude表示は各UIのタグ描画時に `FilterTagView` から反映され、後追いの全ボタン探索を必要としない。
 - [ ] 除外表示の `- ` が付いてもカテゴリ・Collabタグの表示順が変わらない。
 
 ## 5. Desktop Filter Panel
@@ -230,8 +230,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] `ui-polish.js` が `renderVideoList()` を上書きしていない。
 - [ ] 枠名とコラボメンバー収納が `script.js` のカード描画内で反映され、削除済みの `waku-name-display.js` への参照が残っていない。
 - [ ] 削除済みの `exclusion-style-sync.js` への読み込み・参照が残っていない。
-- [ ] `filter-active-style-sync.js` がフィルター状態やタグクリックを処理していない。
-- [ ] `filter-active-style-sync.js` がページ全体のclick/input/changeやDOM変更を監視せず、明示イベントでinclude表示を同期している。
+- [ ] 削除済みの `filter-active-style-sync.js` への読み込み・参照が残っていない。
 - [ ] ブラウザ標準の `Element.prototype.scrollIntoView` を上書きするコードが残っていない。
 - [ ] `index.html` と実行用JavaScriptに、削除済みの `playing-scroll-position.js` への読み込み・参照が残っていない。
 - [ ] 旧 `tag-exclusion.js` への読み込み・参照が残っていない。

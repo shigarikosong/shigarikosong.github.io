@@ -24,13 +24,14 @@ function createFilterTagView(initialState = 'none') {
   };
 }
 
-function createButton() {
-  const classes = new Set();
+function createButton(initialClasses = []) {
+  const classes = new Set(initialClasses);
   const attributes = new Map();
 
   return {
     attributes,
     classList: {
+      add: value => classes.add(value),
       contains: value => classes.has(value),
       toggle(value, force) {
         if (force) classes.add(value);
@@ -74,9 +75,41 @@ test('タグ状態から描画用の表示を決定する', () => {
   });
 });
 
-test('除外表示をボタンへ反映し、解除時に後付け属性を残さない', () => {
-  const { filterTagView, setState } = createFilterTagView('exclude');
-  const button = createButton();
+test('各タグ種別のincludeクラスを描画時に反映する', () => {
+  const { filterTagView } = createFilterTagView('include');
+  const classPairs = [
+    ['tag-style', 'tag-style-active'],
+    ['tag-platform', 'tag-platform-active'],
+    ['tag-time', 'tag-time-active'],
+    ['tag-format', 'tag-format-active'],
+    ['tag-role-filter', 'tag-role-filter-active'],
+    ['tag-collab-liver', 'tag-collab-liver-active'],
+    ['tag-collab-unit', 'tag-collab-unit-active']
+  ];
+
+  classPairs.forEach(([baseClass, activeClass]) => {
+    const button = createButton([baseClass]);
+    filterTagView.applyButton(
+      button,
+      filterTagView.getPresentation('format', 'Shorts')
+    );
+    assert.equal(button.classList.contains(activeClass), true, baseClass);
+  });
+});
+
+test('includeとexclude表示をボタンへ反映し、解除時に後付け属性を残さない', () => {
+  const { filterTagView, setState } = createFilterTagView('include');
+  const button = createButton(['tag-format']);
+
+  filterTagView.applyButton(
+    button,
+    filterTagView.getPresentation('format', 'Shorts')
+  );
+
+  assert.equal(button.classList.contains('tag-format-active'), true);
+  assert.equal(button.classList.contains('exclusion-style-active'), false);
+
+  setState('exclude');
 
   filterTagView.applyButton(
     button,
@@ -84,6 +117,7 @@ test('除外表示をボタンへ反映し、解除時に後付け属性を残�
   );
 
   assert.equal(button.textContent, '- Shorts');
+  assert.equal(button.classList.contains('tag-format-active'), false);
   assert.equal(button.classList.contains('exclusion-style-active'), true);
   assert.equal(button.attributes.get('aria-label'), 'Shortsを除外中');
   assert.deepEqual(button.dataset, {

@@ -226,7 +226,7 @@
       const button = document.createElement("button");
       const presentation = window.FilterTagView.getPresentation("format", format, format);
       button.type = "button";
-      button.className = getFormatButtonClass(presentation.state === "include");
+      button.className = getFormatButtonClass(false);
       window.FilterTagView.applyButton(button, presentation);
       button.addEventListener("click", () => {
         handleMobileTagClick("format", format, renderFormatTags, () => {
@@ -284,7 +284,7 @@
       button.type = "button";
       button.className = getTagButtonClass(
         "tag-role-filter",
-        presentation.state === "include",
+        false,
         { size: "tag-sm" }
       );
       window.FilterTagView.applyButton(button, presentation);
@@ -313,7 +313,7 @@
       const button = document.createElement("button");
       const presentation = window.FilterTagView.getPresentation("collab", value, value);
       button.type = "button";
-      button.className = getCollabButtonClass(presentation.state === "include");
+      button.className = getCollabButtonClass(false);
       window.FilterTagView.applyButton(button, presentation);
       button.addEventListener("click", () => {
         handleMobileTagClick("collab", value, renderCollabTags);
