@@ -1400,6 +1400,7 @@ async function loadVideoData() {
 
     allVideos = window.VideoNormalizer.normalizeVideos(data);
     populateFilters(allVideos);
+    initializeFilterControls();
     applyFilters({ scrollAfterUpdate: false });
     requestAnimationFrame(() => {
       adjustFixedPlayerBottom();
@@ -2325,77 +2326,116 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 
 
 // ===== 絞り込み項目の作成 =====
-      function populateFilters(videos) {
+let filterControlsInitialized = false;
+
+function collectFilterOptions(videos) {
   const { roleOrder } = window.TAG_CONFIG;
-        const sets = {
-          category: new Set(),
-          date: new Set(),
-          type: new Set(),
-          role: new Set()
-        };
+  const values = {
+    category: new Set(),
+    date: new Set(),
+    type: new Set(),
+    role: new Set()
+  };
 
-        videos.forEach(v => {
-          sets.category.add(v["カテゴリ"]);
-          v._types.forEach(type => sets.type.add(type));
-          v._roles.forEach(role => sets.role.add(role));
+  videos.forEach(video => {
+    values.category.add(video["カテゴリ"]);
+    video._types.forEach(type => values.type.add(type));
+    video._roles.forEach(role => values.role.add(role));
 
-            // 公開月（例: 2023/07）だけ抽出して追加
-const rawDate = v["公開月"];
-if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
-  const month = rawDate.slice(0, 7).replace('-', '/'); // "YYYY/MM"
-  sets.date.add(month);
+    const rawDate = video["公開月"];
+    if (typeof rawDate === "string" && /^\d{4}[-\/]\d{2}/.test(rawDate)) {
+      values.date.add(rawDate.slice(0, 7).replace('-', '/'));
+    }
+  });
+
+  return {
+    categories: [...values.category].sort(),
+    dates: [...values.date].sort(),
+    types: [...values.type].sort(),
+    roles: [...values.role].sort((a, b) => roleOrder.indexOf(a) - roleOrder.indexOf(b))
+  };
 }
-        });
 
-        renderPlatformTags();
-        renderCategoryTags([...sets.category].sort());
-        renderDateTags();
+function replaceFilterSelectOptions(select, values) {
+  if (!select) return;
 
-// モーダル用にも同じく追加
-addOptions(document.getElementById('modalCategoryFilter'), [...sets.category].sort());
-addOptions(document.getElementById('modalDateFilter'), [...sets.date].sort());
-addOptions(document.getElementById('modalTypeFilter'), [...sets.type].sort());
-addOptions(
-  document.getElementById('modalRoleFilter'),
-  [...sets.role].sort((a, b) => roleOrder.indexOf(a) - roleOrder.indexOf(b))
-);
+  const selectedValue = select.value;
+  select.querySelectorAll('option[data-generated-filter-option]').forEach(option => {
+    option.remove();
+  });
 
-        // モバイル用ランダム再生ボタン
-const mobileRandomPlayButton = document.getElementById('mobileRandomPlayButton');
-if (mobileRandomPlayButton) {
-  mobileRandomPlayButton.addEventListener('click', () => {
-    playRandomVideoFromCurrentList();
+  values.forEach(value => {
+    if (!value) return;
+
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    option.dataset.generatedFilterOption = "true";
+    select.appendChild(option);
+  });
+
+  if (values.includes(selectedValue)) select.value = selectedValue;
+}
+
+function populateFilters(videos) {
+  const options = collectFilterOptions(videos);
+
+  renderPlatformTags();
+  renderCategoryTags(options.categories);
+  renderDateTags();
+
+  replaceFilterSelectOptions(document.getElementById('modalCategoryFilter'), options.categories);
+  replaceFilterSelectOptions(document.getElementById('modalDateFilter'), options.dates);
+  replaceFilterSelectOptions(document.getElementById('modalTypeFilter'), options.types);
+  replaceFilterSelectOptions(document.getElementById('modalRoleFilter'), options.roles);
+}
+
+function resetModalFilterInputs() {
+  const defaultValues = {
+    modalCategoryFilter: "",
+    modalDateFilter: "",
+    modalTypeFilter: "",
+    modalRoleFilter: "",
+    modalSearchInput: "",
+    modalSortOrder: "desc"
+  };
+
+  Object.entries(defaultValues).forEach(([id, value]) => {
+    const control = document.getElementById(id);
+    if (control) control.value = value;
   });
 }
 
-       [searchInput, sortOrder].forEach(el => {
-  el.addEventListener('change', applyFilters);
-  el.addEventListener('input', applyFilters);
-});
-
-document.getElementById('clearSearchInput')?.addEventListener('click', () => {
-  clearSearchQuery();
-  searchInput?.focus();
-});
-
-
-     // リセットボタン
-  resetButton.addEventListener('click', () => {
+function resetAllFilters() {
   window.FilterState.resetState();
-    renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
+  renderCategoryTags([...new Set(allVideos.map(video => video["カテゴリ"]).filter(Boolean))].sort());
   renderDateTags();
   renderPlatformTags();
-    
-  document.getElementById('modalCategoryFilter').value = "";
-  document.getElementById('modalDateFilter').value = "";
-  document.getElementById('modalTypeFilter').value = "";
-  document.getElementById('modalRoleFilter').value = "";
-  document.getElementById('modalSearchInput').value = "";
-  document.getElementById('modalSortOrder').value = "desc";
+  resetModalFilterInputs();
   applyFilters();
   window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
-});
-      }
+}
+
+function initializeFilterControls() {
+  if (filterControlsInitialized) return;
+  filterControlsInitialized = true;
+
+  document.getElementById('mobileRandomPlayButton')?.addEventListener('click', () => {
+    playRandomVideoFromCurrentList();
+  });
+
+  [searchInput, sortOrder].filter(Boolean).forEach(control => {
+    control.addEventListener('change', applyFilters);
+    control.addEventListener('input', applyFilters);
+  });
+
+  document.getElementById('clearSearchInput')?.addEventListener('click', () => {
+    clearSearchQuery();
+    searchInput?.focus();
+  });
+
+  resetButton?.addEventListener('click', resetAllFilters);
+}
 
 // ===== タグボタンの描画 =====
 function isDesktopFilterContainer(container) {
@@ -2514,16 +2554,6 @@ function renderDateTags() {
     }
   });
 }
-
-      function addOptions(select, values) {
-        values.forEach(v => {
-          if (!v) return;
-          const option = document.createElement('option');
-          option.value = v;
-          option.textContent = v;
-          select.appendChild(option);
-        });
-      }
 
 
 // ===== 検索・絞り込み処理 =====
