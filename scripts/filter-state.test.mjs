@@ -132,7 +132,7 @@ test('リセットはタグ条件を消し、指定に応じて検索語と並�
   assert.equal(elements.modalSortOrder.value, 'desc');
 });
 
-test('include状態を古いグローバル変数へ公開しない', () => {
+test('include状態や移行済みの互換APIを古いグローバルへ公開しない', () => {
   const { context, filterState } = createFilterStateFixture();
   const legacyNames = [
     'selectedCategoryTag',
@@ -160,6 +160,7 @@ test('include状態を古いグローバル変数へ公開しない', () => {
   });
 
   assert.ok(legacyNames.every(name => !Object.prototype.hasOwnProperty.call(context, name)));
+  assert.equal(filterState.registerExclusionAdapter, undefined);
   assert.deepEqual(toPlain(filterState.getState().include), {
     category: 'コラボ',
     platform: 'youtube',

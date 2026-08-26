@@ -141,6 +141,15 @@ Use `window.FilterState` as the shared entrance for reading and updating filter 
 
 Tag state is private to `filter-state.js`. Read and update it only through these APIs; do not add separate global selected-tag variables.
 
+The filter pipeline should keep this order:
+
+1. Read the current state with `FilterState.getState()`.
+2. Parse the search query once with `SearchUtils.parseSearchQuery()`.
+3. Apply search, include, date, and sort rules with `VideoQuery.filterAndSortVideos()`.
+4. Apply exclusions with `FilterState.filterExcludedVideos()`.
+
+`scripts/filter-pipeline.test.mjs` loads these browser scripts together and protects this boundary. Do not restore the removed exclusion adapter or bypass `FilterState` with separate selected-tag globals.
+
 ## 7. Data Attribute Rules
 
 Tag definitions, display order, platform values, and date labels are centralized in `tag-config.js` as `window.TAG_CONFIG`.

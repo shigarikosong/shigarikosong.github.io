@@ -87,6 +87,8 @@ include / excludeのタグ状態を非公開で保持し、PC・モバイル・�
 
 タグ状態を変更するときは古いグローバル変数を追加せず、`window.FilterState`のAPIと`scripts/filter-state.test.mjs`を一緒に確認します。
 
+検索から表示候補の作成、除外適用までのファイル間連携を変更するときは、`scripts/filter-pipeline.test.mjs`も一緒に確認します。このテストは`tag-config.js`、`date-utils.js`、`search-utils.js`、`video-query.js`、`filter-state.js`を同じ環境へ読み込みます。
+
 ## playback-policy.js
 
 YouTube動画をすぐ再生するか、プレイヤー内の再生ボタンを待つかを決める小さな共通ファイルです。

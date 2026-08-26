@@ -992,12 +992,6 @@ document.getElementById('modalSortOrder').value = "desc";
     let nowPlayingFloatingButton = null;
     let nowPlayingFloatingUpdateFrame = null;
 
-// ===== タグの表示・解除 =====
-    function toggleTagState(state) {
-  if (state === null) return "include";
-  return null;
-}
-
 function getDateTagLabel(value) {
   return window.DATE_UTILS.getDateTagLabel(value);
 }
