@@ -68,6 +68,7 @@ Clicking a chip should clear only that condition:
 - Three-state click handling for shared Category / Platform / Time filter tags
 - `applyFilters()`
 - `renderVideoList()`
+- Keeps `renderVideoList()` focused on replacing the list and post-render work; named helpers in the same file build the card, playback button, title/artist actions, metadata, primary tags, and Collab tags.
 - Video card metadata rendering, including `waku_name`
 - Collab member compact rows and their `+N` / `-` disclosure controls
 - `renderActiveTagChips()`

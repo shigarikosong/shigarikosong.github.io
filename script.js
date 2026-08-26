@@ -2756,221 +2756,201 @@ function createCollabTagRow(video, cardIndex) {
   return tagRow;
 }
 
-function renderVideoList(videos) {
-  videoList.innerHTML = '';
-  const videoListFragment = document.createDocumentFragment();
-
-    // 件数表示を更新
-  const countElement = document.getElementById('songCount');
-  updateResultCounts(allVideos.length, videos.length);
-
-  const oldNotice = document.getElementById('autoPlayNotice');
-if (oldNotice) oldNotice.remove();
-
-const playableCount = videos.filter(video => !isTikTokVideo(video)).length;
-
-if (getRepeatMode() === REPEAT_MODE_ALL && isRandomModeEnabled() && videos.length > 0 && playableCount === 0) {
-  const notice = document.createElement('div');
-  notice.id = 'autoPlayNotice';
-  notice.className = 'auto-play-notice';
-  notice.textContent = 'この条件ではランダム連続再生できる動画がありません（TikTokは対象外です）';
-  countElement.insertAdjacentElement('afterend', notice);
+function createVideoCardPlayButton(video, item) {
+  const playButton = document.createElement('button');
+  playButton.type = 'button';
+  playButton.className = 'video-card-play-button';
+  playButton.setAttribute('aria-label', `${video["title"] || "この動画"}を再生`);
+  playButton.innerHTML = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M8 5.5v13l10-6.5-10-6.5z"></path>
+    </svg>
+  `;
+  playButton.addEventListener('click', () => {
+    loadVideo(video, item);
+  });
+  return playButton;
 }
 
-  videos.forEach((video, cardIndex) => {
-    const item = document.createElement('div');
-    item.className = 'video-card p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-gray-300';
+function createVideoSearchAction(kind, value, sourceVideoKey) {
+  const isTitle = kind === 'title';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `${isTitle ? 'video-title' : 'video-artist'} video-search-action`;
+  button.title = value || '';
+  button.setAttribute(
+    'aria-label',
+    `${isTitle ? '曲名' : 'アーティスト'}「${value}」で検索`
+  );
 
-    const key = getVideoKey(video);
-    item.dataset.videoKey = key;
+  const text = document.createElement('span');
+  text.className = 'video-search-action-text';
+  text.textContent = value;
+  button.appendChild(text);
+  button.addEventListener('click', () => {
+    applySearchQuery(value, { sourceVideoKey });
+  });
+  return button;
+}
 
-    if (key === nowPlayingKey) {
-      item.classList.add('playing');
-    }
+function createVideoCardTopRow(video, sourceVideoKey) {
+  const topRow = document.createElement('div');
+  topRow.className = 'video-item-row';
+  topRow.appendChild(createVideoSearchAction('title', video["title"], sourceVideoKey));
 
-    const playButton = document.createElement('button');
-    playButton.type = 'button';
-    playButton.className = 'video-card-play-button';
-    playButton.setAttribute('aria-label', `${video["title"] || "この動画"}を再生`);
-    playButton.innerHTML = `
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M8 5.5v13l10-6.5-10-6.5z"></path>
-      </svg>
-    `;
-    playButton.addEventListener('click', () => {
-      loadVideo(video, item);
-    });
+  if (video["artist"]) {
+    const slash = document.createElement('span');
+    slash.className = 'video-title-separator';
+    slash.textContent = ' / ';
+    topRow.appendChild(slash);
+    topRow.appendChild(createVideoSearchAction('artist', video["artist"], sourceVideoKey));
+  }
 
-    const content = document.createElement('div');
-    content.className = 'video-card-content';
-    
-    // 1行目：タイトル / アーティスト
-    const topRow = document.createElement('div');
-    topRow.className = 'video-item-row';
+  return topRow;
+}
 
-    const title = document.createElement('button');
-    title.type = 'button';
-    title.className = 'video-title video-search-action';
-    title.title = video["title"] || "";
-    title.setAttribute('aria-label', `曲名「${video["title"]}」で検索`);
-    const titleText = document.createElement('span');
-    titleText.className = 'video-search-action-text';
-    titleText.textContent = video["title"];
-    title.appendChild(titleText);
-    title.addEventListener('click', () => {
-      applySearchQuery(video["title"], { sourceVideoKey: key });
-    });
+function createVideoCardMetaRow(video) {
+  const metaRow = document.createElement('div');
+  metaRow.className = 'video-meta';
 
-    topRow.appendChild(title);
+  [video["公開月"]].filter(Boolean).forEach(text => {
+    const span = document.createElement('span');
+    span.textContent = text;
+    metaRow.appendChild(span);
+  });
 
-    if (video["artist"]) {
-      const slash = document.createElement('span');
-      slash.className = 'video-title-separator';
-      slash.textContent = ' / ';
+  const wakuName = String(video["waku_name"] || '').trim();
+  if (wakuName) {
+    const wakuSpan = document.createElement('span');
+    wakuSpan.className = 'video-meta-waku';
+    wakuSpan.textContent = wakuName;
+    metaRow.appendChild(wakuSpan);
+  }
 
-      const artist = document.createElement('button');
-      artist.type = 'button';
-      artist.className = 'video-artist video-search-action';
-      artist.title = video["artist"];
-      artist.setAttribute('aria-label', `アーティスト「${video["artist"]}」で検索`);
-      const artistText = document.createElement('span');
-      artistText.className = 'video-search-action-text';
-      artistText.textContent = video["artist"];
-      artist.appendChild(artistText);
-      artist.addEventListener('click', () => {
-        applySearchQuery(video["artist"], { sourceVideoKey: key });
-      });
+  return metaRow;
+}
 
-      topRow.appendChild(slash);
-      topRow.appendChild(artist);
-    }
+function createVideoCardFilterTag(label, group, value, options) {
+  return createListTagElement(label, group, value, () => {
+    handleListTagClick(group, value, options);
+  });
+}
 
-    // 2行目：詳細情報
-    const metaRow = document.createElement('div');
-    metaRow.className = 'video-meta';
-   [
-  video["公開月"],
-].filter(Boolean).forEach(text => {
-  const span = document.createElement('span');
-  span.textContent = text;
-  metaRow.appendChild(span);
-});
+function createVideoCardPrimaryTagRow(video) {
+  const roles = video._roles;
+  const typeTags = video._types;
+  const category = video["カテゴリ"];
+  const normalizedPlatform = video._platform;
 
-const roles = video._roles;
-const typeTags = video._types;
-    const category = video["カテゴリ"];
-const normalizedPlatform = video._platform;
-let roleTagRow = null;
+  if (!(
+    category ||
+    normalizedPlatform ||
+    roles.length ||
+    typeTags.length ||
+    video._is3D ||
+    video._isShorts
+  )) {
+    return null;
+  }
 
-if (
-  category ||
-  normalizedPlatform ||
-  roles.length ||
-  typeTags.length ||
-  video._is3D ||
-  video._isShorts
-) {
-  roleTagRow = document.createElement('div');
-  roleTagRow.className = 'video-card-tag-row flex flex-wrap gap-1.5';
+  const tagRow = document.createElement('div');
+  tagRow.className = 'video-card-tag-row flex flex-wrap gap-1.5';
 
   if (category) {
-    roleTagRow.appendChild(createListTagElement(
-      category,
-      "category",
-      category,
-      () => {
-        handleListTagClick("category", category, {
-          beforeApply: () => {
-            const modalCategoryFilter = document.getElementById('modalCategoryFilter');
-            if (modalCategoryFilter) modalCategoryFilter.value = "";
-          }
-        });
+    tagRow.appendChild(createVideoCardFilterTag(category, 'category', category, {
+      beforeApply: () => {
+        const modalCategoryFilter = document.getElementById('modalCategoryFilter');
+        if (modalCategoryFilter) modalCategoryFilter.value = '';
       }
-    ));
+    }));
   }
 
   if (normalizedPlatform) {
-    roleTagRow.appendChild(createListTagElement(
+    tagRow.appendChild(createVideoCardFilterTag(
       getPlatformLabel(normalizedPlatform),
-      "platform",
-      normalizedPlatform,
-      () => {
-        handleListTagClick("platform", normalizedPlatform);
-      }
+      'platform',
+      normalizedPlatform
     ));
   }
 
   typeTags.forEach(type => {
-    roleTagRow.appendChild(createListTagElement(
-      type,
-      "format",
-      type,
-      () => {
-        handleListTagClick("format", type);
-      }
-    ));
+    tagRow.appendChild(createVideoCardFilterTag(type, 'format', type));
   });
 
   if (video._is3D) {
-    roleTagRow.appendChild(createListTagElement(
-      "3D",
-      "format",
-      "3D",
-      () => {
-        handleListTagClick("format", "3D");
-      }
-    ));
+    tagRow.appendChild(createVideoCardFilterTag('3D', 'format', '3D'));
   }
 
   if (video._isShorts) {
-    roleTagRow.appendChild(createListTagElement(
-      "Shorts",
-      "format",
-      "Shorts",
-      () => {
-        handleListTagClick("format", "Shorts");
-      }
-    ));
+    tagRow.appendChild(createVideoCardFilterTag('Shorts', 'format', 'Shorts'));
   }
 
   roles.forEach(role => {
-    roleTagRow.appendChild(createListTagElement(
-      role,
-      "role",
-      role,
-      () => {
-        handleListTagClick("role", role, {
-          beforeApply: () => {
-            const modalRoleFilter = document.getElementById('modalRoleFilter');
-            if (modalRoleFilter) modalRoleFilter.value = "";
-          }
-        });
+    tagRow.appendChild(createVideoCardFilterTag(role, 'role', role, {
+      beforeApply: () => {
+        const modalRoleFilter = document.getElementById('modalRoleFilter');
+        if (modalRoleFilter) modalRoleFilter.value = '';
       }
-    ));
+    }));
   });
-    }
 
-const wakuName = String(video["waku_name"] || '').trim();
-if (wakuName) {
-  const wakuSpan = document.createElement('span');
-  wakuSpan.className = 'video-meta-waku';
-  wakuSpan.textContent = wakuName;
-  metaRow.appendChild(wakuSpan);
+  return tagRow;
 }
 
-// 3行目：コラボタグ
-const tagRow = createCollabTagRow(video, cardIndex);
+function createVideoCard(video, cardIndex) {
+  const item = document.createElement('div');
+  item.className = 'video-card p-3 mb-3 bg-blue-100 rounded-lg shadow-md border-2 border-gray-300';
 
-content.appendChild(topRow);
-content.appendChild(metaRow);
+  const key = getVideoKey(video);
+  item.dataset.videoKey = key;
+  if (key === nowPlayingKey) item.classList.add('playing');
 
-item.appendChild(playButton);
-item.appendChild(content);
-if (roleTagRow) item.appendChild(roleTagRow);
-if (tagRow) item.appendChild(tagRow);
+  const content = document.createElement('div');
+  content.className = 'video-card-content';
+  content.appendChild(createVideoCardTopRow(video, key));
+  content.appendChild(createVideoCardMetaRow(video));
 
-videoListFragment.appendChild(item);
-      });
+  item.appendChild(createVideoCardPlayButton(video, item));
+  item.appendChild(content);
+
+  const primaryTagRow = createVideoCardPrimaryTagRow(video);
+  if (primaryTagRow) item.appendChild(primaryTagRow);
+
+  const collabTagRow = createCollabTagRow(video, cardIndex);
+  if (collabTagRow) item.appendChild(collabTagRow);
+
+  return item;
+}
+
+function updateVideoListAutoPlayNotice(videos) {
+  document.getElementById('autoPlayNotice')?.remove();
+
+  const playableCount = videos.filter(video => !isTikTokVideo(video)).length;
+  if (!(
+    getRepeatMode() === REPEAT_MODE_ALL &&
+    isRandomModeEnabled() &&
+    videos.length > 0 &&
+    playableCount === 0
+  )) {
+    return;
+  }
+
+  const notice = document.createElement('div');
+  notice.id = 'autoPlayNotice';
+  notice.className = 'auto-play-notice';
+  notice.textContent = 'この条件ではランダム連続再生できる動画がありません（TikTokは対象外です）';
+  document.getElementById('songCount')?.insertAdjacentElement('afterend', notice);
+}
+
+function renderVideoList(videos) {
+  videoList.innerHTML = '';
+  updateResultCounts(allVideos.length, videos.length);
+  updateVideoListAutoPlayNotice(videos);
+
+  const videoListFragment = document.createDocumentFragment();
+  videos.forEach((video, cardIndex) => {
+    videoListFragment.appendChild(createVideoCard(video, cardIndex));
+  });
 
   videoList.appendChild(videoListFragment);
   updateVideoSearchActionOverflow();
