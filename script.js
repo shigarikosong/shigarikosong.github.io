@@ -2648,73 +2648,25 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
         const searchQuery = searchInput.value;
         const parsedSearchQuery = window.SearchUtils.parseSearchQuery(searchQuery);
         updateSearchClearUi();
-        const now = new Date();
         const filterState = window.FilterState.getState();
-        let filtered = allVideos.filter(video => {
-  return window.SearchUtils.matchesParsedSearchQuery(video, parsedSearchQuery) &&
-    
-// フィルタ条件
-    (!filterState.include.category || video["カテゴリ"] === filterState.include.category) &&
-    (
-      filterState.include.collab.length === 0 ||
-      filterState.include.collab.some(tag => video._collabTags.includes(tag))
-    ) &&
-    (
-      filterState.include.role.length === 0 ||
-      filterState.include.role.some(tag => video._roles.includes(tag))
-    ) &&
-    (!filterState.include.platform || video._platform === filterState.include.platform) &&
-    window.DATE_UTILS.getDateFilterMatch(filterState.include.date, video._time, now) &&
-  (
-!filterState.include.flag.includes("3D") ||
-  video._is3D
-) &&
-(
-!filterState.include.flag.includes("Shorts") ||
-video._isShorts
-) &&
-(
- filterState.include.format.length === 0 ||
-  filterState.include.format.every(tag => video._types.includes(tag))
- )
-});
-
-const coll = new Intl.Collator('ja');
-
-function videoTime(v) {
-  return v._time;
-}
-
-const order = sortOrder.value || "desc";
-
-if (order) {
-  filtered.sort((a, b) => {
-    if (order === "asc" || order === "desc") {
-      const ta = videoTime(a);
-      const tb = videoTime(b);
-      return order === "asc" ? ta - tb : tb - ta;
-    } else if (order === "title") {
-      return coll.compare(String(a["title"] || ""), String(b["title"] || ""));
-    } else if (order === "artist") {
-      return coll.compare(String(a["artist"] || ""), String(b["artist"] || ""));
-    } else {
-      return 0;
-    }
-  });
-}
-
-const visibleVideos = getVisibleFilteredVideos(filtered);
+        const filtered = window.VideoQuery.filterAndSortVideos(allVideos, {
+          filterState,
+          parsedSearchQuery,
+          now: new Date(),
+          order: sortOrder.value || "desc"
+        });
+        const visibleVideos = getVisibleFilteredVideos(filtered);
 
         currentFilteredVideos = visibleVideos;
-resetRandomPlayQueue();
-renderVideoList(visibleVideos);
-renderActiveTagChips();
-updateActiveTagChipsPosition();
-updateNowPlayingFilteredOutNotice();
-requestNowPlayingFloatingButtonUpdate();
-if (scrollAfterUpdate) {
-  requestSettledFilterScroll({ sourceVideoKey: listTagScrollVideoKey });
-}
+        resetRandomPlayQueue();
+        renderVideoList(visibleVideos);
+        renderActiveTagChips();
+        updateActiveTagChipsPosition();
+        updateNowPlayingFilteredOutNotice();
+        requestNowPlayingFloatingButtonUpdate();
+        if (scrollAfterUpdate) {
+          requestSettledFilterScroll({ sourceVideoKey: listTagScrollVideoKey });
+        }
       }
 
 
