@@ -1070,106 +1070,87 @@ function applySearchQuery(value, options = {}) {
   activeTagChips.style.top = `${filterHeight}px`;
 }
 
-    //アクティブタグ描画関数
-    function renderActiveTagChips() {
+function createSearchActiveChip(searchQuery) {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'search-active-chip';
+  chip.title = searchQuery;
+  chip.setAttribute('aria-label', `検索語「${searchQuery}」をクリア`);
+  chip.innerHTML = `<span class="search-active-chip__label">検索：</span><span class="search-active-chip__text"></span><span class="search-active-chip__close" aria-hidden="true">×</span>`;
+  chip.querySelector('.search-active-chip__text').textContent = searchQuery;
+  chip.addEventListener('click', () => {
+    clearSearchQuery();
+  });
+  return chip;
+}
+
+function clearActiveFilterChip(tagData) {
+  if (tagData.state === 'exclude' || tagData.source === 'videoType') {
+    window.FilterState.setTagState(tagData.group, tagData.value, 'none');
+    applyFilters();
+    return;
+  }
+
+  if (tagData.source === 'date') {
+    clearDateTag();
+    return;
+  }
+
+  if (tagData.source === 'platform') {
+    window.FilterState.setTagState(tagData.group, tagData.value, 'none');
+    renderPlatformTags();
+    applyFilters();
+    return;
+  }
+
+  window.FilterState.setTagState(tagData.group, tagData.value, 'none');
+  if (tagData.group === 'category') {
+    const categories = [...new Set(allVideos
+      .map(video => video["カテゴリ"])
+      .filter(Boolean))].sort();
+    renderCategoryTags(categories);
+  }
+  applyFilters();
+}
+
+function createActiveFilterChip(tagData) {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = tagData.state === 'exclude'
+    ? 'exclusion-style-chip px-3 py-1 rounded-full text-sm whitespace-nowrap transition'
+    : 'tag-button tag-xs tag-active-chip';
+  chip.textContent = tagData.state === 'exclude' ? `- ${tagData.label}` : tagData.label;
+
+  if (tagData.state === 'exclude') {
+    chip.setAttribute('aria-label', `${tagData.label}を除外条件から外す`);
+  }
+  chip.dataset.filterChipState = tagData.state;
+  if (tagData.source) chip.dataset.activeChipSource = tagData.source;
+
+  chip.addEventListener('click', () => {
+    clearActiveFilterChip(tagData);
+  });
+  return chip;
+}
+
+function renderActiveTagChips() {
   if (!activeTagChips || !activeTagChipsInner) return;
 
   activeTagChipsInner.innerHTML = '';
-
   const activeTags = window.FilterState.getActiveChips();
   const searchQuery = getSearchQuery().trim();
+  const shouldShowChips = activeTags.length > 0 || Boolean(searchQuery);
 
-  if (activeTags.length === 0 && !searchQuery) {
-  activeTagChips.classList.add('hidden');
+  activeTagChips.classList.toggle('hidden', !shouldShowChips);
   updateActiveTagChipsPosition();
-  return;
-}
+  if (!shouldShowChips) return;
 
-activeTagChips.classList.remove('hidden');
-updateActiveTagChipsPosition();
-
-if (searchQuery) {
-    const searchChip = document.createElement('button');
-    searchChip.type = 'button';
-    searchChip.className = 'search-active-chip';
-    searchChip.title = searchQuery;
-    searchChip.setAttribute('aria-label', `検索語「${searchQuery}」をクリア`);
-    searchChip.innerHTML = `<span class="search-active-chip__label">検索：</span><span class="search-active-chip__text"></span><span class="search-active-chip__close" aria-hidden="true">×</span>`;
-    searchChip.querySelector('.search-active-chip__text').textContent = searchQuery;
-    searchChip.addEventListener('click', () => {
-      clearSearchQuery();
-    });
-    activeTagChipsInner.appendChild(searchChip);
+  if (searchQuery) {
+    activeTagChipsInner.appendChild(createSearchActiveChip(searchQuery));
   }
-
-activeTags.forEach(tagData => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-
-    chip.className = tagData.state === "exclude"
-      ? 'exclusion-style-chip px-3 py-1 rounded-full text-sm whitespace-nowrap transition'
-      : 'tag-button tag-xs tag-active-chip';
-
-    chip.textContent = tagData.state === "exclude" ? `- ${tagData.label}` : tagData.label;
-    if (tagData.state === "exclude") {
-      chip.setAttribute("aria-label", `${tagData.label}を除外条件から外す`);
-    }
-    chip.dataset.filterChipState = tagData.state;
-    if (tagData.source) chip.dataset.activeChipSource = tagData.source;
-    
-    chip.addEventListener('click', () => {
-      // 解除処理
-
-      if (tagData.state === "exclude") {
-        window.FilterState.setTagState(tagData.group, tagData.value, "none");
-        applyFilters();
-        return;
-      }
-    
-        if (tagData.source === 'videoType') {
-        window.FilterState.setTagState(tagData.group, tagData.value, "none");
-        applyFilters();
-        return;
-      }
-
-      if (tagData.source === 'date') {
-        clearDateTag();
-        return;
-      }
-
-      if (tagData.source === 'platform') {
-        window.FilterState.setTagState(tagData.group, tagData.value, "none");
-        renderPlatformTags();
-        applyFilters();
-        return;
-      }
-
-      switch (tagData.group) {
-        case "category":
-            window.FilterState.setTagState(tagData.group, tagData.value, "none");
-            renderCategoryTags([...new Set(allVideos.map(v => v["カテゴリ"]).filter(Boolean))].sort());
-          break;
-        default:
-          window.FilterState.setTagState(tagData.group, tagData.value, "none");
-          break;
-      }
-
-      applyFilters();
-    });
-
-    activeTagChipsInner.appendChild(chip);
+  activeTags.forEach(tagData => {
+    activeTagChipsInner.appendChild(createActiveFilterChip(tagData));
   });
-}
-
-if (activeTagChipsInner) {
-  activeTagChipsInner.addEventListener('click', event => {
-    const chip = event.target.closest('[data-active-chip-source="date"][data-filter-chip-state="include"]');
-    if (!chip) return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    clearDateTag();
-  }, true);
 }
 
 
