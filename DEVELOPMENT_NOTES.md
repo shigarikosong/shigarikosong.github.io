@@ -42,7 +42,7 @@
 - `playback-transition-policy.js` は再生終了時のRepeat / Randomに応じた停止・同曲・次曲・ランダム遷移と、自動連続再生対象を判定する
 - `loadVideo()` は動画データの確認とplatform振り分けを担当し、YouTube / TikTok固有の読み込み、監視開始、終了処理は名前付きのライフサイクル関数へ分ける
 - `script.js` は検索・include条件・exclude条件を反映した表示リストを作り、`currentFilteredVideos` を実際に見えているリストに合わせる
-- `renderVideoList()` は `script.js` が持ち、枠名表示とコラボメンバー収納もカード生成時に処理する。補助スクリプトから上書きしない
+- `renderVideoList()` は `script.js` が持ち、一覧差し替えと描画後処理を担当する。カード内の再生・検索・メタ情報・通常タグ・コラボタグは同ファイルの名前付き生成関数で組み立て、補助スクリプトから上書きしない
 - 動画JSONとmeta JSONは`script.js`の専用読み込み関数で取得・確認し、`loading-status.js`は状態表示とページトップボタンだけを担当する
 - `loading-status.js`から`window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしない
 - `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
