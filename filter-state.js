@@ -385,10 +385,6 @@
     return hasExclusions() ? list.filter(passesExclusion) : list;
   }
 
-  function registerExclusionAdapter() {
-    // Kept as a no-op for older extension scripts during the transition.
-  }
-
   window.FilterState = Object.freeze({
     getState,
     setState,
@@ -403,7 +399,6 @@
     getActiveChips,
     passesExclusion,
     filterExcludedVideos,
-    setTagState,
-    registerExclusionAdapter
+    setTagState
   });
 })();
