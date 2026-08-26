@@ -408,6 +408,7 @@
   let windowChromeHideTimer = null;
   let windowChromeFadeTimer = null;
   let isHandleInteractionActive = false;
+  let isPlayerSurfaceHovered = false;
 
   function clearWindowChromeTimers() {
     if (windowChromeHideTimer !== null) {
@@ -430,6 +431,7 @@
 
     return isCollapsed() ||
       isHandleInteractionActive ||
+      isPlayerSurfaceHovered ||
       hasKeyboardFocus;
   }
 
@@ -521,6 +523,7 @@
   function collapsePlayer() {
     if (!isPlayerVisible()) return;
 
+    isPlayerSurfaceHovered = false;
     nowPlayingWrapper.classList.remove("hidden");
     fixedPlayer.classList.add("is-collapsed");
     refreshNowPlayingMarquee();
@@ -546,6 +549,7 @@
   }
 
   function hideMiniBar() {
+    isPlayerSurfaceHovered = false;
     cancelNowPlayingMarquee();
     fixedPlayer.classList.remove("is-collapsed");
     nowPlayingWrapper.classList.add("hidden");
@@ -560,6 +564,19 @@
   const resizeHandle = document.getElementById("playerResizeHandle");
   const revealWindowChrome = () => showWindowChrome({ autoHide: false });
   const releaseWindowChrome = () => scheduleWindowChromeHide();
+  const revealFromPlayerSurface = event => {
+    if (event.pointerType && event.pointerType !== "mouse") return;
+    isPlayerSurfaceHovered = true;
+    revealWindowChrome();
+  };
+  const releaseFromPlayerSurface = event => {
+    if (event.pointerType && event.pointerType !== "mouse") return;
+    isPlayerSurfaceHovered = false;
+    releaseWindowChrome();
+  };
+
+  playerFrameWrapper?.addEventListener("pointerenter", revealFromPlayerSurface);
+  playerFrameWrapper?.addEventListener("pointerleave", releaseFromPlayerSurface);
 
   resizeHandle?.addEventListener("pointerenter", revealWindowChrome);
   resizeHandle?.addEventListener("pointerleave", releaseWindowChrome);
@@ -609,6 +626,19 @@
     scheduleWindowChromeHide();
   });
 
+  nowPlayingWrapper.addEventListener("pointerdown", event => {
+    if (event.pointerType === "mouse") return;
+    showWindowChrome();
+  });
+
+  fixedPlayer.addEventListener("player-media-state-change", () => {
+    const isTouchLikeEnvironment = window.matchMedia?.(
+      "(hover: none), (pointer: coarse)"
+    )?.matches;
+    if (!isPlayerVisible() || !isTouchLikeEnvironment) return;
+    showWindowChrome();
+  });
+
   let observedPlayerVisible = isPlayerVisible();
   let observedCollapsed = isCollapsed();
   const observer = new MutationObserver(() => {
@@ -619,6 +649,8 @@
 
     observedPlayerVisible = playerVisible;
     observedCollapsed = collapsed;
+
+    if (!playerVisible || collapsed) isPlayerSurfaceHovered = false;
 
     if (visibilityChanged || collapsedChanged) {
       showMiniBarIfPlaying();

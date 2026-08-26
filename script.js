@@ -822,6 +822,13 @@ function renderPlayPauseButton(button, isPlaybackRequested) {
   setPlayerControlLabel(button, label);
 }
 
+function notifyPlayerMediaStateChange(platform, playerState) {
+  document.getElementById('fixedPlayer')?.dispatchEvent(new CustomEvent(
+    'player-media-state-change',
+    { detail: { platform, playerState } }
+  ));
+}
+
 function updatePlayPauseButton(playerState = null, sourcePlatform = null) {
   const btn = document.getElementById('playPauseBtn');
   if (!btn) return;
@@ -1359,6 +1366,7 @@ function tryInitYtPlayer() {
       onStateChange: (e) => {
         console.log('YouTube state:', e.data, 'repeatMode:', getRepeatMode(), 'randomMode:', isRandomModeEnabled());
         updatePlayPauseButton(e.data, 'youtube');
+        notifyPlayerMediaStateChange('youtube', e.data);
 
         if (e.data === YT.PlayerState.PLAYING) {
           refreshFullVersionPromptForCurrentVideo();
@@ -2012,6 +2020,7 @@ function handleTikTokPlayerMessage(event) {
 
     if (commandWasAccepted) clearPendingTikTokPlaybackCommand();
     updatePlayPauseButton(playerState, 'tiktok');
+    notifyPlayerMediaStateChange('tiktok', playerState);
   }
 }
 
@@ -2089,7 +2098,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
   if (!resizeHandle) return;
 
   const MOUSE_AXIS_ACTIVATION_THRESHOLD = 7;
-  const TOUCH_AXIS_ACTIVATION_THRESHOLD = 12;
+  const TOUCH_AXIS_ACTIVATION_THRESHOLD = 8;
   const KEYBOARD_MOVE_STEP = 24;
   const KEYBOARD_RESIZE_STEP = 20;
   let dragging = false;
