@@ -81,6 +81,12 @@ PC・モバイル・動画カードのタグを作るときに、選択・除外
 
 除外時のマイナス表示や色、読み上げ用ラベルを変えたいときは、このファイルと`scripts/filter-tag-view.test.mjs`を一緒に確認します。
 
+## filter-state.js
+
+include / excludeのタグ状態を非公開で保持し、PC・モバイル・動画カードへ共通の読み書きAPIを公開するファイルです。
+
+タグ状態を変更するときは古いグローバル変数を追加せず、`window.FilterState`のAPIと`scripts/filter-state.test.mjs`を一緒に確認します。
+
 ## playback-policy.js
 
 YouTube動画をすぐ再生するか、プレイヤー内の再生ボタンを待つかを決める小さな共通ファイルです。

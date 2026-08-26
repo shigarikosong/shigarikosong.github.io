@@ -139,7 +139,7 @@ Use `window.FilterState` as the shared entrance for reading and updating filter 
 - `getDisplayLabel(group, value)`: returns UI labels for internal values such as platform/date.
 - `normalizeValue(group, value)`: normalizes values such as platform/date before comparing state.
 
-Prefer these APIs over reading or updating legacy globals directly, unless the surrounding code has not migrated yet.
+Tag state is private to `filter-state.js`. Read and update it only through these APIs; do not add separate global selected-tag variables.
 
 ## 7. Data Attribute Rules
 
@@ -175,7 +175,7 @@ Platform values are normalized to lowercase internally:
 
 Spreadsheet / JSON platform display values should use official labels: `YouTube` and `TikTok`.
 
-Platform UI labels are centralized in `tag-config.js`; UI should display `YouTube` / `TikTok` while keeping filter values, `data-filter-value`, and `selectedPlatformTag` lowercase.
+Platform UI labels are centralized in `tag-config.js`; UI should display `YouTube` / `TikTok` while keeping `FilterState` values and `data-filter-value` lowercase.
 
 Time labels and internal values differ:
 

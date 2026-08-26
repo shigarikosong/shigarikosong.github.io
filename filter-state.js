@@ -1,7 +1,14 @@
 (() => {
-  // Thin compatibility layer over the existing global filter variables.
-  // Keep DOM rendering and filter matching in their current files while callers migrate here.
   const includeGroups = ["category", "platform", "date", "format", "role", "collab", "flag"];
+  const includeState = {
+    category: "",
+    platform: "",
+    date: "",
+    format: new Set(),
+    role: new Set(),
+    collab: new Set(),
+    flag: new Set()
+  };
   const excludedTags = Object.fromEntries(includeGroups.map(group => [group, new Set()]));
 
   function normalizeGroup(group) {
@@ -24,39 +31,15 @@
   }
 
   function getVideoTypeTags() {
-    return window.selectedVideoTypeTags instanceof Set
-      ? window.selectedVideoTypeTags
-      : new Set();
+    return includeState.format;
   }
 
   function getCollabIncludeTags() {
-    if (!(window.selectedCollabTags instanceof Set)) {
-      window.selectedCollabTags = new Set();
-
-      const legacyValue = normalizeValue("collab", window.selectedCollabTag);
-      if (legacyValue) window.selectedCollabTags.add(legacyValue);
-    }
-
-    return window.selectedCollabTags;
+    return includeState.collab;
   }
 
   function getRoleIncludeTags() {
-    if (!(window.selectedRoleTags instanceof Set)) {
-      window.selectedRoleTags = new Set();
-
-      const legacyValue = normalizeValue("role", window.selectedRoleTag);
-      if (legacyValue) window.selectedRoleTags.add(legacyValue);
-    }
-
-    return window.selectedRoleTags;
-  }
-
-  function syncLegacySelectedCollabTag() {
-    window.selectedCollabTag = [...getCollabIncludeTags()][0] || "";
-  }
-
-  function syncLegacySelectedRoleTag() {
-    window.selectedRoleTag = [...getRoleIncludeTags()][0] || "";
+    return includeState.role;
   }
 
   function getExcludeState() {
@@ -86,21 +69,18 @@
     const normalizedGroup = normalizeGroup(group);
     const normalizedValue = normalizeValue(normalizedGroup, value);
 
-    if (normalizedGroup === "category" && window.selectedCategoryTag === normalizedValue) {
-      window.selectedCategoryTag = "";
-    } else if (normalizedGroup === "platform" && window.selectedPlatformTag === normalizedValue) {
-      window.selectedPlatformTag = "";
-    } else if (normalizedGroup === "date" && window.selectedDateTag === normalizedValue) {
-      window.selectedDateTag = "";
+    if (normalizedGroup === "category" && includeState.category === normalizedValue) {
+      includeState.category = "";
+    } else if (normalizedGroup === "platform" && includeState.platform === normalizedValue) {
+      includeState.platform = "";
+    } else if (normalizedGroup === "date" && includeState.date === normalizedValue) {
+      includeState.date = "";
     } else if (normalizedGroup === "role") {
       getRoleIncludeTags().delete(normalizedValue);
-      syncLegacySelectedRoleTag();
     } else if (normalizedGroup === "collab") {
       getCollabIncludeTags().delete(normalizedValue);
-      syncLegacySelectedCollabTag();
     } else if (isFlagValue(normalizedGroup, normalizedValue)) {
-      if (normalizedValue === "3D") window.selected3DTag = null;
-      if (normalizedValue === "Shorts") window.selectedShortsTag = null;
+      includeState.flag.delete(normalizedValue);
     } else if (normalizedGroup === "format") {
       getVideoTypeTags().delete(normalizedValue);
     }
@@ -114,20 +94,17 @@
     removeExclude(normalizedGroup, normalizedValue);
 
     if (normalizedGroup === "category") {
-      window.selectedCategoryTag = normalizedValue;
+      includeState.category = normalizedValue;
     } else if (normalizedGroup === "platform") {
-      window.selectedPlatformTag = normalizedValue;
+      includeState.platform = normalizedValue;
     } else if (normalizedGroup === "date") {
-      window.selectedDateTag = normalizedValue;
+      includeState.date = normalizedValue;
     } else if (normalizedGroup === "role") {
       getRoleIncludeTags().add(normalizedValue);
-      syncLegacySelectedRoleTag();
     } else if (normalizedGroup === "collab") {
       getCollabIncludeTags().add(normalizedValue);
-      syncLegacySelectedCollabTag();
     } else if (isFlagValue(normalizedGroup, normalizedValue)) {
-      if (normalizedValue === "3D") window.selected3DTag = "include";
-      if (normalizedValue === "Shorts") window.selectedShortsTag = "include";
+      includeState.flag.add(normalizedValue);
     } else if (normalizedGroup === "format") {
       getVideoTypeTags().add(normalizedValue);
     }
@@ -156,16 +133,13 @@
       searchQuery: searchInput?.value || "",
       sortOrder: sortOrder?.value || "desc",
       include: {
-        category: window.selectedCategoryTag || "",
-        platform: window.selectedPlatformTag || "",
-        date: window.selectedDateTag || "",
+        category: includeState.category,
+        platform: includeState.platform,
+        date: includeState.date,
         format: [...getVideoTypeTags()],
         role: [...getRoleIncludeTags()],
         collab: [...getCollabIncludeTags()],
-        flag: [
-          window.selected3DTag === "include" ? "3D" : "",
-          window.selectedShortsTag === "include" ? "Shorts" : ""
-        ].filter(Boolean)
+        flag: ["3D", "Shorts"].filter(value => includeState.flag.has(value))
       },
       exclude: getExcludeState()
     };
@@ -175,38 +149,38 @@
     setSearchAndSort(partialState);
 
     const include = partialState.include || partialState;
-    if (Object.prototype.hasOwnProperty.call(include, "category")) window.selectedCategoryTag = include.category || "";
-    if (Object.prototype.hasOwnProperty.call(include, "platform")) window.selectedPlatformTag = include.platform || "";
-    if (Object.prototype.hasOwnProperty.call(include, "date")) window.selectedDateTag = include.date || "";
+    if (Object.prototype.hasOwnProperty.call(include, "category")) includeState.category = include.category || "";
+    if (Object.prototype.hasOwnProperty.call(include, "platform")) includeState.platform = include.platform || "";
+    if (Object.prototype.hasOwnProperty.call(include, "date")) includeState.date = include.date || "";
     if (Object.prototype.hasOwnProperty.call(include, "role")) {
       const roleValues = Array.isArray(include.role)
         ? include.role
         : [include.role].filter(Boolean);
-      window.selectedRoleTags = new Set(
-        roleValues
-          .map(value => normalizeValue("role", value))
-          .filter(Boolean)
-      );
-      syncLegacySelectedRoleTag();
+      includeState.role.clear();
+      roleValues
+        .map(value => normalizeValue("role", value))
+        .filter(Boolean)
+        .forEach(value => includeState.role.add(value));
     }
     if (Object.prototype.hasOwnProperty.call(include, "collab")) {
       const collabValues = Array.isArray(include.collab)
         ? include.collab
         : [include.collab].filter(Boolean);
-      window.selectedCollabTags = new Set(
-        collabValues
-          .map(value => normalizeValue("collab", value))
-          .filter(Boolean)
-      );
-      syncLegacySelectedCollabTag();
+      includeState.collab.clear();
+      collabValues
+        .map(value => normalizeValue("collab", value))
+        .filter(Boolean)
+        .forEach(value => includeState.collab.add(value));
     }
     if (Object.prototype.hasOwnProperty.call(include, "format")) {
-      window.selectedVideoTypeTags = new Set(include.format || []);
+      includeState.format.clear();
+      for (const value of include.format || []) includeState.format.add(value);
     }
     if (Object.prototype.hasOwnProperty.call(include, "flag")) {
-      const flags = new Set(include.flag || []);
-      window.selected3DTag = flags.has("3D") ? "include" : null;
-      window.selectedShortsTag = flags.has("Shorts") ? "include" : null;
+      includeState.flag.clear();
+      for (const value of include.flag || []) {
+        if (value === "3D" || value === "Shorts") includeState.flag.add(value);
+      }
     }
 
     if (partialState.exclude) {

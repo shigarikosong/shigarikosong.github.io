@@ -987,20 +987,10 @@ document.getElementById('modalSortOrder').value = "desc";
     var currentPlayingVideo = null;
     var playbackHistory = [];
     var isRestoringPlaybackHistory = false;
-    var selectedCategoryTag = "";
-    var selectedDateTag = "";
-    var selectedCollabTag = "";
-    var selectedCollabTags = new Set();
-    var selectedRoleTag = "";
-    var selectedRoleTags = new Set();
-    var selectedPlatformTag = "";
-    var selected3DTag = null;
-    var selectedShortsTag = null;
     const COLLAB_MEMBER_COMPACT_THRESHOLD = 5;
     let pendingListTagScrollVideoKey = null;
     let nowPlayingFloatingButton = null;
     let nowPlayingFloatingUpdateFrame = null;
-    var selectedVideoTypeTags = new Set();
 
 // ===== タグの表示・解除 =====
     function toggleTagState(state) {
