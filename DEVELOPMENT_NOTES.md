@@ -32,7 +32,7 @@
 
 ## 現在のフィルター構成
 
-- `filter-state.js` は `window.FilterState` として、include / exclude のタグ状態、アクティブチップ用データ、除外判定を持つ
+- `filter-state.js` はinclude / excludeのタグ状態を非公開領域で保持し、`window.FilterState`として読み書き・アクティブチップ用データ・除外判定のAPIを公開する
 - `filter-tag-view.js` は `FilterState` を読み、タグ生成時にinclude / exclude / noneの表示クラス・文言・アクセシブルネームを確定する
 - `search-utils.js` は検索文字列のAND / OR / 除外解析と、正規化済み動画テキストとの一致判定を持つ
 - `video-normalizer.js` はJSON行からタグ配列・platform・時刻・表示フラグ・検索用文字列などの内部フィールドを作る
@@ -56,20 +56,15 @@
 
 ## 触るときの注意
 
-以下の関数・変数はタグや表示に深く関係しているため、変更時は要注意。
+以下の関数・APIはタグや表示に深く関係しているため、変更時は要注意。
 
 - `applyFilters`
 - `renderVideoList`
 - `renderActiveTagChips`
 - `loadVideo`
-- `selectedCategoryTag`
-- `selectedDateTag`
-- `selectedCollabTags`（Collab includeの実体。`selectedCollabTag` は互換用）
-- `selectedRoleTags`（Riko Part includeの実体。`selectedRoleTag` は互換用）
-- `selectedPlatformTag`
-- `selected3DTag`
-- `selectedShortsTag`
-- `selectedVideoTypeTags`
+- `FilterState.getState()` / `setState()` / `resetState()`
+- `FilterState.toggleTag()` / `setTagState()`
+- `FilterState.filterExcludedVideos()`
 
 ## 補助スクリプトについて
 

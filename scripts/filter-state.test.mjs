@@ -33,20 +33,10 @@ function createFilterStateFixture(options = {}) {
       parseYmdToTime() {
         return Number.NaN;
       }
-    },
-    selectedCategoryTag: '',
-    selectedPlatformTag: '',
-    selectedDateTag: '',
-    selectedVideoTypeTags: new Set(),
-    selectedRoleTags: new Set(),
-    selectedCollabTags: new Set(),
-    selectedRoleTag: '',
-    selectedCollabTag: '',
-    selected3DTag: null,
-    selectedShortsTag: null
+    }
   });
 
-  return { filterState: context.FilterState, elements };
+  return { context, filterState: context.FilterState, elements };
 }
 
 test('タグは未選択からinclude、exclude、未選択へ循環する', () => {
@@ -140,4 +130,43 @@ test('リセットはタグ条件を消し、指定に応じて検索語と並�
   assert.equal(state.sortOrder, 'desc');
   assert.equal(elements.modalSearchInput.value, '');
   assert.equal(elements.modalSortOrder.value, 'desc');
+});
+
+test('include状態を古いグローバル変数へ公開しない', () => {
+  const { context, filterState } = createFilterStateFixture();
+  const legacyNames = [
+    'selectedCategoryTag',
+    'selectedPlatformTag',
+    'selectedDateTag',
+    'selectedVideoTypeTags',
+    'selectedRoleTags',
+    'selectedCollabTags',
+    'selectedRoleTag',
+    'selectedCollabTag',
+    'selected3DTag',
+    'selectedShortsTag'
+  ];
+
+  filterState.setState({
+    include: {
+      category: 'コラボ',
+      platform: 'youtube',
+      date: 'recent',
+      format: ['歌枠'],
+      role: ['VOCAL'],
+      collab: ['倉持めると'],
+      flag: ['3D']
+    }
+  });
+
+  assert.ok(legacyNames.every(name => !Object.prototype.hasOwnProperty.call(context, name)));
+  assert.deepEqual(toPlain(filterState.getState().include), {
+    category: 'コラボ',
+    platform: 'youtube',
+    date: 'recent',
+    format: ['歌枠'],
+    role: ['VOCAL'],
+    collab: ['倉持めると'],
+    flag: ['3D']
+  });
 });
