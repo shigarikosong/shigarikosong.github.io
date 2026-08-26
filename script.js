@@ -2406,147 +2406,112 @@ function isMobileFilterContainer(container) {
   return container?.id?.startsWith("modal");
 }
 
-function applyDesktopFilterTagClick(group, value, renderUpdatedTags) {
+function getFilterTagContainers(containerIds) {
+  return containerIds
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+}
+
+function applyFilterTagButtonClick(container, group, value, options = {}) {
+  const { isActive = false, renderUpdatedTags } = options;
+  const isDesktop = isDesktopFilterContainer(container);
+  const isMobile = isMobileFilterContainer(container);
+
+  if (!isDesktop && !isMobile) {
+    window.FilterState.setTagState(group, value, isActive ? "none" : "include");
+    if (typeof renderUpdatedTags === "function") renderUpdatedTags();
+    applyFilters();
+    return;
+  }
+
   window.FilterState.toggleTag(group, value);
   if (typeof renderUpdatedTags === "function") renderUpdatedTags();
   applyFilters({ scrollAfterUpdate: false });
-  window.dispatchEvent(new CustomEvent("tagFilterStateChanged"));
+
+  const eventOptions = isMobile
+    ? { detail: { source: "mobile-filter-modal" } }
+    : undefined;
+  window.dispatchEvent(new CustomEvent("tagFilterStateChanged", eventOptions));
 }
 
-function applyMobileFilterTagClick(group, value, renderUpdatedTags) {
-  window.FilterState.toggleTag(group, value);
-  if (typeof renderUpdatedTags === "function") renderUpdatedTags();
-  applyFilters({ scrollAfterUpdate: false });
-  window.dispatchEvent(new CustomEvent("tagFilterStateChanged", {
-    detail: { source: "mobile-filter-modal" }
-  }));
-}
+function renderFilterTagButtons(options) {
+  const {
+    containerIds,
+    items,
+    group,
+    tagKind,
+    renderUpdatedTags,
+    beforeClick
+  } = options;
 
-function renderPlatformTags() {
-  const containers = [
-    document.getElementById('modalPlatformTags'),
-    document.getElementById('desktopPlatformTags')
-  ].filter(Boolean);
-
-  containers.forEach(container => {
+  getFilterTagContainers(containerIds).forEach(container => {
     container.innerHTML = '';
 
-    window.TAG_CONFIG.platformValues.forEach(p => {
-      const btn = document.createElement('button');
-      const presentation = window.FilterTagView.getPresentation("platform", p, getPlatformLabel(p));
-      const isActive = presentation.state === "include";
+    items.forEach(item => {
+      const button = document.createElement('button');
+      const presentation = window.FilterTagView.getPresentation(
+        group,
+        item.value,
+        item.label
+      );
 
-      btn.className = getTagButtonClass("tag-platform", false, { size: "tag-sm" });
-      window.FilterTagView.applyButton(btn, presentation);
-
-      btn.onclick = () => {
-        if (isDesktopFilterContainer(container)) {
-          applyDesktopFilterTagClick("platform", p, renderPlatformTags);
-          return;
-        }
-
-        if (isMobileFilterContainer(container)) {
-          applyMobileFilterTagClick("platform", p, renderPlatformTags);
-          return;
-        }
-
-        window.FilterState.setTagState("platform", p, isActive ? "none" : "include");
-        renderPlatformTags();
-        applyFilters();
+      button.className = getTagButtonClass(tagKind, false, { size: "tag-sm" });
+      window.FilterTagView.applyButton(button, presentation);
+      button.onclick = () => {
+        if (typeof beforeClick === "function") beforeClick();
+        applyFilterTagButtonClick(container, group, item.value, {
+          isActive: presentation.state === "include",
+          renderUpdatedTags
+        });
       };
 
-      container.appendChild(btn);
+      container.appendChild(button);
     });
   });
 }
 
-    function renderCategoryTags(categories = []) {
-  const containers = [
-    document.getElementById('modalCategoryTags'),
-    document.getElementById('desktopCategoryTags')
-  ].filter(Boolean);
+function renderPlatformTags() {
+  renderFilterTagButtons({
+    containerIds: ['modalPlatformTags', 'desktopPlatformTags'],
+    items: window.TAG_CONFIG.platformValues.map(value => ({
+      value,
+      label: getPlatformLabel(value)
+    })),
+    group: 'platform',
+    tagKind: 'tag-platform',
+    renderUpdatedTags: renderPlatformTags
+  });
+}
 
-  containers.forEach(container => {
-    container.innerHTML = '';
-
-    categories.forEach(category => {
-      const btn = document.createElement('button');
-      const presentation = window.FilterTagView.getPresentation("category", category, category);
-      const isActive = presentation.state === "include";
-
-      btn.className = getTagButtonClass("tag-style", false, { size: "tag-sm" });
-      window.FilterTagView.applyButton(btn, presentation);
-
-      btn.onclick = () => {
+function renderCategoryTags(categories = []) {
+  renderFilterTagButtons({
+    containerIds: ['modalCategoryTags', 'desktopCategoryTags'],
+    items: categories.map(value => ({ value, label: value })),
+    group: 'category',
+    tagKind: 'tag-style',
+    renderUpdatedTags: () => renderCategoryTags(categories),
+    beforeClick: () => {
         const modalCategoryFilter = document.getElementById('modalCategoryFilter');
         if (modalCategoryFilter) modalCategoryFilter.value = "";
-
-        if (isDesktopFilterContainer(container)) {
-          applyDesktopFilterTagClick("category", category, () => renderCategoryTags(categories));
-          return;
-        }
-
-        if (isMobileFilterContainer(container)) {
-          applyMobileFilterTagClick("category", category, () => renderCategoryTags(categories));
-          return;
-        }
-
-        window.FilterState.setTagState("category", category, isActive ? "none" : "include");
-
-        renderCategoryTags(categories);
-        applyFilters();
-      };
-
-      container.appendChild(btn);
-    });
+    }
   });
 }
 
 function renderDateTags() {
-  const containers = [
-    document.getElementById('modalDateTags'),
-    document.getElementById('desktopDateTags')
-  ].filter(Boolean);
-
-  const options = [
-    { label: "最近", value: "recent" },
-    { label: "1年以内", value: "year" },
-    { label: "1年以上前", value: "old" }
-  ];
-
-  containers.forEach(container => {
-    container.innerHTML = '';
-
-    options.forEach(opt => {
-      const btn = document.createElement('button');
-      const presentation = window.FilterTagView.getPresentation("date", opt.value, opt.label);
-      const isActive = presentation.state === "include";
-
-      btn.className = getTagButtonClass("tag-time", false, { size: "tag-sm" });
-      window.FilterTagView.applyButton(btn, presentation);
-
-      btn.onclick = () => {
+  renderFilterTagButtons({
+    containerIds: ['modalDateTags', 'desktopDateTags'],
+    items: [
+      { label: "最近", value: "recent" },
+      { label: "1年以内", value: "year" },
+      { label: "1年以上前", value: "old" }
+    ],
+    group: 'date',
+    tagKind: 'tag-time',
+    renderUpdatedTags: renderDateTags,
+    beforeClick: () => {
         const modalDate = document.getElementById('modalDateFilter');
         if (modalDate) modalDate.value = "";
-
-        if (isDesktopFilterContainer(container)) {
-          applyDesktopFilterTagClick("date", opt.value, renderDateTags);
-          return;
-        }
-
-        if (isMobileFilterContainer(container)) {
-          applyMobileFilterTagClick("date", opt.value, renderDateTags);
-          return;
-        }
-
-        window.FilterState.setTagState("date", opt.value, isActive ? "none" : "include");
-
-        renderDateTags();
-        applyFilters();
-      };
-
-      container.appendChild(btn);
-    });
+    }
   });
 }
 
