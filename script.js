@@ -1509,20 +1509,13 @@ const nowPlayingFloatingMutationObserver = new MutationObserver(scheduleNowPlayi
 const PLAYER_HEIGHT_KEY = 'playerHeightPx';
 const PLAYER_SIZE_PREFERENCE_KEY = 'playerSizePreference';
 const PLAYER_HORIZONTAL_POSITION_KEY = 'playerHorizontalPosition';
-const DEFAULT_PLAYER_H = 360;
 const DEFAULT_PLAYER_HORIZONTAL_POSITION = 1;
-const MIN_LANDSCAPE_PLAYER_H = 200;
-const MIN_EMBED_VIEWPORT = 200;
-const MIN_PLAYER_SIZE_PREFERENCE = MIN_EMBED_VIEWPORT / (16 / 9);
 const COMPACT_PLAYER_ACTIONS_MAX_WIDTH = 300;
-const PLAYER_LAYOUT_LANDSCAPE = 'landscape';
-const PLAYER_LAYOUT_SHORTS = 'shorts';
-const PLAYER_LAYOUT_TIKTOK = 'tiktok';
-const PLAYER_ASPECT_RATIOS = Object.freeze({
-  [PLAYER_LAYOUT_LANDSCAPE]: 16 / 9,
-  [PLAYER_LAYOUT_SHORTS]: 9 / 16,
-  [PLAYER_LAYOUT_TIKTOK]: 9 / 16
-});
+const {
+  LAYOUT_LANDSCAPE: PLAYER_LAYOUT_LANDSCAPE,
+  LAYOUT_TIKTOK: PLAYER_LAYOUT_TIKTOK,
+  DEFAULT_SIZE_PREFERENCE: DEFAULT_PLAYER_H
+} = window.PlayerSizePolicy;
 let activePlayerLayout = PLAYER_LAYOUT_LANDSCAPE;
 let playerHorizontalPosition = readStoredPlayerHorizontalPosition();
 let playerSizePreference = readStoredPlayerSizePreference();
@@ -1541,9 +1534,7 @@ function readStoredPlayerHorizontalPosition() {
 }
 
 function clampPlayerSizePreference(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return DEFAULT_PLAYER_H;
-  return Math.max(MIN_PLAYER_SIZE_PREFERENCE, number);
+  return window.PlayerSizePolicy.clampSizePreference(value);
 }
 
 function readStoredPlayerSizePreference() {
@@ -1568,20 +1559,17 @@ function persistPlayerSizePreference() {
 }
 
 function getPlayerLayoutForVideo(video) {
-  if (isTikTokVideo(video)) return PLAYER_LAYOUT_TIKTOK;
-  if (video?._playerAspect === "9:16") return PLAYER_LAYOUT_SHORTS;
-  if (video?._playerAspect === "16:9") return PLAYER_LAYOUT_LANDSCAPE;
-  return video?._isShorts ? PLAYER_LAYOUT_SHORTS : PLAYER_LAYOUT_LANDSCAPE;
+  return window.PlayerSizePolicy.resolveLayout({
+    isTikTok: isTikTokVideo(video),
+    playerAspect: video?._playerAspect,
+    isShorts: video?._isShorts
+  });
 }
 
 function setPlayerLayoutForVideo(video) {
   activePlayerLayout = getPlayerLayoutForVideo(video);
   playerStage?.setAttribute('data-player-layout', activePlayerLayout);
   playerStageDock?.setAttribute('data-player-layout', activePlayerLayout);
-}
-
-function getPlayerAspectRatio(layout = activePlayerLayout) {
-  return PLAYER_ASPECT_RATIOS[layout] || PLAYER_ASPECT_RATIOS[PLAYER_LAYOUT_LANDSCAPE];
 }
 
 function getViewportSize() {
@@ -1675,70 +1663,12 @@ function setPlayerHorizontalOffset(offset, options = {}) {
   return applyPlayerHorizontalPosition(options);
 }
 
-function getPreferredMinimumHeight(layout = activePlayerLayout) {
-  if (layout === PLAYER_LAYOUT_LANDSCAPE) return MIN_LANDSCAPE_PLAYER_H;
-  return Math.ceil(MIN_EMBED_VIEWPORT / getPlayerAspectRatio(layout));
-}
-
 function calculatePlayerSize(preferredSize, layout = activePlayerLayout) {
-  const available = getAvailablePlayerSize();
-  const ratio = getPlayerAspectRatio(layout);
-  const requestedSize = clampPlayerSizePreference(preferredSize);
-  const preferredMinimumHeight = getPreferredMinimumHeight(layout);
-  const maxRatioHeight = Math.min(available.height, available.width / ratio);
-  const useCompactVerticalSize = (
-    ratio < 1 &&
-    requestedSize < preferredMinimumHeight &&
-    available.width >= MIN_EMBED_VIEWPORT &&
-    available.height >= MIN_EMBED_VIEWPORT
+  return window.PlayerSizePolicy.calculateSize(
+    preferredSize,
+    layout,
+    getAvailablePlayerSize()
   );
-  const useCompactLandscapeSize = (
-    ratio >= 1 &&
-    requestedSize < preferredMinimumHeight &&
-    available.width >= MIN_EMBED_VIEWPORT &&
-    available.height >= MIN_EMBED_VIEWPORT
-  );
-  let width;
-  let height;
-
-  if (useCompactVerticalSize) {
-    height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedSize));
-    width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, height * ratio));
-  } else if (useCompactLandscapeSize) {
-    height = Math.min(available.height, MIN_EMBED_VIEWPORT);
-    width = Math.min(
-      available.width,
-      Math.max(MIN_EMBED_VIEWPORT, requestedSize * ratio)
-    );
-  } else if (maxRatioHeight >= preferredMinimumHeight) {
-    height = Math.max(preferredMinimumHeight, Math.min(requestedSize, maxRatioHeight));
-    width = height * ratio;
-  } else if (available.width >= MIN_EMBED_VIEWPORT && available.height >= MIN_EMBED_VIEWPORT) {
-    if (ratio < 1) {
-      height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, requestedSize));
-      width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, height * ratio));
-    } else {
-      width = Math.min(available.width, Math.max(MIN_EMBED_VIEWPORT, requestedSize * ratio));
-      height = Math.min(available.height, Math.max(MIN_EMBED_VIEWPORT, width / ratio));
-    }
-  } else if (available.width < MIN_EMBED_VIEWPORT) {
-    width = available.width;
-    height = Math.min(
-      available.height,
-      Math.max(Math.min(MIN_EMBED_VIEWPORT, available.height), width / ratio)
-    );
-  } else {
-    height = available.height;
-    width = Math.min(
-      available.width,
-      Math.max(Math.min(MIN_EMBED_VIEWPORT, available.width), height * ratio)
-    );
-  }
-
-  return {
-    width: Math.max(1, Math.round(width)),
-    height: Math.max(1, Math.round(height))
-  };
 }
 
 function getYouTubeIframeElement() {

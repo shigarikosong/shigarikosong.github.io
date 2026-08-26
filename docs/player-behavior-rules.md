@@ -298,6 +298,8 @@ YouTube viewports should remain at least 200 x 200 pixels when space permits. Fo
 
 Calculate the final width and height from both the available viewport height and the fixed-player content width. Recalculate on window resize, `orientationchange`, and `visualViewport` resize without changing playback state.
 
+Keep the layout choice and final size calculation in `player-size-policy.js`. DOM measurement, localStorage persistence, stage positioning, iframe sizing, and drag interaction remain in `script.js`.
+
 Keep YouTube, TikTok, iframe, frame wrapper, and stage dimensions aligned. When the YouTube IFrame API is ready, keep `ytPlayer.setSize(width, height)` synchronized with the wrapper.
 
 The shared player handle activates horizontal and vertical movement independently after a small per-axis threshold. Vertical dragging changes the saved size preference; horizontal dragging changes its horizontal position. When both axes exceed their thresholds during the same gesture, resize and horizontal movement together without requiring the user to release the handle. Show the horizontal arrows only while the handle is active. Save horizontal placement as a normalized left-to-right value and clamp it after media-size, viewport, or orientation changes. Place the visible grip toward the left side of the player. On fine-pointer devices, let the full player top edge start the same drag operation without stretching the visible grip itself.
