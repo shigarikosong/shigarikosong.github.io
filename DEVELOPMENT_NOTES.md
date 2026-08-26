@@ -45,7 +45,7 @@
 - `renderVideoList()` は `script.js` が持ち、一覧差し替えと描画後処理を担当する。カード内の再生・検索・メタ情報・通常タグ・コラボタグは同ファイルの名前付き生成関数で組み立て、補助スクリプトから上書きしない
 - 動画JSONとmeta JSONは`script.js`の専用読み込み関数で取得・確認し、`loading-status.js`は状態表示とページトップボタンだけを担当する
 - `loading-status.js`から`window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしない
-- `renderActiveTagChips()` は include と exclude の両方を表示する。exclude は `- Shorts` のように表示する
+- `renderActiveTagChips()` は include と exclude の両方を表示し、検索語・タグ条件のチップ生成と解除は同ファイルの名前付き関数へ分ける。Timeなど特定チップだけの別クリック監視を追加しない
 - ランダム再生、Next / Previous、全曲リピート時の対象は `currentFilteredVideos` を基準にする
 - リスト内タグの3状態クリックは `script.js` の `handleListTagClick()` が担当する
 - 動画カード内の再生は左側の再生ボタンが担当する。曲名・アーティスト名は検索語の置き換えに使う

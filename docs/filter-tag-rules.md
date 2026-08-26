@@ -72,6 +72,7 @@ Clicking a chip should clear only that condition:
 - Video card metadata rendering, including `waku_name`
 - Collab member compact rows and their `+N` / `-` disclosure controls
 - `renderActiveTagChips()`
+- Builds search and filter chips through named helpers and routes each filter-chip removal through `clearActiveFilterChip()`. Do not add a second delegated click path for a specific chip source.
 - Three-state click handling for tags inside the video list
 - Player, random playback, repeat mode, and related playback behavior
 - Calls `SearchUtils.parseSearchQuery()` once per `applyFilters()` call, then reuses the parsed expression for every video match.
