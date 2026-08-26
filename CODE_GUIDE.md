@@ -69,6 +69,12 @@
 
 検索演算子のルールを変えたいときは、このファイルと`scripts/search-utils.test.mjs`を一緒に確認します。
 
+## video-query.js
+
+正規化済み動画へ検索・include条件・並び順を適用し、一覧へ渡す候補を作る共通ファイルです。
+
+Collab / Riko PartのOR条件、FormatのAND条件、日付や並び順を変更するときは、このファイルと`scripts/video-query.test.mjs`を一緒に確認します。除外条件は`filter-state.js`が担当します。
+
 ## filter-tag-view.js
 
 PC・モバイル・動画カードのタグを作るときに、選択・除外状態のクラスと表示を決める小さな共通ファイルです。
