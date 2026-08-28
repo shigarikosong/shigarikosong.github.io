@@ -2,7 +2,7 @@
 
 このサイトは、司賀りこさんの歌ってみた・踊ってみた・歌枠などを探しやすくまとめた非公式ファンアーカイブです。
 
-開発者向けメモ: [フィルタータグ仕様](docs/filter-tag-rules.md) / [プレイヤー挙動仕様](docs/player-behavior-rules.md) / [手動チェックリスト](docs/manual-checklist.md)
+開発者向けメモ: [フィルタータグ仕様](docs/filter-tag-rules.md) / [プレイヤー挙動仕様](docs/player-behavior-rules.md) / [手動チェックリスト](docs/manual-checklist.md) / [動画収録状況の自動確認](docs/content-coverage-monitor.md)
 
 タグ定義・表示順は `tag-config.js` を正本とします。
 
@@ -68,6 +68,18 @@ pnpm run validate:data
 ```
 
 固定IDの重複、`full_number`の参照切れ、必須項目、動画ID、時刻範囲、日付、`player_aspect`などを確認します。JSON自動更新Workflowでも、取得データをリポジトリへ反映する前に同じ検査を実行します。
+
+## 動画収録状況の自動確認
+
+司賀りこWikiと`data/videos.json`を週1回照合し、候補の有無にかかわらずGitHubの監視Issueへ結果を記録します。
+
+ローカルでは次のコマンドで同じ照合を実行できます。
+
+```sh
+pnpm run audit:content
+```
+
+対象外動画や初回確認時点の基準は`data/content-coverage-rules.json`で管理します。詳しい運用は[動画収録状況の自動確認](docs/content-coverage-monitor.md)を確認してください。
 
 ## 自動テスト
 
