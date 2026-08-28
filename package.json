@@ -4,6 +4,7 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "build:css": "tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify",
+    "audit:content": "node scripts/content-coverage-audit.mjs",
     "validate:data": "node scripts/validate-video-data.mjs",
     "test": "node --test scripts/*.test.mjs",
     "test:data-validation": "node --test scripts/validate-video-data.test.mjs",
