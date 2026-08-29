@@ -67,7 +67,7 @@ pnpm run build:css
 pnpm run validate:data
 ```
 
-固定IDの重複、`full_number`の参照切れ、必須項目、動画ID、時刻範囲、日付、`player_aspect`などを確認します。JSON自動更新Workflowでも、取得データをリポジトリへ反映する前に同じ検査を実行します。
+固定IDの重複、`full_number`の参照切れ、曲名・アーティスト名を含む必須項目、動画ID、時刻範囲、日付、`player_aspect`などを確認します。JSON自動更新Workflowでも、取得データをリポジトリへ反映する前に同じ検査を実行します。
 
 ## 動画収録状況の自動確認
 

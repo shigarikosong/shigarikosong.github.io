@@ -123,6 +123,7 @@ PC・モバイル・動画カードのタグを追加するときは、`FilterTa
 - `scripts/validate-video-data.mjs`は`data/videos.json`と`data/meta.json`の公開前検査を担当する
 - ローカルでは`pnpm run validate:data`で実行する
 - JSON自動更新Workflowは一時ファイルを検査し、成功した場合だけ`data/`へコピーする
+- `title`と`artist`は空白だけの場合も含めて必須とし、空欄可能な項目は一律に必須化しない
 - Format、Riko Part、Collabの値は追加を妨げないため固定リスト検査をせず、必須項目・固定ID・参照・再生元・時刻・日付など、壊れたデータだけをエラーにする
 
 ## 動画収録状況の自動確認
