@@ -34,6 +34,22 @@ test("現在の基本スキーマを受け入れる", () => {
   assert.deepEqual(result.errors, []);
 });
 
+test("曲名とアーティストの空欄・空白だけを検出する", () => {
+  const videos = [
+    createVideo({ title: "   " }),
+    createVideo({
+      number: "2",
+      title: "別の楽曲",
+      artist: "\t",
+      videoId: "M7lc1UVf-VE"
+    })
+  ];
+  const result = validateVideoData(videos, validMeta);
+
+  assert(result.errors.some(error => error.includes("title は必須")));
+  assert(result.errors.some(error => error.includes("artist は必須")));
+});
+
 test("YouTube URLとTikTok URLを受け入れる", () => {
   const videos = [
     createVideo({ videoId: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }),

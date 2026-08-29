@@ -130,6 +130,7 @@ export function validateVideoData(videos, metaRows) {
 
       const number = toText(row.number);
       const title = toText(row.title);
+      const artist = toText(row.artist);
       const videoId = toText(row.videoId);
       const platform = toText(row.platform);
       const category = toText(row["カテゴリ"]);
@@ -152,6 +153,7 @@ export function validateVideoData(videos, metaRows) {
       }
 
       if (!title) errors.push(`${label}: title は必須です`);
+      if (!artist) errors.push(`${label}: artist は必須です`);
       if (!videoId) errors.push(`${label}: videoId は必須です`);
 
       if (!SUPPORTED_PLATFORMS.has(platform)) {
