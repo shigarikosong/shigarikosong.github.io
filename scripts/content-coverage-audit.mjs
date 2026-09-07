@@ -328,6 +328,43 @@ export function extractReportedKeys(text) {
   return keys;
 }
 
+function normalizeIssueDecisionKey(value) {
+  const rawValue = String(value || "").trim();
+  const separatorIndex = rawValue.indexOf(":");
+  if (separatorIndex <= 0) return "";
+
+  const platform = rawValue.slice(0, separatorIndex).toLowerCase();
+  if (platform !== "youtube" && platform !== "tiktok") return "";
+
+  const media = parseMediaReference(
+    rawValue.slice(separatorIndex + 1),
+    platform,
+  );
+  if (!media || media.platform !== platform) return "";
+  return mediaKey(media.platform, media.id);
+}
+
+export function extractIssueIgnoredKeys(text) {
+  const ignoredKeys = new Set();
+  const commandPattern = /^\/(ignore|unignore)\s+(\S+)(?:\s+.*)?$/i;
+
+  for (const line of String(text || "").split(/\r?\n/)) {
+    const match = line.trim().match(commandPattern);
+    if (!match) continue;
+
+    const key = normalizeIssueDecisionKey(match[2]);
+    if (!key) continue;
+
+    if (match[1].toLowerCase() === "ignore") {
+      ignoredKeys.add(key);
+    } else {
+      ignoredKeys.delete(key);
+    }
+  }
+
+  return ignoredKeys;
+}
+
 export function findCoverageCandidates({
   coverage,
   discovery,
@@ -420,6 +457,7 @@ function candidateLines(candidate) {
     `- [${candidate.title}](${candidate.url})`,
     `  - ${platformLabel(candidate.platform)} ID: \`${candidate.id}\``,
     `  - 検出: ${laneText}（${sourceText}）`,
+    `  - 対象外にする場合: \`/ignore ${candidate.key}\`（後ろに理由を追記できます）`,
     `  <!-- content-audit-id:${candidate.key} -->`,
   ];
 }
@@ -434,6 +472,7 @@ export function createMarkdownReport(result) {
     `- Wiki「投稿動画」: ${result.sourceCounts.wikiEditedVideos}件`,
     `- Wiki「歌唱まとめ」: ${result.sourceCounts.songSummary}件`,
     `- サイト登録済み動画ID: ${result.registeredCount}件`,
+    `- Issueコメントによる対象外指定: ${result.issueIgnoredCount || 0}件`,
     `- 新しい未登録候補: **${result.newCandidates.length}件**`,
     `- 既報の未登録候補: ${result.knownCandidates.length}件`,
     "",
@@ -458,7 +497,8 @@ export function createMarkdownReport(result) {
   }
 
   lines.push(
-    "候補は自動追加されません。内容を確認し、追加または対象外を判断してください。",
+    "候補は自動追加されません。対象外にする場合は、候補に表示された `/ignore platform:ID` をこのIssueへコメントしてください。",
+    "対象外指定を取り消す場合は、同じIDを `/unignore platform:ID` としてコメントしてください。",
     "",
   );
 
@@ -505,6 +545,7 @@ function parseArguments(argv) {
     mainHtml: "",
     songSummaryHtml: "",
     reportedFile: "",
+    decisionsFile: "",
     jsonOutput: "",
     markdownOutput: "",
   };
@@ -515,6 +556,7 @@ function parseArguments(argv) {
     ["--main-html", "mainHtml"],
     ["--song-summary-html", "songSummaryHtml"],
     ["--reported-file", "reportedFile"],
+    ["--decisions-file", "decisionsFile"],
     ["--json-output", "jsonOutput"],
     ["--markdown-output", "markdownOutput"],
   ]);
@@ -551,7 +593,12 @@ export async function runAudit(options) {
 
   const sources = extractWikiSources(mainHtml, songSummaryHtml);
   const registeredKeys = getRegisteredMediaKeys(videos);
-  const ignoredKeys = getRuleKeySet(rules.ignored);
+  const ruleIgnoredKeys = getRuleKeySet(rules.ignored);
+  const decisionsText = options.decisionsFile
+    ? fs.readFileSync(options.decisionsFile, "utf8")
+    : "";
+  const issueIgnoredKeys = extractIssueIgnoredKeys(decisionsText);
+  const ignoredKeys = new Set([...ruleIgnoredKeys, ...issueIgnoredKeys]);
   const discoveryBaselineKeys = getRuleKeySet(
     rules.editedVideosBaseline?.ids,
   );
@@ -572,6 +619,7 @@ export async function runAudit(options) {
     checkedAt: formatCheckedAt(new Date()),
     sourceCounts: sources.counts,
     registeredCount: registeredKeys.size,
+    issueIgnoredCount: issueIgnoredKeys.size,
     newCandidates: newCandidates.map(serializableCandidate),
     knownCandidates: knownCandidates.map(serializableCandidate),
   };

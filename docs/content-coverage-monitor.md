@@ -47,7 +47,27 @@ Wikiにあり、サイト未登録かつ対象外指定もない動画を候補�
 
 ### 収録対象外の場合
 
-`data/content-coverage-rules.json`の`ignored`へ、platform付き動画IDと理由を追加します。
+監視Issueへ、候補に表示されたコマンドをコメントします。理由は省略できますが、後から判断を確認できるよう末尾へ残すことを推奨します。
+
+```text
+/ignore youtube:VIDEO_ID 収録対象外とした理由
+```
+
+TikTokは次の形式です。
+
+```text
+/ignore tiktok:POST_ID 投稿が非公開
+```
+
+対象外指定を取り消す場合は、同じIDを`/unignore`でコメントします。
+
+```text
+/unignore youtube:VIDEO_ID
+```
+
+コマンドは上から順に処理されるため、後から書いた`/unignore`でIssueコメント由来の指定を解除できます。第三者のコメントで候補が消えないよう、Owner・Member・Collaboratorのコメントだけを判断に使用します。
+
+既存の判断記録やコード上で固定したい例外は、引き続き`data/content-coverage-rules.json`の`ignored`でも管理できます。
 
 例：
 
@@ -58,7 +78,7 @@ Wikiにあり、サイト未登録かつ対象外指定もない動画を候補�
 }
 ```
 
-TikTokは次の形式です。
+TikTokの例：
 
 ```json
 {
@@ -67,7 +87,9 @@ TikTokは次の形式です。
 }
 ```
 
-`editedVideosBaseline.ids`は初回確認時点を表すため、通常の運用では追加・更新しません。新しい候補を単にbaselineへ足すと、判断記録が分からなくなるため、登録または`ignored`のどちらかで扱います。
+`data/content-coverage-rules.json`にある対象外指定は`/unignore`では解除されません。必要な場合はJSON側を変更してください。
+
+`editedVideosBaseline.ids`は初回確認時点を表すため、通常の運用では追加・更新しません。新しい候補を単にbaselineへ足すと、判断記録が分からなくなるため、登録または対象外指定のどちらかで扱います。
 
 ## ローカル実行
 
@@ -79,6 +101,8 @@ pnpm run audit:content
 
 監査スクリプトはサイトデータを変更しません。確認結果を標準出力へ表示するだけです。
 
+このローカルコマンドはGitHub Issueへ接続しないため、Issueコメント由来の対象外指定は読み込みません。定期Workflowでは、信頼できるコメント本文を`--decisions-file`で監査スクリプトへ渡します。
+
 ## 安全策
 
 - Wiki取得はタイムアウト付きで最大3回試行する
@@ -86,6 +110,7 @@ pnpm run audit:content
 - 抽出件数が想定最低数を下回る場合は失敗する
 - 失敗を「候補なし」として扱わない
 - 候補をスプレッドシートやJSONへ自動追加しない
+- Issueの対象外コマンドは、リポジトリ管理に関われる利用者のコメントだけを受け付ける
 - Workflowは標準Linux runnerを使い、実行上限を5分とする
 - artifactやcacheは保存しない
 

@@ -54,6 +54,8 @@ jobs:
               '' \
               '- 候補がない場合も実行完了を記録します。' \
               '- 候補は自動でサイトへ追加されません。' \
+              '- 対象外にする場合は、結果に表示された `/ignore platform:ID` をコメントしてください。' \
+              '- 対象外指定の取り消しは `/unignore platform:ID` です。' \
               '- Wiki取得や解析に失敗した場合も、このIssueへ失敗を記録します。' \
               '' \
               'GitHub通知を受け取るには、このIssueをSubscribeしてください。' \
@@ -78,6 +80,11 @@ jobs:
             --jq '.[].body' \
             > content-coverage-reported.txt
 
+          gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/issues/$issue_number/comments?per_page=100" \
+            --jq '.[] | select(.author_association == "OWNER" or .author_association == "MEMBER" or .author_association == "COLLABORATOR") | .body' \
+            > content-coverage-decisions.txt
+
       - name: Audit content coverage
         id: audit
         continue-on-error: true
@@ -86,6 +93,7 @@ jobs:
 
           node scripts/content-coverage-audit.mjs \
             --reported-file content-coverage-reported.txt \
+            --decisions-file content-coverage-decisions.txt \
             --json-output content-coverage-result.json \
             --markdown-output content-coverage-report.md \
             2>&1 | tee content-coverage-audit.log

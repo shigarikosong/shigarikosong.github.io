@@ -5,6 +5,7 @@ import {
   choosePreferredMediaTitle,
   createMarkdownReport,
   extractEditedVideosSection,
+  extractIssueIgnoredKeys,
   extractMediaLinks,
   extractNamedSection,
   extractReportedKeys,
@@ -168,6 +169,22 @@ test("registered and reported IDs are normalized from site data and Issue commen
   ]);
 });
 
+test("trusted Issue comments apply ignore and unignore commands in order", () => {
+  const ignored = extractIssueIgnoredKeys(`
+    /ignore youtube:D4_NuzFsO6s 通常の切り抜き
+    /ignore tiktok:7463017926623333653
+    /unignore youtube:D4_NuzFsO6s
+    /IGNORE YOUTUBE:25kxmWP378w reason
+    /ignore youtube:not-a-video-id
+    quoted /ignore youtube:87T794_WY_w
+  `);
+
+  assert.deepEqual([...ignored], [
+    "tiktok:7463017926623333653",
+    "youtube:25kxmWP378w",
+  ]);
+});
+
 test("Markdown report always records a successful no-candidate run", () => {
   const markdown = createMarkdownReport({
     checkedAt: "2026-08-28 10:23",
@@ -213,4 +230,5 @@ test("Markdown report renders serialized candidates and keeps their report marke
     markdown,
     /<!-- content-audit-id:youtube:25kxmWP378w -->/,
   );
+  assert.match(markdown, /\/ignore youtube:25kxmWP378w/);
 });
