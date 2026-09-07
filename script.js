@@ -1029,7 +1029,7 @@ function clearDateTag(options = {}) {
 function getSearchInputs() {
   return [
     document.getElementById('searchInput'),
-    document.getElementById('modalSearchInput')
+    document.getElementById('mobileSearchInput')
   ].filter(Boolean);
 }
 
@@ -1037,15 +1037,16 @@ function getSearchQuery() {
   return searchInput?.value || "";
 }
 
-function syncSearchInputs(value) {
+function syncSearchInputs(value, sourceInput = null) {
   getSearchInputs().forEach(input => {
-    input.value = value;
+    if (input !== sourceInput) input.value = value;
   });
 }
 
 function updateSearchClearUi() {
   const hasSearch = Boolean(getSearchQuery().trim());
   document.getElementById('clearSearchInput')?.classList.toggle('hidden', !hasSearch);
+  document.getElementById('clearMobileSearchInput')?.classList.toggle('hidden', !hasSearch);
 }
 
 function clearSearchQuery(options = {}) {
@@ -1068,20 +1069,6 @@ function applySearchQuery(value, options = {}) {
 
   const filterHeight = filterSection.offsetHeight || 0;
   activeTagChips.style.top = `${filterHeight}px`;
-}
-
-function createSearchActiveChip(searchQuery) {
-  const chip = document.createElement('button');
-  chip.type = 'button';
-  chip.className = 'search-active-chip';
-  chip.title = searchQuery;
-  chip.setAttribute('aria-label', `検索語「${searchQuery}」をクリア`);
-  chip.innerHTML = `<span class="search-active-chip__label">検索：</span><span class="search-active-chip__text"></span><span class="search-active-chip__close" aria-hidden="true">×</span>`;
-  chip.querySelector('.search-active-chip__text').textContent = searchQuery;
-  chip.addEventListener('click', () => {
-    clearSearchQuery();
-  });
-  return chip;
 }
 
 function clearActiveFilterChip(tagData) {
@@ -1138,16 +1125,12 @@ function renderActiveTagChips() {
 
   activeTagChipsInner.innerHTML = '';
   const activeTags = window.FilterState.getActiveChips();
-  const searchQuery = getSearchQuery().trim();
-  const shouldShowChips = activeTags.length > 0 || Boolean(searchQuery);
+  const shouldShowChips = activeTags.length > 0;
 
   activeTagChips.classList.toggle('hidden', !shouldShowChips);
   updateActiveTagChipsPosition();
   if (!shouldShowChips) return;
 
-  if (searchQuery) {
-    activeTagChipsInner.appendChild(createSearchActiveChip(searchQuery));
-  }
   activeTags.forEach(tagData => {
     activeTagChipsInner.appendChild(createActiveFilterChip(tagData));
   });
@@ -2326,7 +2309,7 @@ function resetModalFilterInputs() {
     modalDateFilter: "",
     modalTypeFilter: "",
     modalRoleFilter: "",
-    modalSearchInput: "",
+    mobileSearchInput: "",
     modalSortOrder: "desc"
   };
 
@@ -2354,14 +2337,27 @@ function initializeFilterControls() {
     playRandomVideoFromCurrentList();
   });
 
-  [searchInput, sortOrder].filter(Boolean).forEach(control => {
-    control.addEventListener('change', applyFilters);
-    control.addEventListener('input', applyFilters);
+  getSearchInputs().forEach(input => {
+    const handleSearchChange = event => {
+      const sourceInput = event.currentTarget;
+      syncSearchInputs(sourceInput.value, sourceInput);
+      applyFilters();
+    };
+    input.addEventListener('change', handleSearchChange);
+    input.addEventListener('input', handleSearchChange);
   });
+
+  sortOrder?.addEventListener('change', applyFilters);
+  sortOrder?.addEventListener('input', applyFilters);
 
   document.getElementById('clearSearchInput')?.addEventListener('click', () => {
     clearSearchQuery();
     searchInput?.focus();
+  });
+
+  document.getElementById('clearMobileSearchInput')?.addEventListener('click', () => {
+    clearSearchQuery();
+    document.getElementById('mobileSearchInput')?.focus();
   });
 
   resetButton?.addEventListener('click', resetAllFilters);

@@ -51,9 +51,9 @@
   function setSearchAndSort(partialState) {
     if (Object.prototype.hasOwnProperty.call(partialState, "searchQuery")) {
       const searchInput = document.getElementById("searchInput");
-      const modalSearchInput = document.getElementById("modalSearchInput");
+      const mobileSearchInput = document.getElementById("mobileSearchInput");
       if (searchInput) searchInput.value = partialState.searchQuery || "";
-      if (modalSearchInput) modalSearchInput.value = partialState.searchQuery || "";
+      if (mobileSearchInput) mobileSearchInput.value = partialState.searchQuery || "";
     }
 
     if (Object.prototype.hasOwnProperty.call(partialState, "sortOrder")) {
