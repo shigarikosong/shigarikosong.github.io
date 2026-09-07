@@ -6,7 +6,7 @@ import { loadBrowserScripts, toPlain } from './browser-script-test-utils.mjs';
 function createFilterPipelineFixture() {
   const elements = {
     searchInput: { value: '' },
-    modalSearchInput: { value: '' },
+    mobileSearchInput: { value: '' },
     sortOrder: { value: 'desc' },
     modalSortOrder: { value: 'desc' }
   };

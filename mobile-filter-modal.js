@@ -2,7 +2,7 @@
   const modal = document.getElementById("filterModal");
   const applyButton = document.getElementById("applyFilters");
   const sortSelect = document.getElementById("modalSortOrder");
-  const searchField = document.getElementById("modalSearchInput");
+  const mobileSearchInput = document.getElementById("mobileSearchInput");
   const categorySelect = document.getElementById("modalCategoryFilter");
   const dateSelect = document.getElementById("modalDateFilter");
   const typeSelect = document.getElementById("modalTypeFilter");
@@ -343,7 +343,7 @@
   }
 
   function resetModalFilters() {
-    if (searchField) searchField.value = "";
+    if (mobileSearchInput) mobileSearchInput.value = "";
     if (searchInput) searchInput.value = "";
     if (sortSelect) sortSelect.value = "desc";
     if (sortOrder) sortOrder.value = "desc";
@@ -383,12 +383,10 @@
   }
 
   function syncModalValues() {
-    if (searchField && searchInput) searchInput.value = searchField.value;
     if (sortSelect && sortOrder) sortOrder.value = sortSelect.value || "desc";
   }
 
   function syncModalControls() {
-    if (searchField && searchInput) searchField.value = searchInput.value;
     if (sortSelect && sortOrder) sortSelect.value = sortOrder.value || "desc";
     if (categorySelect) categorySelect.value = window.FilterState.getState().include.category || "";
     if (roleSelect) roleSelect.value = "";
@@ -399,11 +397,6 @@
     updateSortButtons();
     renderMobileTagSections();
     updateModalResultCount();
-  }
-
-  function syncModalSearchInput() {
-    syncModalValues();
-    applyFiltersAndUpdateCount();
   }
 
   function lockPageScroll() {
@@ -456,8 +449,6 @@
   });
 
   document.getElementById("closeFilterModal")?.addEventListener("click", unlockPageScroll);
-
-  searchField?.addEventListener("input", syncModalSearchInput);
 
   function finishClosingModal() {
     window.ScrollUtils?.requestFilterCloseTargetJump();

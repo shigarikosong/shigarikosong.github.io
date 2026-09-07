@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./tailwind.generated.css?v=3">
-  <link rel="stylesheet" href="./style.css?v=67">
+  <link rel="stylesheet" href="./style.css?v=68">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -153,6 +153,12 @@ YouTube / TikTok の動画を掲載しています。
   <button id="mobileRandomPlayButton" class="neutral-toolbar-button px-4 py-2 rounded-md w-full">
     🎲 ランダム再生
   </button>
+</div>
+
+<div class="mobile-search-control sm:hidden mt-2 mx-4">
+  <input id="mobileSearchInput" type="text" placeholder="曲名・アーティスト・タグ（AND / OR / -除外）"
+    class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:ring-blue-300 transition duration-200">
+  <button id="clearMobileSearchInput" type="button" class="mobile-search-clear hidden" aria-label="検索語をクリア">×</button>
 </div>
 
     <div class="hidden sm:block max-w-5xl mx-auto">
@@ -314,8 +320,6 @@ YouTube / TikTok の動画を掲載しています。
           </div>
         </div>
       </div>
-
-      <input id="modalSearchInput" type="text" placeholder="曲名・アーティスト・タグ（AND / OR / -除外）" class="w-full border p-2 rounded" />
     </div>
 
     <!-- モーダル操作 -->
@@ -418,15 +422,15 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./video-normalizer.js?v=1"></script>
   <script src="./search-utils.js?v=1"></script>
   <script src="./video-query.js?v=1"></script>
-  <script src="./filter-state.js?v=6"></script>
+  <script src="./filter-state.js?v=7"></script>
   <script src="./filter-tag-view.js?v=1"></script>
   <script src="./scroll-utils.js?v=3"></script>
   <script src="./loading-status.js?v=10"></script>
   <script src="./playback-policy.js?v=1"></script>
   <script src="./playback-transition-policy.js?v=1"></script>
   <script src="./player-size-policy.js?v=1"></script>
-  <script src="./script.js?v=99"></script>
-  <script src="./mobile-filter-modal.js?v=30"></script>
+  <script src="./script.js?v=100"></script>
+  <script src="./mobile-filter-modal.js?v=31"></script>
   <script src="./desktop-filter-panel.js?v=31"></script>
   <script src="./ui-polish.js?v=35"></script>
   <script src="./player-collapse.js?v=36"></script>

@@ -6,7 +6,7 @@ import { loadBrowserScript, toPlain } from './browser-script-test-utils.mjs';
 function createFilterStateFixture(options = {}) {
   const elements = {
     searchInput: { value: options.searchQuery || '' },
-    modalSearchInput: { value: options.searchQuery || '' },
+    mobileSearchInput: { value: options.searchQuery || '' },
     sortOrder: { value: options.sortOrder || 'desc' },
     modalSortOrder: { value: options.sortOrder || 'desc' }
   };
@@ -128,7 +128,7 @@ test('リセットはタグ条件を消し、指定に応じて検索語と並�
   state = toPlain(filterState.getState());
   assert.equal(state.searchQuery, '');
   assert.equal(state.sortOrder, 'desc');
-  assert.equal(elements.modalSearchInput.value, '');
+  assert.equal(elements.mobileSearchInput.value, '');
   assert.equal(elements.modalSortOrder.value, 'desc');
 });
 

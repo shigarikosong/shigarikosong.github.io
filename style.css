@@ -33,15 +33,18 @@ body {
   border-left: 4px solid #facc15;
 }
 
-.desktop-search-control {
+.desktop-search-control,
+.mobile-search-control {
   position: relative;
 }
 
-#searchInput {
+#searchInput,
+#mobileSearchInput {
   padding-right: 2.5rem;
 }
 
-.desktop-search-clear {
+.desktop-search-clear,
+.mobile-search-clear {
   position: absolute;
   top: 50%;
   right: 0.25rem;
@@ -60,14 +63,17 @@ body {
 }
 
 .desktop-search-clear:hover,
-.desktop-search-clear:focus-visible {
+.desktop-search-clear:focus-visible,
+.mobile-search-clear:hover,
+.mobile-search-clear:focus-visible {
   background: #e5e7eb;
   color: #1d4ed8;
   outline: 2px solid rgba(37, 99, 235, 0.35);
   outline-offset: 1px;
 }
 
-.desktop-search-clear.hidden {
+.desktop-search-clear.hidden,
+.mobile-search-clear.hidden {
   display: none;
 }
 
@@ -738,51 +744,6 @@ body.player-visible #desktopFilterPanel {
   color: #be123c !important;
   font-size: 0.75rem !important;
   line-height: 1rem !important;
-}
-
-.search-active-chip {
-  display: none;
-}
-
-@media (min-width: 640px) {
-  #activeTagChips:has(.search-active-chip:only-child) {
-    display: none;
-  }
-}
-
-@media (max-width: 639px) {
-  .search-active-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    max-width: min(78vw, 24rem);
-    min-height: 2.25rem;
-    border: 1px solid #bfdbfe;
-    border-radius: 999px;
-    background: #eff6ff;
-    color: #1e3a8a;
-    padding: 0 0.75rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .search-active-chip:focus-visible {
-    outline: 2px solid rgba(37, 99, 235, 0.45);
-    outline-offset: 2px;
-  }
-
-  .search-active-chip__label,
-  .search-active-chip__close {
-    flex: 0 0 auto;
-  }
-
-  .search-active-chip__text {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 
 #activeTagChipsInner::-webkit-scrollbar {
