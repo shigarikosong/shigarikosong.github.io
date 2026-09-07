@@ -132,6 +132,7 @@ PC・モバイル・動画カードのタグを追加するときは、`FilterTa
 - `data/content-coverage-rules.json`は、投稿動画欄の初回確認時点と、コード上で固定する対象外動画を管理する
 - 投稿動画欄の新しい動画は内容を自動判定せず、人が追加または対象外を判断する候補として扱う
 - 監視IssueのOwner・Member・Collaboratorによる`/ignore platform:ID`と`/unignore platform:ID`を、対象外判断とその取消として順番に適用する
+- 有効な対象外コマンドの新規コメント・編集では同じ監視Workflowを即時実行し、不正なplatform・動画IDには入力例を返信する。一般利用者やWorkflow自身のコメントでは起動しない
 - 監視Issueへ候補なし・候補あり・取得失敗のいずれも記録し、候補をJSONへ自動追加しない
 - `editedVideosBaseline.ids`は初回確認時点を表すため、通常の候補処理では更新しない
 - 詳細は`docs/content-coverage-monitor.md`を確認する

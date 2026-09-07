@@ -79,7 +79,7 @@ pnpm run validate:data
 pnpm run audit:content
 ```
 
-対象外動画は監視Issueの`/ignore platform:ID`コメント、固定した例外と初回確認時点の基準は`data/content-coverage-rules.json`で管理します。詳しい運用は[動画収録状況の自動確認](docs/content-coverage-monitor.md)を確認してください。
+対象外動画は監視Issueの`/ignore platform:ID`コメントで指定でき、コメント後は監視結果が自動更新されます。固定した例外と初回確認時点の基準は`data/content-coverage-rules.json`で管理します。詳しい運用は[動画収録状況の自動確認](docs/content-coverage-monitor.md)を確認してください。
 
 ## 自動テスト
 

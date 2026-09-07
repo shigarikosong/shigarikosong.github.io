@@ -344,21 +344,56 @@ function normalizeIssueDecisionKey(value) {
   return mediaKey(media.platform, media.id);
 }
 
+export function parseIssueDecisionCommand(text) {
+  const commandLine = String(text || "")
+    .split(/\r?\n/)
+    .find((line) => line.trim())
+    ?.trim() || "";
+  const match = commandLine.match(
+    /^\/(ignore|unignore)(?:\s+(\S+))?(?:\s+(.*))?$/i,
+  );
+
+  if (!match) {
+    return {
+      valid: false,
+      error: "`/ignore platform:ID` または `/unignore platform:ID` の形式で入力してください。",
+    };
+  }
+
+  if (!match[2]) {
+    return {
+      valid: false,
+      error: "対象のplatformと動画IDを指定してください。例: `/ignore youtube:VIDEO_ID`",
+    };
+  }
+
+  const key = normalizeIssueDecisionKey(match[2]);
+  if (!key) {
+    return {
+      valid: false,
+      error: "動画IDを `youtube:VIDEO_ID` または `tiktok:POST_ID` の形式で指定してください。",
+    };
+  }
+
+  return {
+    valid: true,
+    action: match[1].toLowerCase(),
+    key,
+    reason: String(match[3] || "").trim(),
+  };
+}
+
 export function extractIssueIgnoredKeys(text) {
   const ignoredKeys = new Set();
-  const commandPattern = /^\/(ignore|unignore)\s+(\S+)(?:\s+.*)?$/i;
 
   for (const line of String(text || "").split(/\r?\n/)) {
-    const match = line.trim().match(commandPattern);
-    if (!match) continue;
+    const command = parseIssueDecisionCommand(line);
+    if (!command.valid) continue;
 
-    const key = normalizeIssueDecisionKey(match[2]);
-    if (!key) continue;
-
-    if (match[1].toLowerCase() === "ignore") {
-      ignoredKeys.add(key);
+    if (command.action === "ignore") {
+      ignoredKeys.add(command.key);
     } else {
-      ignoredKeys.delete(key);
+      ignoredKeys.delete(command.key);
     }
   }
 

@@ -13,6 +13,7 @@ import {
   getRegisteredMediaKeys,
   mediaKey,
   parseMediaReference,
+  parseIssueDecisionCommand,
 } from "./content-coverage-audit.mjs";
 
 function mediaRecord(platform, id, title = id) {
@@ -183,6 +184,35 @@ test("trusted Issue comments apply ignore and unignore commands in order", () =>
     "tiktok:7463017926623333653",
     "youtube:25kxmWP378w",
   ]);
+});
+
+test("Issue decision command validation returns normalized actions and useful errors", () => {
+  assert.deepEqual(
+    parseIssueDecisionCommand(
+      "/ignore YOUTUBE:MJVX9BWJcwk 通常の切り抜き動画のため",
+    ),
+    {
+      valid: true,
+      action: "ignore",
+      key: "youtube:MJVX9BWJcwk",
+      reason: "通常の切り抜き動画のため",
+    },
+  );
+  assert.deepEqual(
+    parseIssueDecisionCommand("/unignore tiktok:7463017926623333653"),
+    {
+      valid: true,
+      action: "unignore",
+      key: "tiktok:7463017926623333653",
+      reason: "",
+    },
+  );
+
+  assert.equal(parseIssueDecisionCommand("/ignore").valid, false);
+  assert.equal(
+    parseIssueDecisionCommand("/ignore youtube:not-a-video-id").valid,
+    false,
+  );
 });
 
 test("Markdown report always records a successful no-candidate run", () => {

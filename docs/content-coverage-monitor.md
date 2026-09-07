@@ -6,6 +6,7 @@
 
 - 毎週日曜日 10:23（日本時間）
 - GitHub Actionsの`Check content coverage`から手動実行可能
+- 監視Issueへ有効な`/ignore`または`/unignore`をコメント・編集した直後
 
 定期実行は`main`へWorkflowがマージされた後に有効になります。
 
@@ -21,6 +22,7 @@ GitHub通知を受け取る場合は、作成された監視IssueをSubscribeし
 - 以前に報告された候補が未登録のまま残っている
 - Wikiの取得に失敗した
 - WikiのHTML構造が変わり、想定件数を取得できなかった
+- `/ignore`または`/unignore`のplatform・動画IDが不正だった
 
 ## 確認する情報
 
@@ -66,6 +68,8 @@ TikTokは次の形式です。
 ```
 
 コマンドは上から順に処理されるため、後から書いた`/unignore`でIssueコメント由来の指定を解除できます。第三者のコメントで候補が消えないよう、Owner・Member・Collaboratorのコメントだけを判断に使用します。
+
+有効なコマンドをコメントすると監視Workflowがすぐに再実行され、受付メッセージ付きの最新結果が同じIssueへ投稿されます。platformや動画IDが不正な場合は監査を実行せず、正しい入力例を返信します。Workflow自身の返信や一般利用者のコメントでは再実行しません。
 
 既存の判断記録やコード上で固定したい例外は、引き続き`data/content-coverage-rules.json`の`ignored`でも管理できます。
 
@@ -118,5 +122,6 @@ pnpm run audit:content
 
 - `.github/workflows/content-coverage-monitor.yml`
 - `scripts/content-coverage-audit.mjs`
+- `scripts/content-coverage-command.mjs`
 - `scripts/content-coverage-audit.test.mjs`
 - `data/content-coverage-rules.json`
