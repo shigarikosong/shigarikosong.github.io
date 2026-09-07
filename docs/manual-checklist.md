@@ -252,7 +252,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] `.DS_Store` が差分に含まれていない。
 - [ ] `git diff` に見た目変更や大規模差分が混ざっていない。
 - [ ] 挙動変更とリファクタリングが不要に混ざっていない。
-- [ ] 変更範囲に応じて `README.md`、`DEVELOPMENT_NOTES.md`、`docs/filter-tag-rules.md`、`docs/player-behavior-rules.md` の更新要否を確認した。
+- [ ] 変更範囲に応じて `README.md`、`AGENTS.md`、`docs/filter-tag-rules.md`、`docs/player-behavior-rules.md` の更新要否を確認した。
 
 ## 14. Preview Deployment
 
