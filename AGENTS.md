@@ -106,6 +106,8 @@ pnpm run validate:data
 pnpm test
 ```
 
+Pull Requestでは、GitHub Actionsが動画JSONの検査、全自動テスト、Tailwind CSSの生成差分を同じ構成で確認します。
+
 主要ロジックの回帰テスト:
 
 ```sh
@@ -128,4 +130,3 @@ pnpm run audit:content
 - 実行したテスト・確認
 - Previewで確認が必要な項目や残る制約
 - コミット名案
-
