@@ -1,0 +1,46 @@
+name: Validate pull request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate video data
+        run: pnpm run validate:data
+
+      - name: Run automated tests
+        run: pnpm test
+
+      - name: Verify generated Tailwind CSS
+        run: |
+          pnpm run build:css
+          git diff --exit-code -- tailwind.generated.css
