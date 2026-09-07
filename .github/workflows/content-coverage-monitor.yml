@@ -1,6 +1,8 @@
 name: Check content coverage
 
 on:
+  issue_comment:
+    types: [created, edited]
   workflow_dispatch:
   schedule:
     # Sunday 10:23 JST. Avoid the start of the hour, when scheduled jobs are busier.
@@ -16,6 +18,20 @@ concurrency:
 
 jobs:
   audit-content-coverage:
+    if: >-
+      github.event_name != 'issue_comment' ||
+      (
+        contains(github.event.issue.labels.*.name, 'content-coverage-monitor') &&
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        ) &&
+        (
+          startsWith(github.event.comment.body, '/ignore') ||
+          startsWith(github.event.comment.body, '/unignore')
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -23,7 +39,46 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Validate monitoring command
+        if: github.event_name == 'issue_comment'
+        id: command
+        env:
+          COMMAND_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+
+          printf '%s\n' "$COMMAND_BODY" > content-coverage-command.txt
+          node scripts/content-coverage-command.mjs content-coverage-command.txt \
+            > content-coverage-command.json
+
+          {
+            echo "valid=$(jq -r '.valid' content-coverage-command.json)"
+            echo "action=$(jq -r '.action // ""' content-coverage-command.json)"
+            echo "key=$(jq -r '.key // ""' content-coverage-command.json)"
+            echo "error=$(jq -r '.error // ""' content-coverage-command.json)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish invalid command feedback
+        if: github.event_name == 'issue_comment' && steps.command.outputs.valid != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMAND_ERROR: ${{ steps.command.outputs.error }}
+        run: |
+          printf '%s\n' \
+            '**監視コマンドを受け付けられませんでした。**' \
+            '' \
+            "理由: $COMMAND_ERROR" \
+            '' \
+            '対象外: `/ignore youtube:VIDEO_ID 理由（省略可）`' \
+            '取消: `/unignore youtube:VIDEO_ID`' \
+            > content-coverage-command-feedback.md
+
+          gh issue comment "$ISSUE_NUMBER" \
+            --body-file content-coverage-command-feedback.md
+
       - name: Prepare monitoring issue
+        if: github.event_name != 'issue_comment' || steps.command.outputs.valid == 'true'
         id: monitoring-issue
         env:
           GH_TOKEN: ${{ github.token }}
@@ -86,6 +141,7 @@ jobs:
             > content-coverage-decisions.txt
 
       - name: Audit content coverage
+        if: github.event_name != 'issue_comment' || steps.command.outputs.valid == 'true'
         id: audit
         continue-on-error: true
         run: |
@@ -122,6 +178,20 @@ jobs:
             '' \
             '</details>' \
             >> content-coverage-report.md
+
+      - name: Add command acknowledgment
+        if: always() && github.event_name == 'issue_comment' && steps.command.outputs.valid == 'true'
+        env:
+          COMMAND_ACTION: ${{ steps.command.outputs.action }}
+          COMMAND_KEY: ${{ steps.command.outputs.key }}
+        run: |
+          {
+            printf '✅ `/%s %s` を受け付けました。\n\n' \
+              "$COMMAND_ACTION" "$COMMAND_KEY"
+            cat content-coverage-report.md
+          } > content-coverage-command-result.md
+
+          mv content-coverage-command-result.md content-coverage-report.md
 
       - name: Publish monitoring result
         if: always() && steps.monitoring-issue.outputs.issue_number != ''
