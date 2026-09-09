@@ -171,3 +171,82 @@ test('include状態や移行済みの互換APIを古いグローバルへ公開�
     flag: ['3D']
   });
 });
+
+const bulkTagCases = [
+  ['category', ' コラボ ', 'コラボ'],
+  ['platform', ' YouTube ', 'youtube'],
+  ['date', ' 最近 ', 'recent'],
+  ['format', [' Full '], 'Full'],
+  ['role', [' VOCAL '], 'VOCAL'],
+  ['collab', [' 倉持めると '], '倉持めると'],
+  ['flag', [' Shorts '], 'Shorts']
+];
+
+for (const [group, input, value] of bulkTagCases) {
+  test(`一括設定でも${group}の選択と除外を相互に解除する`, () => {
+    const { filterState } = createFilterStateFixture();
+    filterState.setTagState(group, value, 'exclude');
+    filterState.setState({ include: { [group]: input } });
+    assert.equal(filterState.isTagIncluded(group, value), true);
+    assert.equal(filterState.isTagExcluded(group, value), false);
+
+    filterState.setState({ exclude: { [group]: [value] } });
+    assert.equal(filterState.isTagIncluded(group, value), false);
+    assert.equal(filterState.isTagExcluded(group, value), true);
+    assert.equal(filterState.getActiveChips().length, 1);
+  });
+}
+
+test('同じ一括設定内で競合したタグは除外を優先し、他の条件は維持する', () => {
+  const { filterState } = createFilterStateFixture({ searchQuery: 'song', sortOrder: 'title' });
+  filterState.setTagState('collab', '倉持めると', 'include');
+  filterState.setState({
+    include: { role: ['VOCAL', 'DANCE'], platform: 'YouTube' },
+    exclude: { role: [' VOCAL '], platform: ['youtube'] }
+  });
+
+  const state = toPlain(filterState.getState());
+  assert.deepEqual(state.include.role, ['DANCE']);
+  assert.equal(state.include.platform, '');
+  assert.deepEqual(state.exclude.role, ['VOCAL']);
+  assert.deepEqual(state.include.collab, ['倉持めると']);
+  assert.equal(state.searchQuery, 'song');
+  assert.equal(state.sortOrder, 'title');
+
+  filterState.setState(state);
+  assert.deepEqual(toPlain(filterState.getState()), state);
+});
+
+test('Formatとflagをまたぐ3DとShortsの更新でも状態が重複しない', () => {
+  const { filterState } = createFilterStateFixture();
+  for (const value of ['3D', 'Shorts']) {
+    filterState.resetState();
+    filterState.setTagState('flag', value, 'exclude');
+    assert.equal(filterState.isTagExcluded('format', value), true);
+    filterState.setState({ include: { format: [value], flag: [] } });
+    assert.equal(filterState.isTagIncluded('flag', value), true);
+    assert.equal(filterState.hasExclusions(), false);
+
+    filterState.setState({ exclude: { format: [value], flag: [value] } });
+    assert.equal(filterState.isTagIncluded('format', value), false);
+    assert.equal(filterState.getActiveChips().length, 1);
+    assert.equal(filterState.toggleTag('format', value), 'none');
+    assert.equal(filterState.hasExclusions(), false);
+  }
+});
+
+test('一括設定は指定した選択グループと除外全体だけを置き換える', () => {
+  const { filterState } = createFilterStateFixture();
+  filterState.setState({ include: { role: ['VOCAL'], collab: ['倉持めると'], flag: ['3D'] } });
+  filterState.setTagState('platform', 'tiktok', 'exclude');
+  filterState.setState({ include: { role: [] } });
+  assert.deepEqual(toPlain(filterState.getState().include.role), []);
+  assert.equal(filterState.isTagIncluded('collab', '倉持めると'), true);
+  assert.equal(filterState.isTagIncluded('flag', '3D'), true);
+  assert.equal(filterState.isTagExcluded('platform', 'tiktok'), true);
+
+  filterState.setState({ exclude: { role: ['VOCAL'] } });
+  assert.equal(filterState.isTagExcluded('platform', 'tiktok'), false);
+  filterState.setState({ exclude: {} });
+  assert.equal(filterState.hasExclusions(), false);
+});

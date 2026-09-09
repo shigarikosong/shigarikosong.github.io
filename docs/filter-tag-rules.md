@@ -143,6 +143,14 @@ Use `window.FilterState` as the shared entrance for reading and updating filter 
 
 Tag state is private to `filter-state.js`. Read and update it only through these APIs; do not add separate global selected-tag variables.
 
+`setState()` uses the same value normalization and include/exclude conflict rules as individual tag updates:
+
+- Supplied include groups replace those groups; omitted include groups keep their values.
+- Including a tag clears any previous exclusion of that tag.
+- If `exclude` is supplied, it replaces the entire exclusion state. Explicit exclusions clear matching include values and take priority when the same call supplies both states.
+- `3D` and `Shorts` are the same logical tags through `format` and `flag`. Includes are stored in `include.flag`; exclusion checks and clearing work through either group, without duplicate chips.
+- Search and sort keep their existing partial-update behavior.
+
 The filter pipeline should keep this order:
 
 1. Read the current state with `FilterState.getState()`.
@@ -151,6 +159,8 @@ The filter pipeline should keep this order:
 4. Apply exclusions with `FilterState.filterExcludedVideos()`.
 
 `scripts/filter-pipeline.test.mjs` loads these browser scripts together and protects this boundary. Do not restore the removed exclusion adapter or bypass `FilterState` with separate selected-tag globals.
+
+`scripts/app-integration.test.mjs` additionally executes the real `script.js` and filter-panel handlers against the page DOM. It checks that rendered cards, `currentFilteredVideos`, and playback targets stay aligned, and that closing an already-applied mobile filter does not render the list again.
 
 ## 7. Data Attribute Rules
 

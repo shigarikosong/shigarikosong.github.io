@@ -115,6 +115,7 @@
     const normalizedValue = normalizeValue(normalizedGroup, value);
     if (!normalizedValue || !excludedTags[normalizedGroup]) return;
     clearInclude(normalizedGroup, normalizedValue);
+    removeExclude(normalizedGroup, normalizedValue);
     excludedTags[normalizedGroup].add(normalizedValue);
   }
 
@@ -123,6 +124,10 @@
     const normalizedValue = normalizeValue(normalizedGroup, value);
     if (!normalizedValue || !excludedTags[normalizedGroup]) return;
     excludedTags[normalizedGroup].delete(normalizedValue);
+    if (isFlagValue(normalizedGroup, normalizedValue)) {
+      excludedTags.flag.delete(normalizedValue);
+      excludedTags.format.delete(normalizedValue);
+    }
   }
 
   function getState() {
@@ -149,51 +154,32 @@
     setSearchAndSort(partialState);
 
     const include = partialState.include || partialState;
-    if (Object.prototype.hasOwnProperty.call(include, "category")) includeState.category = include.category || "";
-    if (Object.prototype.hasOwnProperty.call(include, "platform")) includeState.platform = include.platform || "";
-    if (Object.prototype.hasOwnProperty.call(include, "date")) includeState.date = include.date || "";
-    if (Object.prototype.hasOwnProperty.call(include, "role")) {
-      const roleValues = Array.isArray(include.role)
-        ? include.role
-        : [include.role].filter(Boolean);
-      includeState.role.clear();
-      roleValues
-        .map(value => normalizeValue("role", value))
-        .filter(Boolean)
-        .forEach(value => includeState.role.add(value));
-    }
-    if (Object.prototype.hasOwnProperty.call(include, "collab")) {
-      const collabValues = Array.isArray(include.collab)
-        ? include.collab
-        : [include.collab].filter(Boolean);
-      includeState.collab.clear();
-      collabValues
-        .map(value => normalizeValue("collab", value))
-        .filter(Boolean)
-        .forEach(value => includeState.collab.add(value));
-    }
-    if (Object.prototype.hasOwnProperty.call(include, "format")) {
-      includeState.format.clear();
-      for (const value of include.format || []) includeState.format.add(value);
-    }
-    if (Object.prototype.hasOwnProperty.call(include, "flag")) {
-      includeState.flag.clear();
-      for (const value of include.flag || []) {
-        if (value === "3D" || value === "Shorts") includeState.flag.add(value);
-      }
-    }
+    const updatedGroups = includeGroups.filter(group => Object.prototype.hasOwnProperty.call(include, group));
 
+    // Clear every supplied group before applying Format values that may map to flags.
+    updatedGroups.forEach(group => {
+      if (includeState[group] instanceof Set) {
+        includeState[group].clear();
+      } else {
+        includeState[group] = "";
+      }
+    });
+    updatedGroups.forEach(group => {
+      const values = Array.isArray(include[group]) ? include[group] : [include[group]];
+      values.forEach(value => setInclude(group, value));
+    });
+
+    // Explicit exclusions win when the same update supplies both states.
     if (partialState.exclude) {
       setExcludeState(partialState.exclude);
     }
   }
 
   function setExcludeState(nextState = {}) {
-    Object.entries(excludedTags).forEach(([group, set]) => {
-      set.clear();
+    clearExcludeState();
+    includeGroups.forEach(group => {
       (nextState[group] || []).forEach(value => {
-        const normalizedValue = normalizeValue(group, value);
-        if (normalizedValue) set.add(normalizedValue);
+        addExclude(group, value);
       });
     });
   }
@@ -238,6 +224,9 @@
   function isTagExcluded(group, value) {
     const normalizedGroup = normalizeGroup(group);
     const normalizedValue = normalizeValue(normalizedGroup, value);
+    if (isFlagValue(normalizedGroup, normalizedValue)) {
+      return excludedTags.flag.has(normalizedValue) || excludedTags.format.has(normalizedValue);
+    }
     return Boolean(excludedTags[normalizedGroup]?.has(normalizedValue));
   }
 
