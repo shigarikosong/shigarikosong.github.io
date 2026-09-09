@@ -62,6 +62,7 @@
 - `filter-scroll-position.js` / `scroll-utils.js`: 絞り込み後と再生中カードへのスクロール補正
 - `playback-policy.js`: YouTubeの即時再生と手動再生モードの判定
 - `playback-transition-policy.js`: 終了時のRepeat / Random遷移
+- `end-countdown-policy.js`: 終了時刻と早送り後の猶予カウントダウンの判断
 - `player-size-policy.js`: 通常動画・Shorts・TikTokのプレイヤーサイズ計算
 - `loading-status.js`: 読み込み状態表示とページトップボタン
 

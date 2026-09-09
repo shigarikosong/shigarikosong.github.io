@@ -4,6 +4,10 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 変更範囲に関係する項目を中心に確認してください。タグ・フィルター・再生まわりを触った場合は、該当セクションをなるべく一通り確認します。
 
+`pnpm test`と`pnpm run test:regressions`には、フィルター一括更新の矛盾防止、終了時刻の判断、実際の画面コードを使う連携テストが含まれます。連携テストは`index.html`の読み込み順でデータ処理・プレイヤー・PC/モバイルのフィルター処理を実行します。通信と動画プレイヤーは模擬するため、実際のYouTube/TikTok再生、見た目、スクロール位置は引き続きPreviewで確認してください。
+
+テスト環境はNode.js 24.15以降の24系を使用します。画面DOMの検査に使う`jsdom`は開発依存で、公開ページには読み込みません。
+
 ## 1. Basic Display
 
 - [ ] Tailwind CDNへのリクエストが発生せず、`tailwind.generated.css`が読み込まれる。
@@ -229,7 +233,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 12. Script Loading And Helper Boundaries
 
-- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `video-normalizer.js` / `search-utils.js` / `video-query.js` / `filter-state.js` / `filter-tag-view.js` / `playback-policy.js` / `playback-transition-policy.js` が、依存するスクリプトより前にある。
+- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `video-normalizer.js` / `search-utils.js` / `video-query.js` / `filter-state.js` / `filter-tag-view.js` / `playback-policy.js` / `playback-transition-policy.js` / `end-countdown-policy.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
 - [ ] `loading-status.js` が `window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしていない。
 - [ ] 動画JSONの取得・配列確認・必須項目確認が`script.js`の専用読み込み処理で行われる。

@@ -237,6 +237,12 @@ Changing repeat mode away from `all`, closing the player, or switching videos sh
 
 TikTok is not controlled by `end` and should not show the countdown UI.
 
+`end-countdown-policy.js` owns the time-sample decision: normal countdown, seek/first-sample grace, seeking back, and whether to advance. `EndCountdownPolicy.evaluate()` takes the previous sample state, current playback seconds, end seconds, and current clock time, and returns the next state and display/advance decision without changing its input or accessing the DOM, timers, or player API.
+
+`script.js` owns monitor timers, current-video identity, eligibility, the keep-playing choice, UI updates, and executing the shared playback transition. It resets sample state on video switch, close, or leaving Repeat ALL. Restarting monitoring for the same video may preserve an existing grace start time while clearing the previous playback sample.
+
+`scripts/end-countdown-policy.test.mjs` covers the time boundaries. `scripts/app-integration.test.mjs` runs the actual playback entry and controls with a simulated YouTube API to cover readiness cancellation, filter/history transitions, automatic platform skipping, and countdown cleanup.
+
 ## 10. Full-Version Prompt
 
 Any row can link to an existing full-version row through `full_number`.
