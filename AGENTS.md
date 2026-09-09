@@ -4,7 +4,6 @@
 
 ## Workspace
 
-- 作業場所: `/Users/cyring_edit/Documents/GitHub/shigarikosong-clean`
 - 本番: https://shigarikosong.github.io/
 - Preview: https://shigarikosong-github-io.pages.dev/
 - タグ定義・表示順の正本: `tag-config.js`
