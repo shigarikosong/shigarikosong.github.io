@@ -114,17 +114,23 @@
   function renderSortButtons() {
     if (!sortSelect || !sortButtons) return;
 
+    const restoreFocus = window.FocusUtils.capture(sortButtons);
     sortButtons.innerHTML = "";
     [...sortSelect.options].forEach(option => {
       const value = option.value;
       const isActive = (sortSelect.value || "desc") === value;
 
-      sortButtons.appendChild(createButton(sortLabels[value] || option.textContent, isActive, "sort", () => {
+      const button = createButton(sortLabels[value] || option.textContent, isActive, "sort", () => {
         sortSelect.value = value;
         applyFilters({ scrollAfterUpdate: false });
         renderSortButtons();
-      }));
+      });
+      button.dataset.sort = value;
+      button.dataset.focusKey = `sort:${value}`;
+      button.setAttribute("aria-pressed", String(isActive));
+      sortButtons.appendChild(button);
     });
+    restoreFocus();
   }
 
   function reorderCategoryTags() {
@@ -141,12 +147,15 @@
     const sortedOrder = sortedButtons.map(button => button.dataset.filterValue || "").join(",");
     if (currentOrder === sortedOrder) return;
 
+    const restoreFocus = window.FocusUtils.capture(categoryTags);
     sortedButtons.forEach(button => categoryTags.appendChild(button));
+    restoreFocus();
   }
 
   function renderFormatTags() {
     if (!formatTags) return;
 
+    const restoreFocus = window.FocusUtils.capture(formatTags);
     const typeValues = getSelectValues("modalTypeFilter");
     const values = sortByOrder([...new Set(["3D", "Shorts", ...typeValues])], formatOrder);
 
@@ -174,11 +183,13 @@
 
       appendWrap(formatTags, index, 3);
     });
+    restoreFocus();
   }
 
   function renderRoleTags() {
     if (!roleTags) return;
 
+    const restoreFocus = window.FocusUtils.capture(roleTags);
     const values = sortByOrder(getSelectValues("modalRoleFilter"), roleOrder);
     roleTags.innerHTML = "";
 
@@ -191,11 +202,13 @@
 
       appendWrap(roleTags, index, 4);
     });
+    restoreFocus();
   }
 
   function renderCollabGroup(container, values, kind) {
     if (!container) return;
 
+    const restoreFocus = window.FocusUtils.capture(container);
     container.innerHTML = "";
     sortCollabValues(values).forEach(value => {
       const button = createFilterButton(value, "collab", value, kind, () => {
@@ -204,6 +217,7 @@
 
       container.appendChild(button);
     });
+    restoreFocus();
   }
 
   function renderCollabTags() {
@@ -257,6 +271,13 @@
   toggleButton.addEventListener("click", (event) => {
     event.stopPropagation();
     togglePanel();
+  });
+
+  panel.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    closePanel({ scrollToResults: true });
+    window.FocusUtils.focus(toggleButton);
   });
 
   document.addEventListener("click", (event) => {

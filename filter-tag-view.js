@@ -33,7 +33,8 @@
       label: displayLabel,
       state,
       text: state === "exclude" ? `- ${displayLabel}` : displayLabel,
-      ariaLabel: state === "exclude" ? `${displayLabel}を除外中` : ""
+      ariaLabel: state === "exclude" ? `${displayLabel}を除外中`
+        : state === "include" ? `${displayLabel}を選択中` : ""
     });
   }
 
@@ -51,6 +52,7 @@
 
     button.dataset.filterGroup = presentation.group;
     button.dataset.filterValue = presentation.value;
+    button.dataset.focusKey = JSON.stringify(['tag', presentation.group, presentation.value]);
     button.textContent = presentation.text;
     if (activeClass) {
       button.classList.toggle(activeClass, presentation.state === "include");

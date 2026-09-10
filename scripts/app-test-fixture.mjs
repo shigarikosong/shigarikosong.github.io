@@ -28,6 +28,11 @@ export async function createAppFixture(t, rows, options = {}) {
   });
   const { window } = dom;
   const { document } = window;
+  // Model responsive visibility only; layout and native focus navigation need a browser.
+  const visibilityStyle = document.createElement('style');
+  visibilityStyle.textContent = '.hidden { display: none; }' + (options.mobile ? ''
+    : '.hidden.sm\\:block { display: block; } .sm\\:hidden { display: none; }');
+  document.head.appendChild(visibilityStyle);
   t.after(() => {
     window.close();
     assert.deepEqual(errors, [], 'page execution should not report errors');
@@ -60,8 +65,20 @@ export async function createAppFixture(t, rows, options = {}) {
     addEventListener() {},
     removeEventListener() {}
   });
+  // jsdom has no native modal APIs; browser checks cover top-layer/inert behavior.
+  window.HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute('open', '');
+  };
+  window.HTMLDialogElement.prototype.close = function () {
+    if (!this.open) return;
+    this.removeAttribute('open');
+    this.dispatchEvent(new window.Event('close'));
+  };
   window.fetch = async url => {
     const pathname = new URL(url, window.location.href).pathname;
+    if (options.includeUiPolish && pathname.endsWith('/collab_tags')) {
+      return { ok: true, json: async () => structuredClone(options.collabTags || []) };
+    }
     assert.ok(['/data/videos.json', '/data/meta.json'].includes(pathname), `unexpected fetch: ${url}`);
     return {
       ok: true,
@@ -92,12 +109,13 @@ export async function createAppFixture(t, rows, options = {}) {
   };
   Object.entries(options.storage || {}).forEach(([key, value]) => window.localStorage.setItem(key, value));
 
-  // Use the page's load order and real core/filter scripts; external media is simulated.
+  // Use real core/filter/dialog scripts in page order; omit network/layout-only helpers.
   const context = dom.getInternalVMContext();
   for (const element of document.querySelectorAll('script[src^="./"]')) {
     const name = new URL(element.src).pathname.slice(1);
+    if (name === 'ui-polish.js' && !options.includeUiPolish) continue;
+    if (['player-collapse.js', 'filter-scroll-position.js'].includes(name)) continue;
     vm.runInContext(fs.readFileSync(new URL(name, root), 'utf8'), context, { filename: name });
-    if (name === 'desktop-filter-panel.js') break;
   }
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(window.allVideos.length, rows.length, 'initial data loading should finish');

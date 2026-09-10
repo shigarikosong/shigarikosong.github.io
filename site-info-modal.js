@@ -28,13 +28,11 @@
   }
 
   function closeFilterModalIfOpen() {
-    const filterModal = document.getElementById("filterModal");
-    if (filterModal && !filterModal.classList.contains("hidden")) {
-      filterModal.classList.add("hidden");
-    }
+    window.MobileFilterModal?.close({ scrollToResults: false });
   }
 
   function openModal() {
+    if (modal.open) return;
     closeFilterModalIfOpen();
     lastFocusedElement = document.activeElement;
     previousBodyOverflow = document.body.style.overflow;
@@ -42,19 +40,19 @@
     document.body.classList.add("site-info-modal-open");
     modal.classList.remove("hidden");
     updateManualPlayToggleButton();
-    panel.focus();
+    modal.showModal();
+    window.FocusUtils.focus(panel);
   }
 
   function closeModal() {
     if (modal.classList.contains("hidden")) return;
 
     modal.classList.add("hidden");
+    modal.close();
     document.body.classList.remove("site-info-modal-open");
     document.body.style.overflow = previousBodyOverflow;
 
-    if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
-      lastFocusedElement.focus();
-    }
+    if (!window.FocusUtils.focus(lastFocusedElement)) window.FocusUtils.focus(openButton);
     lastFocusedElement = null;
   }
 
@@ -78,9 +76,12 @@
     if (event.target === modal) closeModal();
   });
 
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !modal.classList.contains("hidden")) {
-      closeModal();
-    }
+  modal.addEventListener("cancel", event => {
+    event.preventDefault();
+    closeModal();
   });
+  modal.addEventListener("close", () => {
+    if (!modal.open) closeModal();
+  });
+  modal.addEventListener("keydown", event => window.FocusUtils.containTab(event, modal));
 })();

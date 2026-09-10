@@ -108,6 +108,7 @@ test('includeとexclude表示をボタンへ反映し、解除時に後付け属
 
   assert.equal(button.classList.contains('tag-format-active'), true);
   assert.equal(button.classList.contains('exclusion-style-active'), false);
+  assert.equal(button.attributes.get('aria-label'), 'Shortsを選択中');
 
   setState('exclude');
 
@@ -123,6 +124,7 @@ test('includeとexclude表示をボタンへ反映し、解除時に後付け属
   assert.deepEqual(button.dataset, {
     filterGroup: 'format',
     filterValue: 'Shorts',
+    focusKey: '["tag","format","Shorts"]',
     filterTagViewAria: 'true'
   });
 

@@ -8,6 +8,8 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 テスト環境はNode.js 24.15以降の24系を使用します。画面DOMの検査に使う`jsdom`は開発依存で、公開ページには読み込みません。
 
+`scripts/accessibility.test.mjs`では、タグ再描画後の操作位置、選択状態の読み上げ用情報、モーダルの開閉処理も検査します。テスト内のdialog APIと画面幅ごとの表示は模擬です。ブラウザ標準の背景操作の抑止、実際のTab移動、読み上げソフトとの連携はPreviewで確認してください。
+
 ## 1. Basic Display
 
 - [ ] Tailwind CDNへのリクエストが発生せず、`tailwind.generated.css`が読み込まれる。
@@ -216,6 +218,19 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 10. Keyboard And Scroll
 
+- [ ] PC・スマホ幅のタグをTabで選び、Enter／Spaceを続けて押すと「選択→除外→解除」でき、同じタグに操作位置が残る。
+- [ ] 並び順をキーボードで変更しても操作位置が残り、読み上げで現在の選択肢が分かる。
+- [ ] タグは読み上げで「選択中」「除外中」を区別でき、解除後に古い状態が残らない。
+- [ ] カードの曲名・アーティスト・タグで絞り込んでも同じカードの操作位置が維持され、元のカードが消えた場合は動画一覧へ移る。
+- [ ] 条件チップの解除後、残るチップへ操作位置が移り、最後のチップを解除すると動画一覧へ移る。
+- [ ] スマホの絞り込みを開くとモーダル内へ操作位置が移り、Tab／Shift+Tabで背後の検索・再生ボタンへ抜けない。
+- [ ] スマホの絞り込みはEscapeでも閉じられ、選んだ条件を維持して開くボタンへ操作位置が戻る。
+- [ ] 並び順変更・リセット直後にEscapeで閉じても変更が一度だけ反映され、スクロール禁止が残らない。
+- [ ] 絞り込みを閉じてすぐ開き直しても、遅れて背後の一覧へスクロールしない。
+- [ ] モーダルを開いたまま画面を回転・リサイズしても、閉じた後の操作位置が非表示ボタンへ戻らない。
+- [ ] 「このサイトについて」はTab／Shift+Tabが内部で循環し、Escape・上下の閉じるボタン・背景クリックで閉じて元の操作位置へ戻る。
+- [ ] PC絞り込みパネル内でEscapeを押すと閉じ、絞り込みボタンへ操作位置が戻る。
+- [ ] モーダル内でShift+A／Shift+Dを押しても、背後の曲が切り替わらない。
 - [ ] `Shift + A` で前の曲へ移動する。
 - [ ] `Shift + D` で次の曲へ移動する。
 - [ ] 入力欄、textarea、select、contenteditableにフォーカス中はショートカットが発火しない。
@@ -233,7 +248,7 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 
 ## 12. Script Loading And Helper Boundaries
 
-- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `video-normalizer.js` / `search-utils.js` / `video-query.js` / `filter-state.js` / `filter-tag-view.js` / `playback-policy.js` / `playback-transition-policy.js` / `end-countdown-policy.js` が、依存するスクリプトより前にある。
+- [ ] `index.html` の読み込み順で `tag-config.js` / `date-utils.js` / `video-normalizer.js` / `search-utils.js` / `video-query.js` / `filter-state.js` / `filter-tag-view.js` / `focus-utils.js` / `playback-policy.js` / `playback-transition-policy.js` / `end-countdown-policy.js` が、依存するスクリプトより前にある。
 - [ ] タグ系補助スクリプトは `index.html` で明示読み込みされ、`loading-status.js` から後追い読み込みされていない。
 - [ ] `loading-status.js` が `window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしていない。
 - [ ] 動画JSONの取得・配列確認・必須項目確認が`script.js`の専用読み込み処理で行われる。
