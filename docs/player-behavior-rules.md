@@ -149,6 +149,8 @@ Shortcuts are also disabled when other modifier keys are pressed:
 - Alt
 - Meta
 
+Previous/next shortcuts are also disabled while a modal dialog is open; keyboard interaction inside a dialog must not operate the background player. Existing playback may continue.
+
 Do not try to force support for cases the browser cannot reliably expose, such as focus inside the YouTube iframe.
 
 ## 8. Random Playback Rules

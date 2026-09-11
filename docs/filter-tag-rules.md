@@ -110,7 +110,7 @@ Clicking a chip should clear only that condition:
 ### `filter-tag-view.js`
 
 - Reads each tag's `include` / `exclude` / `none` state from `FilterState` while the tag button is created.
-- Supplies the include class, display label, `- ` prefix, exclusion class, and exclusion `aria-label` through `FilterTagView`.
+- Supplies the include class, display label, `- ` prefix, exclusion class, and include/exclude `aria-label` through `FilterTagView`.
 - Does not intercept tag clicks or reset clicks.
 - Does not scan existing buttons after rendering or listen for state-change events.
 - Tag owners must call `FilterTagView.getPresentation()` and `applyButton()` in their normal render path.
@@ -300,6 +300,20 @@ Related code:
 - `script.js` (`applyFilters()` / `requestSettledFilterScroll()`)
 - `scroll-utils.js` (`scrollPlayingCardIntoComfortView()` / `requestFilterCloseTargetJump()`)
 - `filter-scroll-position.js` (compatibility wrapper; no list `MutationObserver`)
+
+### Keyboard Focus And Accessible State
+
+- Preserve focus on the same tag or sort button after replacing its DOM, so keyboard users can repeat the three-state cycle without finding the tag again.
+- Each renderer explicitly captures/restores focus through `FocusUtils`; do not wrap render functions or add a second rendering path. `data-focus-key` identifies a control, and card `data-focus-scope` uses the playback key to prevent moving focus to a different video.
+- List actions keep focus in the same card when it survives filtering. If the card disappears, focus the video-list region. When a chip is removed, focus a remaining chip or, if none remain, the video list.
+- Restoring focus uses `preventScroll`; existing filter-scroll logic still owns page scrolling.
+- Included tags expose `選択中` and excluded tags expose `除外中` in their accessible names. These are three-state commands, not a binary `aria-pressed` toggle. Sort buttons have stable names and expose the single active option with `aria-pressed`.
+- Chip accessible names describe removing their include or exclude condition.
+- The mobile filter is a native modal `dialog` opened with `showModal()`. Focus starts on its panel, Tab/Shift+Tab cycle inside it, and the browser makes background content inert. Supply a dialog name and keep an explicit close button.
+- Escape and the close button share the same close path: keep applied conditions, apply any pending sort/reset once, release the scroll lock, restore focus to the opener, and request the existing close-scroll jump. If the viewport changed to desktop, use its filter toggle as the focus fallback.
+- Do not request a delayed close-scroll jump while another dialog is open or the filter has reopened.
+- Desktop filters remain non-modal. Escape inside the panel closes it and focuses the toggle.
+- `scripts/accessibility.test.mjs` covers focus restoration, tag/sort semantics, modal lifecycle, pending changes, and background playback-shortcut suppression. Native browser modality and actual Tab traversal require browser/Preview verification.
 
 ## 12. Checklist For Adding Tags
 

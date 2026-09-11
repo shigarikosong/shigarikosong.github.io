@@ -51,6 +51,7 @@ function createScrollFixture(options = {}) {
   const elements = options.elements || {};
   const queryResults = options.queryResults || {};
   const scrollCalls = [];
+  const callbacks = [];
   const document = {
     body: { scrollTop: 0 },
     documentElement: { scrollTop: 0 },
@@ -70,19 +71,21 @@ function createScrollFixture(options = {}) {
       return element?.computedStyle || { display: 'block', visibility: 'visible' };
     },
     requestAnimationFrame(callback) {
-      callback();
+      if (options.deferCallbacks) callbacks.push(callback);
+      else callback();
       return 1;
     },
     scrollTo(...args) {
       scrollCalls.push(args);
     },
     setTimeout(callback) {
-      callback();
+      if (options.deferCallbacks) callbacks.push(callback);
+      else callback();
       return 1;
     }
   });
 
-  return { context, document, scrollCalls, scrollUtils: context.ScrollUtils };
+  return { context, document, scrollCalls, callbacks, scrollUtils: context.ScrollUtils };
 }
 
 test('stickyフィルターと表示中プレイヤーの予約領域を計算する', () => {
@@ -195,4 +198,18 @@ test('フィルターを閉じた後の再補正でも対象を維持し、再�
   listFixture.scrollUtils.requestFilterCloseTargetJump({ topOffset: 80 });
   assert.deepEqual(listFixture.scrollCalls[0], [0, 40]);
   assert.deepEqual(listFixture.scrollCalls.at(-1), [0, 120]);
+});
+
+test('モーダルを開き直した後は予約済みの閉じるスクロール補正を行わない', () => {
+  const queryResults = {};
+  const { scrollCalls, callbacks, scrollUtils } = createScrollFixture({
+    elements: { videoList: createElement({ top: 200, height: 500 }) },
+    queryResults,
+    deferCallbacks: true
+  });
+  scrollUtils.requestFilterCloseTargetJump({ topOffset: 80 });
+  assert.equal(scrollCalls.length, 1);
+  queryResults['dialog[open]'] = {};
+  while (callbacks.length) callbacks.shift()();
+  assert.equal(scrollCalls.length, 1);
 });

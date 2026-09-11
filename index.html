@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./tailwind.generated.css?v=3">
-  <link rel="stylesheet" href="./style.css?v=68">
+  <link rel="stylesheet" href="./style.css?v=69">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -85,8 +85,8 @@
 </header>
 
 <!-- サイト情報モーダル -->
-<div id="siteInfoModal" class="site-info-modal hidden" role="dialog" aria-modal="true" aria-labelledby="siteInfoTitle">
-  <div class="site-info-modal__panel" tabindex="-1">
+<dialog id="siteInfoModal" class="site-info-modal hidden" aria-modal="true" aria-labelledby="siteInfoTitle">
+  <div class="site-info-modal__panel" tabindex="-1" autofocus>
     <button id="closeSiteInfoModal" type="button" class="site-info-modal__close" aria-label="このサイトについてを閉じる">×</button>
 
     <div class="site-info-modal__body">
@@ -133,7 +133,7 @@
       <button id="closeSiteInfoModalBottom" type="button" class="site-info-modal__button" aria-label="このサイトについてを閉じる">閉じる</button>
     </div>
   </div>
-</div>
+</dialog>
 
   <!-- サイト説明 -->
   <div class="max-w-4xl mx-auto px-4 mt-2 text-center text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -147,7 +147,7 @@ YouTube / TikTok の動画を掲載しています。
   
 <!-- モバイル用：絞り込み＋ランダム再生を横並び -->
 <div class="flex sm:hidden items-center justify-center gap-2 mt-1 px-4">
-  <button id="openFilterModal" class="neutral-toolbar-button px-4 py-2 rounded-md w-full">
+  <button id="openFilterModal" type="button" aria-haspopup="dialog" aria-controls="filterModal" class="neutral-toolbar-button px-4 py-2 rounded-md w-full">
     🔍 絞り込み
   </button>
   <button id="mobileRandomPlayButton" class="neutral-toolbar-button px-4 py-2 rounded-md w-full">
@@ -197,7 +197,7 @@ YouTube / TikTok の動画を掲載しています。
         <div class="space-y-3">
           <div>
             <p class="modal-section-title">Sort</p>
-            <div id="desktopSortButtons" class="flex flex-wrap gap-2"></div>
+            <div id="desktopSortButtons" class="flex flex-wrap gap-2" role="group" aria-label="並び順"></div>
           </div>
 
           <div>
@@ -252,12 +252,12 @@ YouTube / TikTok の動画を掲載しています。
   <div id="songCount" class="sm:hidden text-center text-gray-500 mb-1" aria-live="polite"></div>
 
   <!-- 動画一覧 -->
-  <main id="videoList" class="max-w-4xl mx-auto px-4 pt-3 pb-8 sm:py-8 divide-y divide-gray-200">
+  <main id="videoList" tabindex="-1" aria-label="動画一覧" class="max-w-4xl mx-auto px-4 pt-3 pb-8 sm:py-8 divide-y divide-gray-200">
   </main>
 
 <!-- モーダル本体 -->
-<div id="filterModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center hidden">
-  <div class="bg-white w-11/12 max-w-md max-h-[90vh] overflow-y-auto p-4 rounded-lg shadow-lg">
+<dialog id="filterModal" aria-label="絞り込み" aria-modal="true" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center hidden">
+  <div id="filterModalPanel" tabindex="-1" autofocus class="bg-white w-11/12 max-w-md max-h-[90vh] overflow-y-auto p-4 rounded-lg shadow-lg">
     <!-- モーダル用のフィルター入力欄 -->
     <div class="space-y-3">
       <div>
@@ -334,7 +334,7 @@ YouTube / TikTok の動画を掲載しています。
       <button id="applyFilters" class="neutral-toolbar-button px-4 py-2 rounded-md">閉じる</button>
     </div>
   </div>
-</div>
+</dialog>
 
   
 <!-- フッター -->
@@ -423,20 +423,21 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./search-utils.js?v=1"></script>
   <script src="./video-query.js?v=1"></script>
   <script src="./filter-state.js?v=8"></script>
-  <script src="./filter-tag-view.js?v=1"></script>
-  <script src="./scroll-utils.js?v=3"></script>
+  <script src="./filter-tag-view.js?v=2"></script>
+  <script src="./focus-utils.js?v=1"></script>
+  <script src="./scroll-utils.js?v=4"></script>
   <script src="./loading-status.js?v=10"></script>
   <script src="./playback-policy.js?v=1"></script>
   <script src="./playback-transition-policy.js?v=1"></script>
   <script src="./end-countdown-policy.js?v=1"></script>
   <script src="./player-size-policy.js?v=1"></script>
-  <script src="./script.js?v=101"></script>
-  <script src="./mobile-filter-modal.js?v=31"></script>
-  <script src="./desktop-filter-panel.js?v=31"></script>
-  <script src="./ui-polish.js?v=35"></script>
+  <script src="./script.js?v=102"></script>
+  <script src="./mobile-filter-modal.js?v=32"></script>
+  <script src="./desktop-filter-panel.js?v=32"></script>
+  <script src="./ui-polish.js?v=36"></script>
   <script src="./player-collapse.js?v=36"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
-  <script src="./site-info-modal.js?v=2"></script>
+  <script src="./site-info-modal.js?v=3"></script>
 
 </body>
 </html>

@@ -189,9 +189,11 @@
     const changed = sorted.some((button, index) => button !== buttons[index]);
     if (!changed) return;
 
+    const restoreFocus = window.FocusUtils.capture(container);
     isSortingCollabTags = true;
     sorted.forEach(button => container.appendChild(button));
     isSortingCollabTags = false;
+    restoreFocus();
   }
 
   function scheduleSortCollabTagContainer(container) {

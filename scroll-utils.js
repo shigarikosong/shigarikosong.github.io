@@ -124,9 +124,11 @@
 
   function requestFilterCloseTargetJump(options = {}) {
     const scrollToCloseTarget = () => {
+      if (document.querySelector('dialog[open]')) return;
       scrollToPlayingOrResultCountOrListTop({ behavior: 'auto', ...options });
     };
     const scrollAndForceListTop = () => {
+      if (document.querySelector('dialog[open]')) return;
       scrollToCloseTarget();
       forceListTopIfNoPlaying(options);
     };

@@ -1064,9 +1064,9 @@ function createActiveFilterChip(tagData) {
     : 'tag-button tag-xs tag-active-chip';
   chip.textContent = tagData.state === 'exclude' ? `- ${tagData.label}` : tagData.label;
 
-  if (tagData.state === 'exclude') {
-    chip.setAttribute('aria-label', `${tagData.label}を除外条件から外す`);
-  }
+  chip.setAttribute('aria-label', tagData.state === 'exclude'
+    ? `${tagData.label}を除外条件から外す` : `${tagData.label}の絞り込みを解除`);
+  chip.dataset.focusKey = JSON.stringify(['chip', tagData.group, tagData.value, tagData.state]);
   chip.dataset.filterChipState = tagData.state;
   if (tagData.source) chip.dataset.activeChipSource = tagData.source;
 
@@ -1079,17 +1079,18 @@ function createActiveFilterChip(tagData) {
 function renderActiveTagChips() {
   if (!activeTagChips || !activeTagChipsInner) return;
 
+  const restoreFocus = window.FocusUtils.capture(activeTagChipsInner,
+    () => activeTagChipsInner.querySelector('button') || videoList);
   activeTagChipsInner.innerHTML = '';
   const activeTags = window.FilterState.getActiveChips();
   const shouldShowChips = activeTags.length > 0;
 
   activeTagChips.classList.toggle('hidden', !shouldShowChips);
   updateActiveTagChipsPosition();
-  if (!shouldShowChips) return;
-
   activeTags.forEach(tagData => {
     activeTagChipsInner.appendChild(createActiveFilterChip(tagData));
   });
+  restoreFocus();
 }
 
 
@@ -1406,15 +1407,6 @@ if (randomModeBtn) {
     requestNowPlayingFloatingButtonUpdate();
   });
 }
-
-    // モバイル用フィルターモーダル制御
-document.getElementById('openFilterModal')?.addEventListener('click', () => {
-  document.getElementById('filterModal').classList.remove('hidden');
-});
-
-document.getElementById('closeFilterModal')?.addEventListener('click', () => {
-  document.getElementById('filterModal').classList.add('hidden');
-});
 
 window.addEventListener('scroll', requestNowPlayingFloatingButtonUpdate, { passive: true });
 window.addEventListener('resize', requestNowPlayingFloatingButtonUpdate);
@@ -2367,6 +2359,7 @@ function renderFilterTagButtons(options) {
   } = options;
 
   getFilterTagContainers(containerIds).forEach(container => {
+    const restoreFocus = window.FocusUtils.capture(container);
     container.innerHTML = '';
 
     items.forEach(item => {
@@ -2389,6 +2382,7 @@ function renderFilterTagButtons(options) {
 
       container.appendChild(button);
     });
+    restoreFocus();
   });
 }
 
@@ -2561,6 +2555,7 @@ function createCollabListTag(value, kind) {
 function createCollabMemberToggle(memberRow, memberCount) {
   const toggleButton = document.createElement('button');
   toggleButton.type = 'button';
+  toggleButton.dataset.focusKey = 'collab-toggle';
   toggleButton.className = 'collab-member-toggle px-2.5 py-1 rounded-full text-xs';
   toggleButton.setAttribute('aria-controls', memberRow.id);
 
@@ -2626,6 +2621,7 @@ function createCollabTagRow(video, cardIndex) {
 function createVideoCardPlayButton(video, item) {
   const playButton = document.createElement('button');
   playButton.type = 'button';
+  playButton.dataset.focusKey = 'play';
   playButton.className = 'video-card-play-button';
   playButton.setAttribute('aria-label', `${video["title"] || "この動画"}を再生`);
   playButton.innerHTML = `
@@ -2643,6 +2639,7 @@ function createVideoSearchAction(kind, value, sourceVideoKey) {
   const isTitle = kind === 'title';
   const button = document.createElement('button');
   button.type = 'button';
+  button.dataset.focusKey = `search:${kind}`;
   button.className = `${isTitle ? 'video-title' : 'video-artist'} video-search-action`;
   button.title = value || '';
   button.setAttribute(
@@ -2770,6 +2767,7 @@ function createVideoCard(video, cardIndex) {
 
   const key = getVideoKey(video);
   item.dataset.videoKey = key;
+  item.dataset.focusScope = key;
   if (key === nowPlayingKey) item.classList.add('playing');
 
   const content = document.createElement('div');
@@ -2810,6 +2808,7 @@ function updateVideoListAutoPlayNotice(videos) {
 }
 
 function renderVideoList(videos) {
+  const restoreFocus = window.FocusUtils.capture(videoList, videoList);
   videoList.innerHTML = '';
   updateResultCounts(allVideos.length, videos.length);
   updateVideoListAutoPlayNotice(videos);
@@ -2822,6 +2821,7 @@ function renderVideoList(videos) {
   videoList.appendChild(videoListFragment);
   updateVideoSearchActionOverflow();
   window.dispatchEvent(new CustomEvent("videoListRendered"));
+  restoreFocus();
 }
 
 function updateVideoSearchActionOverflow() {
@@ -3340,6 +3340,7 @@ document.addEventListener('keydown', event => {
     return;
   }
 
+  if (document.querySelector('dialog[open]')) return;
   if (!isPlayerVisible()) return;
   if (!event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
 

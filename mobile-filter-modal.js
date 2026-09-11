@@ -1,5 +1,7 @@
 (function () {
   const modal = document.getElementById("filterModal");
+  const openButton = document.getElementById("openFilterModal");
+  const panel = document.getElementById("filterModalPanel");
   const applyButton = document.getElementById("applyFilters");
   const sortSelect = document.getElementById("modalSortOrder");
   const mobileSearchInput = document.getElementById("mobileSearchInput");
@@ -64,6 +66,7 @@
     sortButtonGroup.querySelectorAll("button[data-sort]").forEach(button => {
       const isActive = button.dataset.sort === (sortSelect.value || "desc");
       button.className = getTagButtonClass("tag-sort", isActive, { size: "tag-modal-sort" });
+      button.setAttribute("aria-pressed", String(isActive));
     });
   }
 
@@ -120,6 +123,8 @@
 
     sortButtonGroup = document.createElement("div");
     sortButtonGroup.className = "flex flex-wrap gap-2";
+    sortButtonGroup.setAttribute("role", "group");
+    sortButtonGroup.setAttribute("aria-label", "並び順");
 
     [
       ["desc", "新しい順 ↓"],
@@ -220,6 +225,7 @@
   function renderFormatTags() {
     if (!formatTagsContainer) return;
 
+    const restoreFocus = window.FocusUtils.capture(formatTagsContainer);
     formatTagsContainer.innerHTML = "";
 
     getFormatValues().forEach(format => {
@@ -238,6 +244,7 @@
 
       if (format === "ライブ") appendLineBreak(formatTagsContainer);
     });
+    restoreFocus();
   }
 
   function reorderCategoryTags() {
@@ -259,9 +266,11 @@
     const isAlreadySorted = buttons.every((button, index) => button === sortedButtons[index]);
     if (isAlreadySorted) return;
 
+    const restoreFocus = window.FocusUtils.capture(categoryTagsContainer);
     sortedButtons.forEach(button => {
       categoryTagsContainer.appendChild(button);
     });
+    restoreFocus();
   }
 
   function observeCategoryTags() {
@@ -276,6 +285,7 @@
   function renderRoleTags() {
     if (!roleTagsContainer) return;
 
+    const restoreFocus = window.FocusUtils.capture(roleTagsContainer);
     roleTagsContainer.innerHTML = "";
 
     sortByPreferredOrder(getSelectValues(roleSelect), roleOrder).forEach(role => {
@@ -298,6 +308,7 @@
 
       if (role === "ILLUSTRATION") appendLineBreak(roleTagsContainer);
     });
+    restoreFocus();
   }
 
   function getCollabButtonClass(isActive) {
@@ -307,6 +318,7 @@
   function renderCollabTagGroup(container, values) {
     if (!container) return;
 
+    const restoreFocus = window.FocusUtils.capture(container);
     container.innerHTML = "";
 
     values.forEach(value => {
@@ -321,6 +333,7 @@
 
       container.appendChild(button);
     });
+    restoreFocus();
   }
 
   function renderCollabTags() {
@@ -436,7 +449,8 @@
     }
   }
 
-  document.getElementById("openFilterModal")?.addEventListener("click", () => {
+  openButton?.addEventListener("click", () => {
+    if (modal.open) return;
     lockPageScroll();
     configureSortButtons();
     configureCategoryButtons();
@@ -446,27 +460,47 @@
     configureResetButton();
     observeCategoryTags();
     syncModalControls();
+    modal.classList.remove("hidden");
+    modal.showModal();
+    panel.scrollTop = 0;
+    window.FocusUtils.focus(panel);
   });
 
-  document.getElementById("closeFilterModal")?.addEventListener("click", unlockPageScroll);
-
   function finishClosingModal() {
+    if (document.querySelector('dialog[open]')) return;
     window.ScrollUtils?.requestFilterCloseTargetJump();
   }
 
-  applyButton.addEventListener("click", () => {
+  function closeModal(options = {}) {
+    if (modal.classList.contains("hidden")) return;
+    const { scrollToResults = true } = options;
     const needsApply = hasUnappliedModalChanges || hasScheduledFilterApply();
     cancelScheduledFilterApply();
     modal.classList.add("hidden");
+    modal.close();
     unlockPageScroll({ correctAfterUnlock: false });
+    if (!window.FocusUtils.focus(openButton)) {
+      window.FocusUtils.focus(document.getElementById("desktopToggleFilters"));
+    }
 
     if (needsApply) {
-      scheduleFilterApplyAfterPaint(finishClosingModal);
+      scheduleFilterApplyAfterPaint(scrollToResults ? finishClosingModal : null);
       return;
     }
 
-    finishClosingModal();
+    if (scrollToResults) finishClosingModal();
+  }
+
+  applyButton.addEventListener("click", () => closeModal());
+  modal.addEventListener("cancel", event => {
+    event.preventDefault();
+    closeModal();
   });
+  modal.addEventListener("close", () => {
+    if (!modal.open) closeModal();
+  });
+  modal.addEventListener("keydown", event => window.FocusUtils.containTab(event, modal));
+  window.MobileFilterModal = Object.freeze({ close: closeModal });
 
   window.addEventListener("collabTagOrderReady", () => {
     renderCollabTags();
