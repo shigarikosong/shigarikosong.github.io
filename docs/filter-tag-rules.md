@@ -78,6 +78,10 @@ Clicking a chip should clear only that condition:
 - Calls `SearchUtils.parseSearchQuery()` once per `applyFilters()` call, then reuses the parsed expression for every video match.
 - Build replacement video cards in a `DocumentFragment`, append them together, then run overflow measurement and dispatch `videoListRendered`.
 - For title/artist overflow updates, batch DOM resets, layout reads, and style writes instead of alternating them for each card.
+- Search input remains synchronous. Ignore a repeated input/change event only when its raw value matches the last query actually applied, including queries set by card actions or reset. Keep change-only input supported; do not add a debounce.
+- During `applyFilters()`, reuse cards only when the normalized row objects and their order, card count, and include/exclude state all match the last render. New row objects from data reloads must rebuild cards even when playback keys are unchanged.
+- Reuse skips card replacement and title/artist width measurement only. Counts, notices, active chips, list-update notifications, playback-list updates, and the existing post-filter scroll decision still run. `videoListRendered` therefore also notifies consumers when a filter update reuses cards.
+- Explicit `renderVideoList()` calls still rebuild by default, including asynchronous Collab order updates. Manual member disclosure invalidates reuse so the next filter update keeps its existing disclosure-reset behavior.
 
 ### `search-utils.js`
 

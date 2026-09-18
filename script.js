@@ -952,6 +952,7 @@ document.getElementById('modalSortOrder').value = "desc";
     var isRestoringPlaybackHistory = false;
     const COLLAB_MEMBER_COMPACT_THRESHOLD = 5;
     let pendingListTagScrollVideoKey = null;
+    let lastVideoListRender = null;
     let nowPlayingFloatingButton = null;
     let nowPlayingFloatingUpdateFrame = null;
 
@@ -2188,6 +2189,7 @@ window.visualViewport?.addEventListener('resize', updateActiveTagChipsPosition);
 
 // ===== 絞り込み項目の作成 =====
 let filterControlsInitialized = false;
+let lastAppliedSearchQuery = null;
 
 function collectFilterOptions(videos) {
   const { roleOrder } = window.TAG_CONFIG;
@@ -2289,6 +2291,7 @@ function initializeFilterControls() {
     const handleSearchChange = event => {
       const sourceInput = event.currentTarget;
       syncSearchInputs(sourceInput.value, sourceInput);
+      if (sourceInput.value === lastAppliedSearchQuery) return;
       applyFilters();
     };
     input.addEventListener('change', handleSearchChange);
@@ -2504,7 +2507,7 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
 
         currentFilteredVideos = visibleVideos;
         resetRandomPlayQueue();
-        renderVideoList(visibleVideos);
+        renderVideoList(visibleVideos, { reuseUnchanged: true });
         renderActiveTagChips();
         updateActiveTagChipsPosition();
         updateNowPlayingFilteredOutNotice();
@@ -2512,6 +2515,7 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
         if (scrollAfterUpdate) {
           requestSettledFilterScroll({ sourceVideoKey: listTagScrollVideoKey });
         }
+        lastAppliedSearchQuery = searchQuery;
       }
 
 
@@ -2576,6 +2580,8 @@ function createCollabMemberToggle(memberRow, memberCount) {
   setMemberRowVisibility(shouldShowMembers);
   toggleButton.addEventListener('click', () => {
     setMemberRowVisibility(memberRow.classList.contains('hidden'));
+    // The next filter update must restore the normal member disclosure state.
+    lastVideoListRender = null;
   });
 
   return toggleButton;
@@ -2807,21 +2813,33 @@ function updateVideoListAutoPlayNotice(videos) {
   document.getElementById('songCount')?.insertAdjacentElement('afterend', notice);
 }
 
-function renderVideoList(videos) {
-  const restoreFocus = window.FocusUtils.capture(videoList, videoList);
-  videoList.innerHTML = '';
+function renderVideoList(videos, { reuseUnchanged = false } = {}) {
+  const { include, exclude } = window.FilterState.getState();
+  const tagStateSignature = JSON.stringify([include, exclude]);
+  // Normalized rows are replaced on data reload; matching keys alone can miss new metadata.
+  const canReuseCards = reuseUnchanged && lastVideoListRender &&
+    lastVideoListRender.tagStateSignature === tagStateSignature &&
+    lastVideoListRender.videos.length === videos.length &&
+    videoList.childElementCount === videos.length &&
+    videos.every((video, index) => video === lastVideoListRender.videos[index]);
+  let restoreFocus = null;
   updateResultCounts(allVideos.length, videos.length);
   updateVideoListAutoPlayNotice(videos);
 
-  const videoListFragment = document.createDocumentFragment();
-  videos.forEach((video, cardIndex) => {
-    videoListFragment.appendChild(createVideoCard(video, cardIndex));
-  });
+  if (!canReuseCards) {
+    restoreFocus = window.FocusUtils.capture(videoList, videoList);
+    videoList.innerHTML = '';
+    const videoListFragment = document.createDocumentFragment();
+    videos.forEach((video, cardIndex) => {
+      videoListFragment.appendChild(createVideoCard(video, cardIndex));
+    });
 
-  videoList.appendChild(videoListFragment);
-  updateVideoSearchActionOverflow();
+    videoList.appendChild(videoListFragment);
+    updateVideoSearchActionOverflow();
+    lastVideoListRender = { videos: [...videos], tagStateSignature };
+  }
   window.dispatchEvent(new CustomEvent("videoListRendered"));
-  restoreFocus();
+  restoreFocus?.();
 }
 
 function updateVideoSearchActionOverflow() {
