@@ -310,6 +310,91 @@ body {
   color: #6b7280;
 }
 
+.video-meta.has-video-number {
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.625rem;
+  row-gap: 0.125rem;
+}
+
+.video-meta.has-video-number .video-meta-waku {
+  flex: 1 1 5rem;
+}
+
+.video-number-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  font-size: 0.75rem;
+}
+
+.video-number-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.video-number-value {
+  font-variant-numeric: tabular-nums;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.video-number-copy {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #9ca3af;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.video-number-copy img {
+  width: 16px;
+  height: 16px;
+}
+
+.video-number-copy:hover {
+  background: #f3f4f6;
+}
+
+.video-number-copy:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+
+.number-inspection-toast {
+  position: fixed;
+  z-index: 70;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.number-inspection-controls[hidden],
+.number-inspection-toast[hidden] {
+  display: none;
+}
+
 /* ===== Header and sticky filter area ===== */
 header {
   position: static;
@@ -423,6 +508,37 @@ dialog#siteInfoModal::backdrop {
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.35;
+}
+
+#numberInspectionTrigger {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#numberInspectionTrigger:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+
+.number-inspection-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 0.875rem;
+}
+
+#exitNumberInspection {
+  padding: 4px 10px;
+  border-radius: 4px;
 }
 
 .site-info-modal__body h3 {

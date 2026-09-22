@@ -262,6 +262,17 @@ Tag colors use a shared visual hierarchy instead of group-specific colors:
 - Hover and keyboard focus may use a light blue accent, but must not replace the include/exclude state indication.
 - Collab member `+N` / `-` controls are secondary disclosure controls, not tags. Keep them transparent with a light gray outline and muted text so they never appear more prominent than ordinary tags.
 
+### Number Inspection
+
+- Normal browsing does not show row numbers, copy controls, or inspection settings. This is a convenience display mode, not authentication; `number` is already in the public JSON.
+- Open the site-info dialog and activate its heading button five times consecutively to enable inspection. Clicking, tapping, and keyboard activation use the same handler. A gap of more than two seconds or closing/reopening the dialog resets the count.
+- Only while enabled, the dialog shows `番号表示中` and `番号表示を終了`. Exiting hides those controls and returns focus to the heading when needed. The mode exists only in memory and starts disabled on a new page load; do not persist it or change the URL.
+- Display the normalized `_number` from each JSON row beside its card metadata, with a copy icon and an accessible name. Keep leading zeroes; never substitute a list index, video ID, or spreadsheet row position. Omit the control when no number is present.
+- `script.js` owns `NumberInspection` and the shared metadata-control helper. Card creation and mode changes call that helper. Switching modes adds/removes only these controls in existing cards, preserving search, sort, filters, current playback, random queue, focus, and Collab disclosure state. Preserve the visible card's position when the metadata height changes.
+- New cards created by filtering, sorting, or data reloads use the current mode. Reusing unchanged cards must neither remove nor duplicate their number controls. Do not wrap `renderVideoList()` or route inspection through `applyFilters()`.
+- Copy only the number on an explicit button activation. Show success only after the Clipboard API resolves. If it is unavailable or denied, report failure and select the number for manual copying. Ignore stale completion feedback after mode exit, card removal, or a newer copy request.
+- `scripts/number-inspection.test.mjs` covers activation, data identity, state preservation, clipboard outcomes, and exit/reset behavior. Clipboard permission and actual touch/keyboard layout require browser/Preview verification.
+
 ## 9. Random And Continuous Playback
 
 The visible list should reflect the result after both `include` and `exclude` filtering.
