@@ -22,7 +22,7 @@ export async function createAppFixture(t, rows, options = {}) {
   virtualConsole.on('jsdomError', error => errors.push(error.message));
   virtualConsole.on('error', (...args) => errors.push(args));
   const dom = new JSDOM(fs.readFileSync(new URL('index.html', root), 'utf8'), {
-    url: 'https://site.test/',
+    url: options.url || 'https://site.test/',
     runScripts: 'outside-only',
     virtualConsole
   });

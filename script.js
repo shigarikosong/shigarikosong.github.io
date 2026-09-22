@@ -1342,7 +1342,9 @@ async function loadVideoData() {
     allVideos = window.VideoNormalizer.normalizeVideos(data);
     populateFilters(allVideos);
     initializeFilterControls();
+    const invalidSharedUrl = window.FilterShare.restoreInitialState();
     applyFilters({ scrollAfterUpdate: false });
+    if (invalidSharedUrl) window.FilterShare.showInvalidUrlNotice();
     requestAnimationFrame(() => {
       adjustFixedPlayerBottom();
       updateActiveTagChipsPosition();
@@ -2521,25 +2523,13 @@ window.requestSettledFilterScroll = requestSettledFilterScroll;
 
 // ===== 動画一覧の描画 =====
 function updateResultCounts(totalCount, visibleCount) {
-  const countElement = document.getElementById('songCount');
-  const desktopResultCount = document.getElementById('desktopResultCount');
-  const desktopResultTotal = document.getElementById('desktopResultTotal');
-  const desktopResultVisible = document.getElementById('desktopResultVisible');
-
-  if (countElement) {
-    countElement.innerHTML = `
-      <span class="text-xs">全</span>
-      <span class="text-base font-semibold text-gray-700">${totalCount}</span>
-      <span class="text-xs">件中</span>
-      <span class="text-xl font-bold text-gray-800">${visibleCount}</span>
-      <span class="text-xs">件表示</span>
-    `;
-  }
-
-  if (desktopResultCount && desktopResultTotal && desktopResultVisible) {
-    desktopResultTotal.textContent = String(totalCount);
-    desktopResultVisible.textContent = String(visibleCount);
-  }
+  ['mobile', 'desktop', 'modal'].forEach(prefix => {
+    const total = document.getElementById(`${prefix}ResultTotal`);
+    const result = document.getElementById(`${prefix}ResultVisible`);
+    if (total) total.textContent = String(totalCount);
+    if (result) result.textContent = String(visibleCount);
+  });
+  window.FilterShare.updateControls();
 }
 
 function createCollabListTag(value, kind) {

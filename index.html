@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./tailwind.generated.css?v=3">
-  <link rel="stylesheet" href="./style.css?v=70">
+  <link rel="stylesheet" href="./style.css?v=71">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -140,6 +140,16 @@
 </dialog>
 
 <div id="numberInspectionToast" class="number-inspection-toast" role="status" aria-live="polite" hidden></div>
+<div id="filterShareToast" class="filter-share-toast" role="status" aria-live="polite" hidden></div>
+<dialog id="filterShareDialog" class="filter-share-dialog" aria-labelledby="filterShareTitle" aria-describedby="filterShareDescription">
+  <h2 id="filterShareTitle">条件のURLをコピー</h2>
+  <p id="filterShareDescription">自動コピーできませんでした。URLを選択してコピーしてください。</p>
+  <label for="filterShareUrlInput">共有URL</label>
+  <input id="filterShareUrlInput" type="text" readonly spellcheck="false" autocomplete="off">
+  <div class="filter-share-dialog-actions">
+    <button id="closeFilterShareDialog" type="button" class="neutral-toolbar-button">閉じる</button>
+  </div>
+</dialog>
 
   <!-- サイト説明 -->
   <div class="max-w-4xl mx-auto px-4 mt-2 text-center text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -183,12 +193,17 @@ YouTube / TikTok の動画を掲載しています。
         <button id="randomPlayButton" class="neutral-toolbar-button shrink-0 font-medium text-sm px-4 py-2 rounded-md">
           ランダム再生
         </button>
-        <div id="desktopResultCount" class="ml-auto whitespace-nowrap text-right text-gray-500" aria-live="polite">
-          <span class="text-xs">全</span>
-          <span id="desktopResultTotal" class="text-base font-semibold text-gray-700">0</span>
-          <span class="text-xs">件中</span>
-          <span id="desktopResultVisible" class="text-xl font-bold text-gray-800">0</span>
-          <span class="text-xs">件表示</span>
+        <div id="desktopResultCount" class="result-count-with-share ml-auto whitespace-nowrap text-right text-gray-500">
+          <span aria-live="polite">
+            <span class="text-xs">全</span>
+            <span id="desktopResultTotal" class="text-base font-semibold text-gray-700">0</span>
+            <span class="text-xs">件中</span>
+            <span id="desktopResultVisible" class="text-xl font-bold text-gray-800">0</span>
+            <span class="text-xs">件表示</span>
+          </span>
+          <button id="desktopShareFilters" type="button" class="filter-share-button" data-share-filters aria-label="この検索・絞り込み条件を共有" title="この検索・絞り込み条件を共有" hidden>
+            <img src="./assets/icon/link.svg" alt="" aria-hidden="true">
+          </button>
         </div>
       </div>
 
@@ -255,7 +270,20 @@ YouTube / TikTok の動画を掲載しています。
   </div>
 </div>
   
-  <div id="songCount" class="sm:hidden text-center text-gray-500 mb-1" aria-live="polite"></div>
+  <div id="songCount" class="sm:hidden text-center text-gray-500 mb-1">
+    <span class="result-count-with-share">
+      <span aria-live="polite">
+        <span class="text-xs">全</span>
+        <span id="mobileResultTotal" class="text-base font-semibold text-gray-700">0</span>
+        <span class="text-xs">件中</span>
+        <span id="mobileResultVisible" class="text-xl font-bold text-gray-800">0</span>
+        <span class="text-xs">件表示</span>
+      </span>
+      <button id="mobileShareFilters" type="button" class="filter-share-button" data-share-filters aria-label="この検索・絞り込み条件を共有" title="この検索・絞り込み条件を共有" hidden>
+        <img src="./assets/icon/link.svg" alt="" aria-hidden="true">
+      </button>
+    </span>
+  </div>
 
   <!-- 動画一覧 -->
   <main id="videoList" tabindex="-1" aria-label="動画一覧" class="max-w-4xl mx-auto px-4 pt-3 pb-8 sm:py-8 divide-y divide-gray-200">
@@ -437,8 +465,10 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./playback-transition-policy.js?v=1"></script>
   <script src="./end-countdown-policy.js?v=1"></script>
   <script src="./player-size-policy.js?v=1"></script>
-  <script src="./script.js?v=104"></script>
-  <script src="./mobile-filter-modal.js?v=32"></script>
+  <script src="./filter-share-url.js?v=1"></script>
+  <script src="./filter-share.js?v=1"></script>
+  <script src="./script.js?v=105"></script>
+  <script src="./mobile-filter-modal.js?v=33"></script>
   <script src="./desktop-filter-panel.js?v=32"></script>
   <script src="./ui-polish.js?v=36"></script>
   <script src="./player-collapse.js?v=36"></script>
