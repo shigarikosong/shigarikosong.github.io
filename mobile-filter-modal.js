@@ -506,6 +506,13 @@
     renderCollabTags();
   });
   window.addEventListener("tagFilterStateChanged", event => {
+    if (event.detail?.source === "shared-filter-url") {
+      cancelScheduledFilterApply();
+      hasUnappliedModalChanges = false;
+      shouldDispatchStateChangeAfterApply = false;
+      if (modal.open) syncModalControls();
+      return;
+    }
     if (event.detail?.source === "mobile-filter-modal") {
       updateModalResultCount();
       return;

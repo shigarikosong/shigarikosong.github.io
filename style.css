@@ -85,6 +85,92 @@ body {
   align-items: start;
 }
 
+.result-count-with-share {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.filter-share-button {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.filter-share-button img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.65;
+}
+
+.filter-share-button:hover,
+.filter-share-button:focus-visible {
+  background: #e5e7eb;
+  outline: 2px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 1px;
+}
+
+@media (pointer: coarse) {
+  .filter-share-button { flex-basis: 44px; width: 44px; }
+  .filter-share-button::before { content: ''; position: absolute; inset: -8px 0; }
+}
+
+.filter-share-button[hidden],
+.filter-share-toast[hidden] {
+  display: none;
+}
+
+.filter-share-toast {
+  position: fixed;
+  z-index: 70;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.filter-share-dialog {
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  overflow-y: auto;
+}
+
+.filter-share-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.filter-share-dialog h2 { margin: 0 0 12px; font-size: 1.125rem; font-weight: 600; }
+.filter-share-dialog p { margin: 0 0 16px; font-size: 0.875rem; }
+.filter-share-dialog label { display: block; margin-bottom: 4px; font-size: 0.875rem; }
+.filter-share-dialog input { width: 100%; min-width: 0; padding: 8px; border: 1px solid #9ca3af; border-radius: 4px; font-size: 16px; }
+.filter-share-dialog-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+.filter-share-dialog-actions button { padding: 8px 16px; border-radius: 6px; }
+
 .video-card-content {
   min-width: 0;
 }

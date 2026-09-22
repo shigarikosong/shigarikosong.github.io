@@ -55,6 +55,8 @@
 - `search-utils.js`: AND / OR / 除外検索の解析と一致判定
 - `video-query.js`: 検索・include条件・日付・並び順による表示候補の作成
 - `filter-state.js`: include / exclude状態の共通API
+- `filter-share-url.js`: 検索・絞り込み条件と共有URLの相互変換・検証
+- `filter-share.js`: 件数横の共有操作、コピー結果・手動コピー、URLからの状態復元
 - `filter-tag-view.js`: タグの選択・除外表示とアクセシブルネーム
 - `focus-utils.js`: 再描画前後の操作位置の維持とダイアログ内のTab移動
 - `mobile-filter-modal.js`: モバイルフィルターモーダル
