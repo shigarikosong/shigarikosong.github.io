@@ -2679,6 +2679,117 @@ function createVideoCardTopRow(video, sourceVideoKey) {
   return topRow;
 }
 
+let numberInspectionEnabled = false;
+let numberInspectionToastTimer = null;
+let numberCopyRequest = 0;
+
+function clearNumberInspectionToast() {
+  clearTimeout(numberInspectionToastTimer);
+  const toast = document.getElementById('numberInspectionToast');
+  toast.hidden = true;
+  toast.textContent = '';
+}
+
+function showNumberInspectionToast(message) {
+  clearNumberInspectionToast();
+  const toast = document.getElementById('numberInspectionToast');
+  toast.hidden = false;
+  toast.textContent = message;
+  numberInspectionToastTimer = setTimeout(clearNumberInspectionToast, 3500);
+}
+
+async function copyVideoNumber(number, valueElement, button) {
+  const request = ++numberCopyRequest;
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(number);
+    copied = true;
+  } catch {
+    // Clipboard permission can be denied; keep the exact ID available for manual copying.
+  }
+  if (request !== numberCopyRequest || !numberInspectionEnabled || !button.isConnected ||
+      document.querySelector('dialog[open]')) return;
+
+  if (!copied) {
+    const range = document.createRange();
+    range.selectNodeContents(valueElement);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+  showNumberInspectionToast(copied
+    ? `番号 ${number} をコピーしました`
+    : 'コピーできませんでした。番号を手動でコピーしてください。');
+}
+
+function updateVideoCardNumberControl(metaRow, number) {
+  const existing = metaRow.querySelector('.video-number-control');
+  const shouldShowNumber = numberInspectionEnabled && Boolean(number);
+  metaRow.classList.toggle('has-video-number', shouldShowNumber);
+  if (!shouldShowNumber) {
+    existing?.remove();
+    return;
+  }
+  if (existing) return;
+
+  const control = document.createElement('span');
+  control.className = 'video-number-control';
+  const label = document.createElement('span');
+  label.className = 'video-number-label';
+  label.appendChild(document.createTextNode('No.'));
+  const value = document.createElement('span');
+  value.className = 'video-number-value';
+  value.textContent = number;
+  label.appendChild(value);
+
+  const copyButton = document.createElement('button');
+  copyButton.type = 'button';
+  copyButton.className = 'video-number-copy';
+  copyButton.dataset.focusKey = 'copy-number';
+  copyButton.title = `番号 ${number} をコピー`;
+  copyButton.setAttribute('aria-label', copyButton.title);
+  const icon = document.createElement('img');
+  icon.src = './assets/icon/copy.svg';
+  icon.alt = '';
+  icon.setAttribute('aria-hidden', 'true');
+  copyButton.appendChild(icon);
+  copyButton.addEventListener('click', event => {
+    event.stopPropagation();
+    copyVideoNumber(number, value, copyButton);
+  });
+  control.append(label, copyButton);
+  metaRow.insertBefore(control, metaRow.querySelector('.video-meta-waku'));
+}
+
+function setNumberInspectionEnabled(enabled) {
+  const next = Boolean(enabled);
+  if (next === numberInspectionEnabled) return;
+  const cards = [...videoList.querySelectorAll('[data-video-key]')];
+  const topOffset = window.ScrollUtils.getStickyTopOffset();
+  const anchor = cards.find(card => {
+    const rect = card.getBoundingClientRect();
+    return rect.bottom > topOffset && rect.top < window.innerHeight;
+  });
+  const anchorTop = anchor?.getBoundingClientRect().top;
+  const restoreFocus = window.FocusUtils.capture(videoList, videoList);
+  numberInspectionEnabled = next;
+  numberCopyRequest++;
+  clearNumberInspectionToast();
+  cards.forEach(card => {
+    updateVideoCardNumberControl(card.querySelector('.video-meta'), card.dataset.videoNumber);
+  });
+  restoreFocus();
+  // Keep the same on-screen card in place when metadata rows gain or lose height.
+  if (anchor) window.ScrollUtils.scrollElementIntoComfortView(anchor, { behavior: 'auto', topOffset: anchorTop });
+  requestNowPlayingFloatingButtonUpdate();
+  window.dispatchEvent(new CustomEvent('numberInspectionModeChange'));
+}
+
+window.NumberInspection = Object.freeze({
+  isEnabled: () => numberInspectionEnabled,
+  setEnabled: setNumberInspectionEnabled
+});
+
 function createVideoCardMetaRow(video) {
   const metaRow = document.createElement('div');
   metaRow.className = 'video-meta';
@@ -2697,6 +2808,7 @@ function createVideoCardMetaRow(video) {
     metaRow.appendChild(wakuSpan);
   }
 
+  if (numberInspectionEnabled) updateVideoCardNumberControl(metaRow, video._number);
   return metaRow;
 }
 
@@ -2773,6 +2885,7 @@ function createVideoCard(video, cardIndex) {
 
   const key = getVideoKey(video);
   item.dataset.videoKey = key;
+  item.dataset.videoNumber = video._number;
   item.dataset.focusScope = key;
   if (key === nowPlayingKey) item.classList.add('playing');
 

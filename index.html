@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./tailwind.generated.css?v=3">
-  <link rel="stylesheet" href="./style.css?v=69">
+  <link rel="stylesheet" href="./style.css?v=70">
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body style="background-color: #FFE36C;" class="text-gray-800">
@@ -90,7 +90,11 @@
     <button id="closeSiteInfoModal" type="button" class="site-info-modal__close" aria-label="このサイトについてを閉じる">×</button>
 
     <div class="site-info-modal__body">
-      <h2 id="siteInfoTitle">このサイトについて</h2>
+      <h2 id="siteInfoTitle"><button id="numberInspectionTrigger" type="button">このサイトについて</button></h2>
+      <div id="numberInspectionControls" class="number-inspection-controls" hidden>
+        <span role="status">番号表示中</span>
+        <button id="exitNumberInspection" type="button" class="neutral-toolbar-button">番号表示を終了</button>
+      </div>
       <p class="site-info-modal__lead">にじさんじ所属 司賀りこさんの歌ってみたや踊ってみた等をまとめたサイトです。</p>
 
       <h3>探す</h3>
@@ -134,6 +138,8 @@
     </div>
   </div>
 </dialog>
+
+<div id="numberInspectionToast" class="number-inspection-toast" role="status" aria-live="polite" hidden></div>
 
   <!-- サイト説明 -->
   <div class="max-w-4xl mx-auto px-4 mt-2 text-center text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -431,13 +437,13 @@ YouTube / TikTok の動画を掲載しています。
   <script src="./playback-transition-policy.js?v=1"></script>
   <script src="./end-countdown-policy.js?v=1"></script>
   <script src="./player-size-policy.js?v=1"></script>
-  <script src="./script.js?v=103"></script>
+  <script src="./script.js?v=104"></script>
   <script src="./mobile-filter-modal.js?v=32"></script>
   <script src="./desktop-filter-panel.js?v=32"></script>
   <script src="./ui-polish.js?v=36"></script>
   <script src="./player-collapse.js?v=36"></script>
   <script src="./filter-scroll-position.js?v=28"></script>
-  <script src="./site-info-modal.js?v=3"></script>
+  <script src="./site-info-modal.js?v=4"></script>
 
 </body>
 </html>
