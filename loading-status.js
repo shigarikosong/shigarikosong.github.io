@@ -107,8 +107,7 @@
       status = document.createElement('div');
       status.id = 'loadingStatus';
       status.className = 'loading-status';
-      videoList.innerHTML = '';
-      videoList.appendChild(status);
+      videoList.prepend(status);
     }
 
     status.textContent = message;
@@ -131,6 +130,7 @@
 
   function showVideoListError() {
     setStatus(errorMessage, true, true);
+    videoList.querySelector('[data-static-video-fallback]')?.classList.add('is-visible');
   }
 
   function setupBackToTopButton() {

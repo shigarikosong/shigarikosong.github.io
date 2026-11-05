@@ -69,6 +69,14 @@ pnpm run validate:data
 
 固定IDの重複、`full_number`の参照切れ、曲名・アーティスト名を含む必須項目、動画ID、時刻範囲、日付、`player_aspect`などを確認します。JSON自動更新Workflowでも、取得データをリポジトリへ反映する前に同じ検査を実行します。
 
+`data/videos.json`更新時は、検索エンジン等がJavaScriptなしでも最新記録を読めるよう、トップページ内の静的フォールバックも更新します。
+
+```sh
+pnpm run generate:static-fallback
+```
+
+JSON自動更新Workflowはこの生成も実行し、Pull Requestでは生成差分が残っていないことを確認します。通常表示では、従来どおりJavaScriptが全件の動画一覧へ置き換えます。
+
 ## 動画収録状況の自動確認
 
 司賀りこWikiと`data/videos.json`を週1回照合し、候補の有無にかかわらずGitHubの監視Issueへ結果を記録します。
