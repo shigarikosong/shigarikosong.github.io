@@ -40,6 +40,11 @@ jobs:
       - name: Run automated tests
         run: pnpm test
 
+      - name: Verify static video fallback
+        run: |
+          pnpm run generate:static-fallback
+          git diff --exit-code -- index.html
+
       - name: Verify generated Tailwind CSS
         run: |
           pnpm run build:css

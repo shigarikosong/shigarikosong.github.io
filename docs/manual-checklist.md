@@ -280,6 +280,9 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] `loading-status.js` が `window.fetch`、`populateFilters()`、`renderVideoList()`、`loadVideo()`を上書きしていない。
 - [ ] 動画JSONの取得・配列確認・必須項目確認が`script.js`の専用読み込み処理で行われる。
 - [ ] 動画JSONの取得失敗・不正形式時に、0件一覧へ進まず読み込みエラー表示が残る。
+- [ ] 通常読み込み時は静的フォールバックが表示されず、従来どおり全件の動画一覧へ置き換わる。
+- [ ] 動画JSONの取得失敗時はエラー表示と最新30件の静的フォールバックが残る。
+- [ ] `pnpm run generate:static-fallback`実行後に`index.html`の生成差分が残らない。
 - [ ] `ui-polish.js` が `renderVideoList()` を上書きしていない。
 - [ ] タグ状態が`FilterState`内で保持され、`selectedCategoryTag`などの古いグローバル変数が復活していない。
 - [ ] 枠名とコラボメンバー収納が `script.js` のカード描画内で反映され、削除済みの `waku-name-display.js` への参照が残っていない。

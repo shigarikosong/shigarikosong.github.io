@@ -47,17 +47,20 @@ jobs:
           cp "$tmp_dir/videos.json" data/videos.json
           cp "$tmp_dir/meta.json" data/meta.json
 
+      - name: Generate static video fallback
+        run: node scripts/generate-static-video-fallback.mjs
+
       - name: Commit and push changes
         run: |
           set -euo pipefail
 
-          if [ -z "$(git status --porcelain -- data/videos.json data/meta.json)" ]; then
+          if [ -z "$(git status --porcelain -- data/videos.json data/meta.json index.html)" ]; then
             echo "No JSON data changes."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/videos.json data/meta.json
+          git add data/videos.json data/meta.json index.html
           git commit -m "Update JSON data"
           git push
