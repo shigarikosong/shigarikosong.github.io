@@ -2828,6 +2828,15 @@ function createVideoCardPrimaryTagRow(video) {
   const tagRow = document.createElement('div');
   tagRow.className = 'video-card-tag-row flex flex-wrap gap-1.5';
 
+  roles.forEach(role => {
+    tagRow.appendChild(createVideoCardFilterTag(role, 'role', role, {
+      beforeApply: () => {
+        const modalRoleFilter = document.getElementById('modalRoleFilter');
+        if (modalRoleFilter) modalRoleFilter.value = '';
+      }
+    }));
+  });
+
   if (category) {
     tagRow.appendChild(createVideoCardFilterTag(category, 'category', category, {
       beforeApply: () => {
@@ -2856,15 +2865,6 @@ function createVideoCardPrimaryTagRow(video) {
   if (video._isShorts) {
     tagRow.appendChild(createVideoCardFilterTag('Shorts', 'format', 'Shorts'));
   }
-
-  roles.forEach(role => {
-    tagRow.appendChild(createVideoCardFilterTag(role, 'role', role, {
-      beforeApply: () => {
-        const modalRoleFilter = document.getElementById('modalRoleFilter');
-        if (modalRoleFilter) modalRoleFilter.value = '';
-      }
-    }));
-  });
 
   return tagRow;
 }
