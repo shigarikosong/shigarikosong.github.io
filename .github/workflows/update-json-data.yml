@@ -54,13 +54,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [ -z "$(git status --porcelain -- data/videos.json data/meta.json index.html)" ]; then
+          if [ -z "$(git status --porcelain -- data/videos.json data/meta.json index.html sitemap.xml)" ]; then
             echo "No JSON data changes."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/videos.json data/meta.json index.html
+          git add data/videos.json data/meta.json index.html sitemap.xml
           git commit -m "Update JSON data"
           git push

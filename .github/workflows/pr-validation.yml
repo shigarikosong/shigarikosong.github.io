@@ -43,7 +43,7 @@ jobs:
       - name: Verify static video fallback
         run: |
           pnpm run generate:static-fallback
-          git diff --exit-code -- index.html
+          git diff --exit-code -- index.html sitemap.xml
 
       - name: Verify generated Tailwind CSS
         run: |

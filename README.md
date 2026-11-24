@@ -69,13 +69,13 @@ pnpm run validate:data
 
 固定IDの重複、`full_number`の参照切れ、曲名・アーティスト名を含む必須項目、動画ID、時刻範囲、日付、`player_aspect`などを確認します。JSON自動更新Workflowでも、取得データをリポジトリへ反映する前に同じ検査を実行します。
 
-`data/videos.json`更新時は、検索エンジン等がJavaScriptなしでも最新記録を読めるよう、トップページ内の静的フォールバックも更新します。
+`data/videos.json`更新時は、検索エンジン等がJavaScriptなしでも最新記録を読めるよう、トップページ内の静的フォールバックも更新します。同時に、動画データが実際に変更された日を`sitemap.xml`の`lastmod`へ反映します。
 
 ```sh
 pnpm run generate:static-fallback
 ```
 
-JSON自動更新Workflowはこの生成も実行し、Pull Requestでは生成差分が残っていないことを確認します。通常表示では、従来どおりJavaScriptが全件の動画一覧へ置き換えます。
+JSON自動更新Workflowはこの生成も実行し、Pull Requestでは`index.html`と`sitemap.xml`に生成差分が残っていないことを確認します。Workflowが動いただけでは`lastmod`を進めず、動画データの追加・修正時だけ更新します。通常表示では、従来どおりJavaScriptが全件の動画一覧へ置き換えます。
 
 ## 動画収録状況の自動確認
 

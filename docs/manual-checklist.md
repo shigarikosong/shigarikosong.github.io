@@ -282,7 +282,8 @@ PR前やPreview Deployment確認時に使う手動チェックリストです。
 - [ ] 動画JSONの取得失敗・不正形式時に、0件一覧へ進まず読み込みエラー表示が残る。
 - [ ] 通常読み込み時は静的フォールバックが表示されず、従来どおり全件の動画一覧へ置き換わる。
 - [ ] 動画JSONの取得失敗時はエラー表示と最新30件の静的フォールバックが残る。
-- [ ] `pnpm run generate:static-fallback`実行後に`index.html`の生成差分が残らない。
+- [ ] `pnpm run generate:static-fallback`実行後に`index.html`と`sitemap.xml`の生成差分が残らない。
+- [ ] 動画データが変わらない再生成では`sitemap.xml`の`lastmod`が進まない。
 - [ ] `ui-polish.js` が `renderVideoList()` を上書きしていない。
 - [ ] タグ状態が`FilterState`内で保持され、`selectedCategoryTag`などの古いグローバル変数が復活していない。
 - [ ] 枠名とコラボメンバー収納が `script.js` のカード描画内で反映され、削除済みの `waku-name-display.js` への参照が残っていない。

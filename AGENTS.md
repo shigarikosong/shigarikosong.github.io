@@ -67,7 +67,7 @@
 - `end-countdown-policy.js`: 終了時刻と早送り後の猶予カウントダウンの判断
 - `player-size-policy.js`: 通常動画・Shorts・TikTokのプレイヤーサイズ計算
 - `loading-status.js`: 読み込み状態表示とページトップボタン
-- `scripts/generate-static-video-fallback.mjs`: `data/videos.json`からトップページ内の静的な最新記録を生成
+- `scripts/generate-static-video-fallback.mjs`: 動画データからトップページ内の静的な最新記録と`sitemap.xml`の`lastmod`を生成
 
 カード項目、アクティブ条件、フィルター、再生処理を変更するときは、既存の正式な生成・更新経路へ反映してください。補助スクリプトから`renderVideoList()`、`applyFilters()`、`loadVideo()`などを後から上書きする経路は追加しません。
 

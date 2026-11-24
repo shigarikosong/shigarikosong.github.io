@@ -1,10 +1,12 @@
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const FALLBACK_LIMIT = 30;
 const START_MARKER = '<!-- STATIC_VIDEO_FALLBACK_START -->';
 const END_MARKER = '<!-- STATIC_VIDEO_FALLBACK_END -->';
+const SITEMAP_DATA_VERSION_PATTERN = /<!-- data-version: ([a-f0-9]{64}) -->/;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -147,10 +149,50 @@ function updateIndexHtml(indexHtml, videos, limit = FALLBACK_LIMIT) {
   return `${indexHtml.slice(0, start)}${renderFallback(videos, limit)}${indexHtml.slice(end + END_MARKER.length)}`;
 }
 
+function getDataVersion(videos, metaRows) {
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify({ videos, metaRows }))
+    .digest('hex');
+}
+
+function getJapanDate(now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function renderSitemap(lastmod, dataVersion) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- data-version: ${dataVersion} -->
+  <url>
+    <loc>https://shigarikosong.github.io/</loc>
+    <lastmod>${lastmod}</lastmod>
+  </url>
+</urlset>
+`;
+}
+
+function updateSitemapXml(currentXml, dataVersion, today = getJapanDate()) {
+  const currentVersion = currentXml.match(SITEMAP_DATA_VERSION_PATTERN)?.[1] || '';
+  const currentLastmod = currentXml.match(/<lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod>/)?.[1] || '';
+  const lastmod = currentVersion === dataVersion && currentLastmod ? currentLastmod : today;
+  return renderSitemap(lastmod, dataVersion);
+}
+
 function generate({ rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..') } = {}) {
   const dataPath = path.join(rootDir, 'data/videos.json');
+  const metaPath = path.join(rootDir, 'data/meta.json');
   const indexPath = path.join(rootDir, 'index.html');
+  const sitemapPath = path.join(rootDir, 'sitemap.xml');
   const videos = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  const metaRows = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
   if (!Array.isArray(videos) || !videos.length) {
     throw new Error('data/videos.json must contain at least one video');
   }
@@ -158,7 +200,15 @@ function generate({ rootDir = path.resolve(path.dirname(fileURLToPath(import.met
   const currentHtml = fs.readFileSync(indexPath, 'utf8');
   const nextHtml = updateIndexHtml(currentHtml, videos);
   fs.writeFileSync(indexPath, nextHtml);
-  console.log(`Generated ${Math.min(videos.length, FALLBACK_LIMIT)} static video fallback entries.`);
+
+  const currentSitemap = fs.readFileSync(sitemapPath, 'utf8');
+  const nextSitemap = updateSitemapXml(currentSitemap, getDataVersion(videos, metaRows));
+  fs.writeFileSync(sitemapPath, nextSitemap);
+  const lastmod = nextSitemap.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1];
+  console.log(
+    `Generated ${Math.min(videos.length, FALLBACK_LIMIT)} static video fallback entries ` +
+    `and sitemap lastmod ${lastmod}.`
+  );
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -172,8 +222,12 @@ export {
   extractTikTokPostId,
   extractYouTubeVideoId,
   generate,
+  getDataVersion,
+  getJapanDate,
   getVideoUrl,
   parseTimeToSeconds,
   renderFallback,
+  renderSitemap,
+  updateSitemapXml,
   updateIndexHtml
 };
