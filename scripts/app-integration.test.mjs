@@ -114,6 +114,19 @@ test('tag changes refresh card state even when the same rows remain visible', as
   assert.equal(document.getElementById('activeTagChipsInner').textContent, '');
 });
 
+test('video cards place Riko Part tags before other primary tags', async t => {
+  const app = await createAppFixture(t, [videoRow(firstId, {
+    'カテゴリ': 'コラボ',
+    platform: 'YouTube',
+    '動画種別': '歌枠',
+    '担当区分': 'VOCAL'
+  })]);
+  const tags = [...app.document.querySelectorAll('#videoList .video-card-tag-row [data-filter-group]')];
+
+  assert.deepEqual(tags.map(tag => tag.dataset.filterGroup), ['role', 'category', 'platform', 'format']);
+  assert.deepEqual(tags.map(tag => tag.textContent), ['VOCAL', 'コラボ', 'YouTube', '歌枠']);
+});
+
 test('same-count result replacements and sorting rebuild cards and preserve playback order', async t => {
   const app = await createAppFixture(t, [
     videoRow(firstId, { title: 'Keep Zulu' }),
