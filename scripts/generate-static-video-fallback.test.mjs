@@ -5,8 +5,11 @@ import {
   END_MARKER,
   FALLBACK_LIMIT,
   START_MARKER,
+  getDataVersion,
+  getJapanDate,
   getVideoUrl,
   renderFallback,
+  updateSitemapXml,
   updateIndexHtml
 } from './generate-static-video-fallback.mjs';
 
@@ -44,6 +47,24 @@ test('index.htmlの生成済み領域だけを置き換える', () => {
   assert.match(result, /after$/);
 });
 
+test('動画データが変わった日だけsitemapのlastmodを更新する', () => {
+  const firstVersion = getDataVersion([{ title: 'First' }], []);
+  const first = updateSitemapXml('', firstVersion, '2026-11-24');
+  assert.match(first, /<lastmod>2026-11-24<\/lastmod>/);
+
+  const unchanged = updateSitemapXml(first, firstVersion, '2026-12-01');
+  assert.equal(unchanged, first);
+
+  const secondVersion = getDataVersion([{ title: 'Second' }], []);
+  const changed = updateSitemapXml(first, secondVersion, '2026-12-01');
+  assert.match(changed, /<lastmod>2026-12-01<\/lastmod>/);
+  assert.notEqual(changed, first);
+});
+
+test('lastmod用の日付は日本時間で求める', () => {
+  assert.equal(getJapanDate(new Date('2026-11-23T15:30:00Z')), '2026-11-24');
+});
+
 test('コミット済みindex.htmlのフォールバックが動画JSONと一致する', () => {
   const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const videos = JSON.parse(fs.readFileSync(new URL('../data/videos.json', import.meta.url), 'utf8'));
@@ -55,4 +76,13 @@ test('コミット済みindex.htmlのフォールバックが動画JSONと一致
 
   assert.equal(indexHtml, generated);
   assert.equal((fallback.match(/<article class="static-video-entry">/g) || []).length, FALLBACK_LIMIT);
+});
+
+test('コミット済みsitemap.xmlのdata-versionが動画データと一致する', () => {
+  const sitemap = fs.readFileSync(new URL('../sitemap.xml', import.meta.url), 'utf8');
+  const videos = JSON.parse(fs.readFileSync(new URL('../data/videos.json', import.meta.url), 'utf8'));
+  const metaRows = JSON.parse(fs.readFileSync(new URL('../data/meta.json', import.meta.url), 'utf8'));
+  const generated = updateSitemapXml(sitemap, getDataVersion(videos, metaRows), '2099-01-01');
+
+  assert.equal(sitemap, generated);
 });
