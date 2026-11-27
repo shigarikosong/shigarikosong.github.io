@@ -51,11 +51,11 @@ test('Repeat ALLはRandom設定に応じて順番またはランダム遷移す�
   })), {
     type: 'random',
     autoplay: true,
-    autoPlayableOnly: true
+    autoPlayableOnly: false
   });
 });
 
-test('自動連続再生ではTikTokを除外する', () => {
+test('順番どおりの自動送り用の候補はTikTokを除外する', () => {
   const policy = createTransitionPolicy();
 
   assert.equal(policy.isAutoPlayableVideo({ _platform: 'youtube' }), true);

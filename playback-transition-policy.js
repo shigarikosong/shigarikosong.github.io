@@ -18,7 +18,7 @@
     random: Object.freeze({
       type: "random",
       autoplay: true,
-      autoPlayableOnly: true
+      autoPlayableOnly: false
     })
   });
 

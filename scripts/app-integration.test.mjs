@@ -167,7 +167,7 @@ test('data reloads with existing keys refresh metadata and total counts', async 
   assert.deepEqual(Array.from(app.window.currentFilteredVideos, app.window.getVideoKey), app.visibleKeys());
 });
 
-test('reused cards keep playback highlighting and refresh autoplay notices', async t => {
+test('reused cards keep playback highlighting and allow TikTok-only shuffle', async t => {
   const app = await createAppFixture(t, [videoRow(tiktokId, { platform: 'TikTok' })]);
   const { window, document } = app;
   const card = document.querySelector('#videoList [data-video-key]');
@@ -178,7 +178,7 @@ test('reused cards keep playback highlighting and refresh autoplay notices', asy
   document.getElementById('repeatModeBtn').click();
   document.getElementById('randomModeBtn').click();
   window.applyFilters({ scrollAfterUpdate: false });
-  assert.ok(document.getElementById('autoPlayNotice'));
+  assert.equal(document.getElementById('autoPlayNotice'), null);
   assert.equal(document.querySelector('#videoList [data-video-key]'), card);
   document.getElementById('randomModeBtn').click();
   window.applyFilters({ scrollAfterUpdate: false });
@@ -296,6 +296,33 @@ test('automatic next skips TikTok and still respects manual-play mode', async t 
   assert.deepEqual(app.youtube.commands.filter(command => command.type === 'cue').map(command => command.videoId), [firstId, secondId]);
   assert.equal(app.youtube.commands.some(command => command.type === 'load'), false);
 });
+
+for (const manualPlay of ['0', '1']) {
+  test(`TikTok card and shuffle use the manual playback setting (${manualPlay})`, async t => {
+    const app = await createAppFixture(t, [
+      videoRow(firstId), videoRow(tiktokId, { platform: 'TikTok' })
+    ], { storage: { playerRepeatMode: 'all', manualPlayTestMode: manualPlay } });
+    const { window, document } = app;
+    const autoplay = () => new URL(document.querySelector('#tiktokPlayer iframe').src).searchParams.get('autoplay');
+    app.play(`${tiktokId}__0`);
+    assert.equal(autoplay(), manualPlay === '1' ? '0' : '1');
+    app.youtube.ready();
+    app.play(`${firstId}__0`);
+    document.getElementById('randomModeBtn').click();
+    app.youtube.emitState(window.YT.PlayerState.ENDED);
+    assert.equal(window.nowPlayingKey, `${tiktokId}__0`);
+    assert.equal(autoplay(), manualPlay === '1' ? '0' : '1');
+    const frame = document.querySelector('#tiktokPlayer iframe');
+    for (const value of [1, 0]) {
+      window.dispatchEvent(new window.MessageEvent('message', {
+        origin: 'https://www.tiktok.com',
+        source: frame.contentWindow,
+        data: { 'x-tiktok-player': true, type: 'onStateChange', value }
+      }));
+    }
+    assert.equal(window.nowPlayingKey, `${firstId}__0`);
+  });
+}
 
 test('random previous restores history even when the row is filtered out', async t => {
   const app = await createAppFixture(t, [videoRow(firstId), videoRow(secondId)]);
