@@ -64,13 +64,11 @@ Normal playback should use `currentFilteredVideos` when available, and fall back
 
 The visible list after search, tag filtering, and exclusion filtering is the basis for previous/next and random playback.
 
-Automatic continuous playback must exclude TikTok.
+Sequential automatic advance excludes TikTok; shuffle includes TikTok.
 
 Manual random playback should follow the current behavior and target the currently visible list.
 
 When the random playback target list is empty, random playback should not start and should not call playback with an undefined video.
-
-Even when TikTok is included in the visible list, automatic continuous playback should treat it as skipped / not auto-playable.
 
 ## 5. `getVideoKey()` / `nowPlayingKey` Rules
 
@@ -103,13 +101,13 @@ The fixed player play / pause button controls YouTube through the YouTube IFrame
 - The control remains available while the player window is collapsed.
 - Closing the player resets the control to its unavailable play state.
 - TikTok keeps its own playback-intent flag. `onPlayerReady` confirms full readiness, while `onStateChange` keeps the icon synchronized with operations performed inside the embedded player.
-- TikTok does not auto-play. The first playback must be started inside the embedded TikTok player because some browsers reject a host-page play command before that interaction.
+- TikTok requests autoplay when manual play mode is off. If playback does not start, use the embedded play button. Manual play mode disables autoplay for TikTok as well.
 - Before the first real TikTok playback state is observed, keep the fixed-player play button disabled and translucent without showing an additional notice.
 - After TikTok reports `BUFFERING` or `PLAYING`, enable normal play / pause control from the fixed player. Keep it available for subsequent pauses, resumes, and playback completion.
 - Recognize TikTok player events by the official `x-tiktok-player` message marker. Internal player frames may relay events without using the outer iframe window as `event.source`.
 - TikTok `PLAYING` shows pause, `PAUSED` / `ENDED` show play, and `BUFFERING` / `INIT` preserve the current playback intent.
 - Do not optimistically change the TikTok icon after posting a command. Only a real `onStateChange` updates the control.
-- TikTok remains excluded from automatic continuous playback; fixed-player play / pause support does not change that rule.
+- TikTok's end event uses the existing Repeat / Random transition policy. Failed autoplay is not skipped automatically.
 - Manual play test mode still cues the selected YouTube video. The fixed player control may start it, while the native YouTube play button remains available for the intended manual-play check.
 
 ## 6. Previous / Next Rules
@@ -196,7 +194,7 @@ On video end:
 
 `PlaybackTransitionPolicy.getVideoEndTransition()` owns this decision. Both the native YouTube `ENDED` event and the end-time countdown should execute the resulting transition through the same path.
 
-TikTok must remain excluded from automatic continuous playback for both sequential and random Repeat ALL transitions. Manual previous / next and manual random playback may still select TikTok from the visible list.
+Sequential Repeat ALL transitions skip TikTok. Shuffle Repeat ALL, manual previous / next, and manual random playback can select TikTok from the visible list.
 
 YouTube should autoplay for normal list title selection, previous / next, and manual random playback regardless of repeat mode.
 
@@ -279,8 +277,6 @@ Treat the YouTube player's `onReady` event, not merely creation of the `YT.Playe
 YouTube can be used for automatic continuous playback.
 
 TikTok uses the official Embed Player iframe at `https://www.tiktok.com/player/v1/{POST_ID}`.
-
-TikTok is not eligible for automatic continuous playback.
 
 TikTok can still be selected and played manually.
 
@@ -386,7 +382,7 @@ Before merging player-related behavior changes, check:
 - One repeat plays the same video again.
 - All repeat moves to the next video.
 - All repeat + random ON uses random automatic playback.
-- TikTok remains excluded from automatic continuous playback.
+- Sequential automatic advance skips TikTok; shuffle can play it and continue after it ends.
 - Closing/restoring the player still works.
 - Player height adjustment still works on desktop and mobile.
 - Now playing display and the `playing` class stay in sync.

@@ -695,6 +695,7 @@ let isTikTokPlaybackRequested = false;
 let isTikTokPlayerReady = false;
 let isTikTokPlayerFrameLoaded = false;
 let isTikTokPlaybackControlActivated = false;
+let shouldUnmuteTikTokOnFirstPlay = false;
 let pendingTikTokPlaybackCommand = null;
 let tiktokPlaybackCommandTimers = [];
 
@@ -1768,6 +1769,7 @@ function resetTikTokPlaybackControl() {
   isTikTokPlayerReady = false;
   isTikTokPlayerFrameLoaded = false;
   isTikTokPlaybackControlActivated = false;
+  shouldUnmuteTikTokOnFirstPlay = false;
   isTikTokPlaybackRequested = false;
 }
 
@@ -1844,6 +1846,10 @@ function handleTikTokPlayerMessage(event) {
   if (message.type === 'onStateChange') {
     isTikTokPlayerReady = true;
     const playerState = Number(message.value);
+    if (playerState === TIKTOK_PLAYER_STATES.playing && shouldUnmuteTikTokOnFirstPlay) {
+      shouldUnmuteTikTokOnFirstPlay = false;
+      postTikTokPlayerMessage('unMute');
+    }
     const isStartingPlayback = (
       playerState === TIKTOK_PLAYER_STATES.playing ||
       playerState === TIKTOK_PLAYER_STATES.buffering
@@ -1867,17 +1873,21 @@ function handleTikTokPlayerMessage(event) {
     if (commandWasAccepted) clearPendingTikTokPlaybackCommand();
     updatePlayPauseButton(playerState, 'tiktok');
     notifyPlayerMediaStateChange('tiktok', playerState);
+    if (playerState === TIKTOK_PLAYER_STATES.ended && isTikTokPlaybackControlActivated) {
+      handleVideoEnded();
+    }
   }
 }
 
-function loadTikTokEmbed(tiktokId) {
+function loadTikTokEmbed(tiktokId, autoplay) {
   if (!tiktokPlayerEl || !tiktokId) return;
 
   resetTikTokPlaybackControl();
+  shouldUnmuteTikTokOnFirstPlay = autoplay;
 
   const iframe = document.createElement('iframe');
   iframe.className = 'tiktok-player-iframe';
-  iframe.src = `https://www.tiktok.com/player/v1/${encodeURIComponent(tiktokId)}?controls=1&autoplay=0`;
+  iframe.src = `https://www.tiktok.com/player/v1/${encodeURIComponent(tiktokId)}?controls=1&autoplay=${autoplay ? 1 : 0}`;
   iframe.title = 'TikTok動画プレイヤー';
   iframe.loading = 'eager';
   iframe.allow = 'autoplay; encrypted-media; fullscreen';
@@ -2896,26 +2906,6 @@ function createVideoCard(video, cardIndex) {
   return item;
 }
 
-function updateVideoListAutoPlayNotice(videos) {
-  document.getElementById('autoPlayNotice')?.remove();
-
-  const playableCount = videos.filter(video => !isTikTokVideo(video)).length;
-  if (!(
-    getRepeatMode() === REPEAT_MODE_ALL &&
-    isRandomModeEnabled() &&
-    videos.length > 0 &&
-    playableCount === 0
-  )) {
-    return;
-  }
-
-  const notice = document.createElement('div');
-  notice.id = 'autoPlayNotice';
-  notice.className = 'auto-play-notice';
-  notice.textContent = 'この条件ではランダム連続再生できる動画がありません（TikTokは対象外です）';
-  document.getElementById('songCount')?.insertAdjacentElement('afterend', notice);
-}
-
 function renderVideoList(videos, { reuseUnchanged = false } = {}) {
   const { include, exclude } = window.FilterState.getState();
   const tagStateSignature = JSON.stringify([include, exclude]);
@@ -2927,7 +2917,7 @@ function renderVideoList(videos, { reuseUnchanged = false } = {}) {
     videos.every((video, index) => video === lastVideoListRender.videos[index]);
   let restoreFocus = null;
   updateResultCounts(allVideos.length, videos.length);
-  updateVideoListAutoPlayNotice(videos);
+  document.getElementById('autoPlayNotice')?.remove();
 
   if (!canReuseCards) {
     restoreFocus = window.FocusUtils.capture(videoList, videoList);
@@ -3293,7 +3283,7 @@ function stopYouTubePlayback() {
   if (playerIframe) playerIframe.src = '';
 }
 
-function loadTikTokVideo(video, videoId) {
+function loadTikTokVideo(video, videoId, options = {}) {
   clearPendingYouTubeVideoLoad();
   isYouTubePlaybackRequested = false;
   stopYouTubePlayback();
@@ -3301,7 +3291,7 @@ function loadTikTokVideo(video, videoId) {
   hideLegacyPlayerIframe();
   prepareTikTokPlayer();
   showFixedPlayer();
-  loadTikTokEmbed(getTikTokId(videoId));
+  loadTikTokEmbed(getTikTokId(videoId), options.autoplay !== false && !isManualPlayTestModeEnabled());
   startPlaybackMonitors(video);
 }
 
@@ -3342,7 +3332,7 @@ function loadVideo(video, item, options = {}) {
   if (platform.includes("youtube")) {
     loadYouTubeVideo(video, videoId, start, options);
   } else if (platform === "tiktok") {
-    loadTikTokVideo(video, videoId);
+    loadTikTokVideo(video, videoId, options);
   } else {
     clearPendingYouTubeVideoLoad();
     alert(`未対応の platform: ${platform}`);
