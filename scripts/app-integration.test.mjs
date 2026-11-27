@@ -313,13 +313,16 @@ for (const manualPlay of ['0', '1']) {
     assert.equal(window.nowPlayingKey, `${tiktokId}__0`);
     assert.equal(autoplay(), manualPlay === '1' ? '0' : '1');
     const frame = document.querySelector('#tiktokPlayer iframe');
-    for (const value of [1, 0]) {
+    const commands = [];
+    frame.contentWindow.postMessage = message => commands.push(message.type);
+    for (const value of [3, 1, 2, 1, 0]) {
       window.dispatchEvent(new window.MessageEvent('message', {
         origin: 'https://www.tiktok.com',
         source: frame.contentWindow,
         data: { 'x-tiktok-player': true, type: 'onStateChange', value }
       }));
     }
+    assert.deepEqual(commands, manualPlay === '1' ? [] : ['unMute']);
     assert.equal(window.nowPlayingKey, `${firstId}__0`);
   });
 }

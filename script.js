@@ -695,6 +695,7 @@ let isTikTokPlaybackRequested = false;
 let isTikTokPlayerReady = false;
 let isTikTokPlayerFrameLoaded = false;
 let isTikTokPlaybackControlActivated = false;
+let shouldUnmuteTikTokOnFirstPlay = false;
 let pendingTikTokPlaybackCommand = null;
 let tiktokPlaybackCommandTimers = [];
 
@@ -1768,6 +1769,7 @@ function resetTikTokPlaybackControl() {
   isTikTokPlayerReady = false;
   isTikTokPlayerFrameLoaded = false;
   isTikTokPlaybackControlActivated = false;
+  shouldUnmuteTikTokOnFirstPlay = false;
   isTikTokPlaybackRequested = false;
 }
 
@@ -1844,6 +1846,10 @@ function handleTikTokPlayerMessage(event) {
   if (message.type === 'onStateChange') {
     isTikTokPlayerReady = true;
     const playerState = Number(message.value);
+    if (playerState === TIKTOK_PLAYER_STATES.playing && shouldUnmuteTikTokOnFirstPlay) {
+      shouldUnmuteTikTokOnFirstPlay = false;
+      postTikTokPlayerMessage('unMute');
+    }
     const isStartingPlayback = (
       playerState === TIKTOK_PLAYER_STATES.playing ||
       playerState === TIKTOK_PLAYER_STATES.buffering
@@ -1877,6 +1883,7 @@ function loadTikTokEmbed(tiktokId, autoplay) {
   if (!tiktokPlayerEl || !tiktokId) return;
 
   resetTikTokPlaybackControl();
+  shouldUnmuteTikTokOnFirstPlay = autoplay;
 
   const iframe = document.createElement('iframe');
   iframe.className = 'tiktok-player-iframe';
